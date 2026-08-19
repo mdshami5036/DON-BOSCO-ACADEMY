@@ -787,64 +787,62 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
   <!-- ═══════════════════════════════════════════════════════════
        LAYER 1: FIXED BACKGROUND (NEVER MODIFY)
-       The background image is rendered as a true background.
-       It is completely independent of the content layer.
   ═══════════════════════════════════════════════════════════ -->
   <div class="dba-bg-layer"></div>
 
   <!-- ═══════════════════════════════════════════════════════════
        LAYER 2: DYNAMIC CONTENT — SAFE AREA OVERLAY
-       All content is constrained inside the printed safe area.
-       Safe margins: Top 70px, Bottom 65px, Left 110px, Right 110px
-       (These keep all text well inside the ornamental border)
   ═══════════════════════════════════════════════════════════ -->
   <div class="dba-content-layer">
 
-    <!-- ─── HEADER ─── -->
-    <div class="dba-header">
-      <img src="{{school_logo}}" alt="Logo" class="dba-logo" />
-      <div class="dba-school-title-block">
-        <div class="dba-school-name">{{school_name}}</div>
-        <div class="dba-school-address">{{school_address}}</div>
-        <div class="dba-school-meta">
-          CBSE Pattern &nbsp;•&nbsp; ESTD: 1997 &nbsp;•&nbsp; Academic Session: {{academic_session}}
+    <!-- ─── HEADER GROUP ─── -->
+    <div class="dba-header-group">
+      <div class="dba-header">
+        <img src="{{school_logo}}" alt="Logo" class="dba-logo" />
+        <div class="dba-school-title-block">
+          <div class="dba-school-name">{{school_name}}</div>
+          <div class="dba-school-address">{{school_address}}</div>
+          <div class="dba-school-meta">
+            CBSE Pattern &nbsp;•&nbsp; ESTD: 1997 &nbsp;•&nbsp; Academic Session: {{academic_session}}
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- ─── DIVIDER ─── -->
-    <div class="dba-header-rule">
-      <span class="dba-rule-ornament">❖</span>
-    </div>
-
-    <!-- ─── CERTIFICATE TITLE ─── -->
-    <div class="dba-title-block">
-      <div class="dba-cert-title">{{certificate_title}}</div>
-      <div class="dba-cert-subtitle-row">
-        <span class="dba-thin-line"></span>
-        <span class="dba-cert-subtitle">Of Merit &amp; Academic Distinction</span>
-        <span class="dba-thin-line"></span>
+      <div class="dba-header-rule">
+        <span class="dba-rule-ornament">❖</span>
       </div>
     </div>
 
-    <!-- ─── RECIPIENT ─── -->
-    <div class="dba-recipient-block">
-      <div class="dba-certify-label">This is to certify that</div>
-      <div class="dba-student-name">{{student_name}}</div>
-      <div class="dba-student-meta-row">
-        <span class="dba-meta-pill">Class: <strong>{{class_name}}</strong></span>
-        <span class="dba-meta-sep">•</span>
-        <span class="dba-meta-pill">Section: <strong>{{section}}</strong></span>
-        <span class="dba-meta-sep">•</span>
-        <span class="dba-meta-pill">Roll No: <strong>{{roll_number}}</strong></span>
-        <span class="dba-meta-sep">•</span>
-        <span class="dba-meta-pill">Adm No: <strong>{{admission_number}}</strong></span>
+    <!-- ─── MIDDLE CONTENT GROUP (CLUSTERED SPACING) ─── -->
+    <div class="dba-middle-group">
+      <!-- ─── CERTIFICATE TITLE ─── -->
+      <div class="dba-title-block">
+        <div class="dba-cert-title">{{certificate_title}}</div>
+        <div class="dba-cert-subtitle-row">
+          <span class="dba-thin-line"></span>
+          <span class="dba-cert-subtitle">Of Merit &amp; Academic Distinction</span>
+          <span class="dba-thin-line"></span>
+        </div>
       </div>
-    </div>
 
-    <!-- ─── DESCRIPTION ─── -->
-    <div class="dba-body-block">
-      <p class="dba-body-text">{{certificate_body}}</p>
+      <!-- ─── RECIPIENT ─── -->
+      <div class="dba-recipient-block">
+        <div class="dba-certify-label">This is to certify that</div>
+        <div class="dba-student-name">{{student_name}}</div>
+        <div class="dba-student-meta-row">
+          <span class="dba-meta-pill">Class: <strong>{{class_name}}</strong></span>
+          <span class="dba-meta-sep">•</span>
+          <span class="dba-meta-pill">Section: <strong>{{section}}</strong></span>
+          <span class="dba-meta-sep">•</span>
+          <span class="dba-meta-pill">Roll No: <strong>{{roll_number}}</strong></span>
+          <span class="dba-meta-sep">•</span>
+          <span class="dba-meta-pill">Adm No: <strong>{{admission_number}}</strong></span>
+        </div>
+      </div>
+
+      <!-- ─── DESCRIPTION ─── -->
+      <div class="dba-body-block">
+        <p class="dba-body-text">{{certificate_body}}</p>
+      </div>
     </div>
 
     <!-- ─── AUTHENTICATION FOOTER (3 COLUMN) ─── -->
@@ -923,16 +921,15 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 /* ══════════════════════════════════════════════════════
    LAYER 2 — DYNAMIC CONTENT / SAFE AREA
    Positioned absolutely on top of the background.
-   Safe margins keep all text inside the ornamental frame.
-   Top: 68px, Bottom: 62px, Left: 108px, Right: 108px
-   (Never place text outside these boundaries)
+   We set bottom: 85px to pull the signatures, stamps, and QR up.
+   Top: 72px, Left/Right: 105px.
 ══════════════════════════════════════════════════════ */
 .dba-content-layer {
   position: absolute;
-  top: 68px;
-  bottom: 62px;
-  left: 108px;
-  right: 108px;
+  top: 72px;
+  bottom: 85px;
+  left: 105px;
+  right: 105px;
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -945,10 +942,9 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 /* ══════════════════════════════════════════════════════
-   HEADER — Logo + School Name + Address
-   Compact, professional. Logo centered above name.
+   LAYOUT GROUPS — CONTROL GAPS & COMPACTNESS
 ══════════════════════════════════════════════════════ */
-.dba-header {
+.dba-header-group {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -957,13 +953,34 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   flex-shrink: 0;
 }
 
+.dba-middle-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px; /* Tighter layout gap between Title, Recipient and Description */
+  width: 100%;
+  flex: 1;
+  justify-content: center;
+}
+
+/* ─── HEADER ─── */
+.dba-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
 .dba-logo {
-  width: 70px;
-  height: 70px;
+  width: 80px; /* Enlarged logo for better visibility */
+  height: 80px;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,0.18));
   flex-shrink: 0;
+  margin-bottom: 2px;
 }
 
 .dba-school-title-block {
@@ -974,40 +991,38 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-school-name {
-  font-size: 22px;
-  font-weight: 900;
+  font-size: 24px; /* Visually enhanced school name */
+  font-weight: 950;
   color: #0b1d3e;
-  letter-spacing: 2.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   line-height: 1.1;
 }
 
 .dba-school-address {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
   color: #2d3748;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
   font-family: 'Georgia', serif;
 }
 
 .dba-school-meta {
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 600;
   color: #4a5568;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
   font-family: 'Georgia', serif;
 }
 
-/* ══════════════════════════════════════════════════════
-   DIVIDER
-══════════════════════════════════════════════════════ */
+/* ─── DIVIDER ─── */
 .dba-header-rule {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   flex-shrink: 0;
-  margin: 0;
+  margin: 1px 0;
 }
 
 .dba-rule-ornament {
@@ -1016,30 +1031,25 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   letter-spacing: 4px;
 }
 
-/* ══════════════════════════════════════════════════════
-   CERTIFICATE TITLE
-   Auto-sizes: large titles wrap gracefully.
-   max-width prevents overflow into decorative borders.
-══════════════════════════════════════════════════════ */
+/* ─── TITLE BLOCK ─── */
 .dba-title-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   width: 100%;
   flex-shrink: 0;
 }
 
 .dba-cert-title {
-  font-size: 22px;
+  font-size: 24px; /* Enhanced heading */
   font-weight: 900;
   color: #0a0a0a;
-  letter-spacing: 2.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  line-height: 1.2;
+  line-height: 1.15;
   max-width: 700px;
   word-wrap: break-word;
-  hyphens: auto;
 }
 
 .dba-cert-subtitle-row {
@@ -1060,43 +1070,39 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-cert-subtitle {
-  font-size: 8.5px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   color: #1e3a8a;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-/* ══════════════════════════════════════════════════════
-   RECIPIENT BLOCK
-   Student name is visually prominent (cursive script).
-   Meta row wraps cleanly if many fields.
-══════════════════════════════════════════════════════ */
+/* ─── RECIPIENT BLOCK ─── */
 .dba-recipient-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   width: 100%;
   flex-shrink: 0;
 }
 
 .dba-certify-label {
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 800;
   color: #64748b;
-  letter-spacing: 2.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   font-family: 'Georgia', serif;
 }
 
 .dba-student-name {
   font-family: 'Great Vibes', 'Brush Script MT', 'Dancing Script', cursive, serif;
-  font-size: 42px;
+  font-size: 46px; /* Highly prominent student name */
   font-weight: bold;
   color: #0b1d3e;
-  line-height: 1.1;
+  line-height: 1.05;
   max-width: 700px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1109,8 +1115,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 4px 8px;
-  font-size: 9.5px;
+  gap: 3px 8px;
+  font-size: 11px; /* Slightly larger metadata text */
   font-weight: 600;
   color: #1e293b;
   font-family: 'Georgia', serif;
@@ -1118,20 +1124,16 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-meta-pill {
-  font-size: 9.5px;
+  font-size: 11px;
   color: #1e293b;
 }
 
 .dba-meta-sep {
-  font-size: 9px;
+  font-size: 10px;
   color: #94a3b8;
 }
 
-/* ══════════════════════════════════════════════════════
-   DESCRIPTION BODY
-   Italic serif paragraph. Wraps automatically.
-   Max-width prevents touching the decorative border frame.
-══════════════════════════════════════════════════════ */
+/* ─── DESCRIPTION BODY ─── */
 .dba-body-block {
   width: 100%;
   display: flex;
@@ -1141,8 +1143,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-body-text {
   font-family: 'Georgia', 'Palatino', serif;
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 13.5px; /* Larger body text for premium readability */
+  line-height: 1.5;
   color: #1a1a2e;
   font-style: italic;
   font-weight: 600;
@@ -1151,14 +1153,10 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   margin: 0;
   padding: 0 10px;
   word-wrap: break-word;
-  hyphens: auto;
 }
 
 /* ══════════════════════════════════════════════════════
-   AUTHENTICATION FOOTER — 3 COLUMN BALANCED LAYOUT
-   Left: Cert No + Date + QR Code
-   Center: Official Stamp/Seal
-   Right: Principal Signature + Name
+   AUTHENTICATION FOOTER — SHIFTED UPWARDS AND EMBOLDENED
 ══════════════════════════════════════════════════════ */
 .dba-auth-row {
   display: flex;
@@ -1167,6 +1165,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   width: 100%;
   flex-shrink: 0;
   gap: 8px;
+  margin-top: 10px;
 }
 
 /* Left column — meta + QR */
@@ -1177,11 +1176,11 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-auth-field {
-  font-size: 8.5px;
+  font-size: 9.5px;
   color: #1e293b;
   margin-bottom: 2px;
   font-family: 'Georgia', serif;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .dba-field-label {
@@ -1198,15 +1197,15 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 .dba-qr-block {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 5px;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .dba-qr-img {
-  width: 56px;
-  height: 56px;
+  width: 65px; /* Enlarged QR code */
+  height: 65px;
   object-fit: contain;
-  border: 2px solid #0f172a;
+  border: 1.5px solid #0f172a;
   padding: 2px;
   background: #ffffff;
   border-radius: 3px;
@@ -1221,7 +1220,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-qr-label {
-  font-size: 7.5px;
+  font-size: 8px;
   font-weight: 800;
   color: #475569;
   text-transform: uppercase;
@@ -1231,12 +1230,12 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-qr-code {
   font-family: 'Courier New', monospace;
-  font-size: 6.5px;
+  font-size: 7px;
   color: #0f172a;
   font-weight: 900;
   word-break: break-all;
   max-width: 110px;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 /* Center column — stamp */
@@ -1246,16 +1245,16 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-stamp-img {
-  width: 70px;
-  height: 70px;
+  width: 85px; /* Stamp enlarged */
+  height: 85px;
   object-fit: contain;
   display: block;
-  margin: 0 auto 2px auto;
+  margin: 0 auto 1px auto;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,0.15));
 }
 
 .dba-stamp-label {
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 800;
   color: #475569;
   letter-spacing: 0.8px;
@@ -1271,12 +1270,12 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-sig-img {
-  height: 44px;
-  max-width: 160px;
+  height: 52px; /* Signature size increased */
+  max-width: 165px;
   object-fit: contain;
   object-position: center bottom;
   display: block;
-  margin: 0 auto -1px auto;
+  margin: 0 auto -2px auto;
 }
 
 .dba-sig-line {
@@ -1286,8 +1285,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-sig-name {
-  font-size: 10px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 950;
   color: #0a0a0a;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1295,7 +1294,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-sig-title {
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
   color: #475569;
   font-family: 'Georgia', serif;
