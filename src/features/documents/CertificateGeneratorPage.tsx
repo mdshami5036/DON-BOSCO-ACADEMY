@@ -33,6 +33,7 @@ export const CertificateGeneratorPage: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
 
   const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [exams, setExams] = useState<any[]>([]);
   const [certType, setCertType] = useState<DocType>('CERTIFICATE');
   const [certTitle, setCertTitle] = useState('Certificate of Academic Excellence');
   const [examName, setExamName] = useState('Annual Examination');
@@ -54,15 +55,17 @@ export const CertificateGeneratorPage: React.FC = () => {
   useEffect(() => {
     async function load() {
       if (!currentSchool) return;
-      const [cList, sList, tList, settings, effective] = await Promise.all([
+      const [cList, sList, tList, settings, effective, eList] = await Promise.all([
         db.getClasses(currentSchool.id),
         db.getStudents(currentSchool.id),
         db.getMasterTemplates(),
         db.getSchoolSettings(currentSchool.id),
         db.getEffectiveTemplate(currentSchool.id, 'CERTIFICATE'),
+        db.getExams(currentSchool.id),
       ]);
       setClasses(cList);
       setStudents(sList);
+      setExams(eList || []);
       if (cList.length > 0) setSelectedClassId(cList[0].id);
       if (sList.length > 0) setSelectedStudentId(sList[0].id);
 
@@ -141,6 +144,31 @@ export const CertificateGeneratorPage: React.FC = () => {
 
       const qrDataUrl = await generateQrCodeDataUri(`https://educloud.io/verify/${vCode}`);
 
+      // Query exam results to get percentage & obtained marks
+      const matchedExam = exams.find((e) => e.name.toLowerCase().includes(examName.toLowerCase()) || examName.toLowerCase().includes(e.name.toLowerCase()));
+      const examId = matchedExam?.id || 'exam-annual-2026';
+      
+      const allResults = await db.getResults(currentSchool.id, examId);
+      const studentResult = allResults.find((r) => r.student_id === student.id);
+
+      const percentageVal = studentResult ? `${studentResult.percentage}%` : 'N/A';
+      const obtainedVal = studentResult ? String(studentResult.total_obtained_marks) : 'N/A';
+      const maxVal = studentResult ? String(studentResult.total_max_marks) : 'N/A';
+      const rankVal = studentResult ? String(studentResult.rank_in_class) : 'N/A';
+      const gradeVal = studentResult ? studentResult.grade : 'N/A';
+
+      // Perform placeholders substitution on certBody text
+      let substitutedBody = certBody;
+      substitutedBody = substitutedBody.replace(/\{student_name\}/g, `${student.first_name} ${student.last_name}`);
+      substitutedBody = substitutedBody.replace(/\{class_name\}/g, student.class_name || 'Class 10');
+      substitutedBody = substitutedBody.replace(/\{academic_session\}/g, '2025-2026');
+      substitutedBody = substitutedBody.replace(/\{exam_name\}/g, examName);
+      substitutedBody = substitutedBody.replace(/\{percentage\}/g, percentageVal);
+      substitutedBody = substitutedBody.replace(/\{obtained_marks\}/g, obtainedVal);
+      substitutedBody = substitutedBody.replace(/\{max_marks\}/g, maxVal);
+      substitutedBody = substitutedBody.replace(/\{rank\}/g, rankVal);
+      substitutedBody = substitutedBody.replace(/\{grade\}/g, gradeVal);
+
       const compiled = compileTemplateHtml(selectedTemplate.html_content, selectedTemplate.css_content, {
         school_name: currentSchool.name,
         school_logo: currentSchool.logo_url || '/assets/branding/don-bosco-logo.png',
@@ -158,7 +186,7 @@ export const CertificateGeneratorPage: React.FC = () => {
         class_name: student.class_name || 'Class 10',
         section: student.section_name || 'A',
         certificate_title: certTitle,
-        certificate_body: certBody,
+        certificate_body: substitutedBody, // Use substituted body text
         certificate_number: certNumber,
         issue_date: new Date().toLocaleDateString('en-GB'),
         qr_code: qrDataUrl,
@@ -168,7 +196,7 @@ export const CertificateGeneratorPage: React.FC = () => {
       setCompiledHtml(compiled);
     }
     compileSingle();
-  }, [currentSchool, selectedTemplate, selectedStudentId, certTitle, examName, certBody, certNumber, students]);
+  }, [currentSchool, selectedTemplate, selectedStudentId, certTitle, examName, certBody, certNumber, students, exams]);
 
   // Bulk Class Certificate Batch Generation
   const handleBulkGenerateCertificates = async () => {
@@ -176,19 +204,47 @@ export const CertificateGeneratorPage: React.FC = () => {
     setIsBulkGenerating(true);
     try {
       const settings = await db.getSchoolSettings(currentSchool.id);
-      const pattern = settings.numbering_patterns?.certificate_pattern || '{CLASS}/{YEAR}/{SEQ}';
+      const pattern = settings.numbering_patterns?.certificate_pattern || 'DBA/{CLASS}/{YEAR}/{SEQ}';
+      
+      // Match by exam name to load marks
+      const matchedExam = exams.find((e) => e.name.toLowerCase().includes(examName.toLowerCase()) || examName.toLowerCase().includes(e.name.toLowerCase()));
+      const examId = matchedExam?.id || 'exam-annual-2026';
+      const allResults = await db.getResults(currentSchool.id, examId);
+
       const renderedCertificates: string[] = [];
 
       for (let i = 0; i < students.length; i++) {
         const student = students[i];
+        // Sequence starts at base seq index plus loop index
+        const baseSeq = settings.numbering_patterns?.current_sequence || 101;
         const docNumber = generateDocumentNumber(pattern, {
           class_name: student.class_name,
           roll_number: student.roll_number,
           school_name: currentSchool.name,
-        }, (settings.numbering_patterns?.current_sequence || 1) + i);
+        }, baseSeq + i);
 
         const vCode = `VERIFY-CERT-${docNumber.replace(/[^a-zA-Z0-9]/g, '-')}`;
         const qrDataUrl = await generateQrCodeDataUri(`https://educloud.io/verify/${vCode}`);
+
+        // Find exam result for this student
+        const studentResult = allResults.find((r) => r.student_id === student.id);
+        const percentageVal = studentResult ? `${studentResult.percentage}%` : 'N/A';
+        const obtainedVal = studentResult ? String(studentResult.total_obtained_marks) : 'N/A';
+        const maxVal = studentResult ? String(studentResult.total_max_marks) : 'N/A';
+        const rankVal = studentResult ? String(studentResult.rank_in_class) : 'N/A';
+        const gradeVal = studentResult ? studentResult.grade : 'N/A';
+
+        // Substitute placeholders in certificate_body
+        let substitutedBody = certBody;
+        substitutedBody = substitutedBody.replace(/\{student_name\}/g, `${student.first_name} ${student.last_name}`);
+        substitutedBody = substitutedBody.replace(/\{class_name\}/g, student.class_name || 'Class 10');
+        substitutedBody = substitutedBody.replace(/\{academic_session\}/g, '2025-2026');
+        substitutedBody = substitutedBody.replace(/\{exam_name\}/g, examName);
+        substitutedBody = substitutedBody.replace(/\{percentage\}/g, percentageVal);
+        substitutedBody = substitutedBody.replace(/\{obtained_marks\}/g, obtainedVal);
+        substitutedBody = substitutedBody.replace(/\{max_marks\}/g, maxVal);
+        substitutedBody = substitutedBody.replace(/\{rank\}/g, rankVal);
+        substitutedBody = substitutedBody.replace(/\{grade\}/g, gradeVal);
 
         // Save generated document record
         await db.saveGeneratedDocument({
@@ -202,26 +258,28 @@ export const CertificateGeneratorPage: React.FC = () => {
           metadata: {
             student_name: `${student.first_name} ${student.last_name}`,
             certificate_title: certTitle,
-            certificate_body: certBody,
+            certificate_body: substitutedBody,
           },
         });
 
         const singleHtml = compileTemplateHtml(selectedTemplate.html_content, selectedTemplate.css_content, {
           school_name: currentSchool.name,
-          school_logo: currentSchool.logo_url,
-          school_address: currentSchool.address,
+          school_logo: currentSchool.logo_url || '/assets/branding/don-bosco-logo.png',
+          school_address: currentSchool.address || 'Raipur Bazar, Nanpur, Sitamarhi, Bihar — 843326',
           academic_session: '2025-2026',
+          exam_name: examName,
           principal_name: currentSchool.principal_name,
           principal_signature: currentSchool.principal_signature_url,
           school_stamp: currentSchool.stamp_url,
 
           student_name: `${student.first_name} ${student.last_name}`,
+          father_name: student.father_name || '',
           admission_number: student.admission_number,
           roll_number: student.roll_number || '1001',
           class_name: student.class_name,
           section: student.section_name || 'A',
           certificate_title: certTitle,
-          certificate_body: certBody,
+          certificate_body: substitutedBody,
           certificate_number: docNumber,
           issue_date: new Date().toLocaleDateString('en-GB'),
           qr_code: qrDataUrl,
@@ -239,7 +297,7 @@ export const CertificateGeneratorPage: React.FC = () => {
       setGenerationMode('bulk');
       success(`Generated & registered certificates for all ${students.length} students!`);
     } catch (err: any) {
-      toastError(err.message);
+      toastError(err.message || 'Error generating batch certificates');
     } finally {
       setIsBulkGenerating(false);
     }
@@ -408,7 +466,7 @@ export const CertificateGeneratorPage: React.FC = () => {
             placeholder="Enter the certificate body / citation text..."
           />
           <p className="text-xs text-slate-400 mt-1">
-            Pre-filled from School Settings. Edit here to customize per student.
+            Pre-filled from School Settings. Supports placeholders: <code>{'{student_name}'}</code>, <code>{'{class_name}'}</code>, <code>{'{exam_name}'}</code>, <code>{'{percentage}'}</code>, <code>{'{obtained_marks}'}</code>, <code>{'{max_marks}'}</code>, <code>{'{rank}'}</code>, <code>{'{grade}'}</code>.
           </p>
         </div>
       </div>

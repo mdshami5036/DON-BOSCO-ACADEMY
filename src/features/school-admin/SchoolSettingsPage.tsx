@@ -221,11 +221,16 @@ export const SchoolSettingsPage: React.FC = () => {
             <div className="font-bold flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-500" /> Template Variables You Can Use in Body Text:
             </div>
-            <p>
-              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{student_name}'}</code>,{' '}
-              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{class_name}'}</code>,{' '}
-              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{academic_session}'}</code>,{' '}
+            <p className="flex flex-wrap gap-1 mt-1">
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{student_name}'}</code>
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{class_name}'}</code>
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{academic_session}'}</code>
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{exam_name}'}</code>
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{percentage}'}</code>
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{obtained_marks}'}</code>
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{max_marks}'}</code>
               <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{rank}'}</code>
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{grade}'}</code>
             </p>
           </div>
 
