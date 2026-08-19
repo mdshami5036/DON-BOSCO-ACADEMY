@@ -1001,7 +1001,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-school-address {
-  font-size: 10.5px;
+  font-size: 13px; /* Enlarged address text */
   font-weight: 700;
   color: #000000; /* Darker black */
   letter-spacing: 0.5px;
@@ -1009,7 +1009,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-school-meta {
-  font-size: 10px;
+  font-size: 12px; /* Enlarged school meta text */
   font-weight: 700;
   color: #000000; /* Darker black */
   letter-spacing: 0.5px;
@@ -1069,7 +1069,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-cert-subtitle {
-  font-size: 10.5px;
+  font-size: 13px; /* Enlarged subtitle */
   font-weight: 800;
   color: #1e3a8a;
   letter-spacing: 1.5px;
@@ -1087,7 +1087,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-certify-label {
-  font-size: 10px;
+  font-size: 12px; /* Enlarged certify label */
   font-weight: 800;
   color: #000000; /* Darker black */
   letter-spacing: 2px;
@@ -1112,7 +1112,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   justify-content: center;
   flex-wrap: wrap;
   gap: 3px 8px;
-  font-size: 11px;
+  font-size: 13.5px; /* Enlarged student metadata row */
   font-weight: 700; /* Bolder */
   color: #000000; /* Darker black */
   font-family: 'Georgia', serif;
@@ -1120,12 +1120,12 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-meta-pill {
-  font-size: 11px;
+  font-size: 13.5px; /* Enlarged meta pill text */
   color: #000000; /* Darker black */
 }
 
 .dba-meta-sep {
-  font-size: 10px;
+  font-size: 12px;
   color: #000000; /* Darker black */
 }
 
@@ -1138,7 +1138,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-body-text {
   font-family: 'Georgia', 'Palatino', serif;
-  font-size: 13.5px;
+  font-size: 16px; /* Enlarged citation description body text */
   line-height: 1.55;
   color: #000000; /* Darker black */
   font-style: italic;
@@ -1173,7 +1173,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-auth-field {
-  font-size: 9.5px;
+  font-size: 12px; /* Enlarged certificate info fields */
   color: #000000; /* Darker black */
   margin-bottom: 2px;
   font-family: 'Georgia', serif;
@@ -1217,7 +1217,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-qr-label {
-  font-size: 8px;
+  font-size: 10.5px; /* Enlarged label */
   font-weight: 900; /* Darker/bolder */
   color: #000000; /* Darker black */
   text-transform: uppercase;
@@ -1227,7 +1227,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-qr-code {
   font-family: 'Courier New', monospace;
-  font-size: 7px;
+  font-size: 9px; /* Enlarged QR verification string */
   color: #000000; /* Darker black */
   font-weight: 900;
   word-break: break-all;
@@ -1251,7 +1251,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-stamp-label {
-  font-size: 8px;
+  font-size: 11px; /* Enlarged label */
   font-weight: 900; /* Darker/bolder */
   color: #000000; /* Darker black */
   letter-spacing: 0.8px;
@@ -1283,7 +1283,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-sig-name {
-  font-size: 11px;
+  font-size: 13.5px; /* Enlarged Principal signature name */
   font-weight: 950;
   color: #000000; /* Darker black */
   text-transform: uppercase;
@@ -1292,7 +1292,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-sig-title {
-  font-size: 9px;
+  font-size: 11.5px; /* Enlarged Principal designation title */
   font-weight: 700; /* Bolder */
   color: #000000; /* Darker black */
   font-family: 'Georgia', serif;
