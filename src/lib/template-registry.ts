@@ -770,114 +770,538 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   // 2. CERTIFICATES (5 UNIQUE DESIGNS)
   // ==========================================
 
-  // Certificate 1: Official Guilloche Security Border Certificate
+  // Certificate 1: Premium Dynamic Layered Certificate (Background Protected)
   {
     id: 'tmpl-cert-01',
-    name: 'Official Guilloche Security Border Certificate',
+    name: 'Premium Dynamic Certificate — Safe Area Engine',
     category: 'CERTIFICATE',
-    description: 'Authentic institutional merit award with ornate Guilloche rosettes, security watermark medallion, and cryptographic QR authentication.',
+    description: 'Professional A4 Landscape certificate. Fixed guilloche background is NEVER altered. All dynamic content (logo, name, title, QR, signature, seal) rendered in a fully independent foreground safe-area layer.',
     page_size: 'A4',
     orientation: 'landscape',
-    version: 1,
+    version: 2,
     is_system: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    variables: ['school_name', 'school_logo', 'school_address', 'academic_session', 'student_name', 'admission_number', 'roll_number', 'class_name', 'section', 'certificate_title', 'certificate_body', 'certificate_number', 'issue_date', 'principal_name', 'principal_signature', 'school_stamp', 'qr_code', 'verification_code'],
-    html_content: `<div class="cert-guilloche-official">
-  <div class="cert-content-inner">
-    <div class="cert-header-section">
-      <img src="{{school_logo}}" alt="Logo" class="cert-school-logo" />
-      <h1 class="cert-school-name">{{school_name}}</h1>
-      <p class="cert-school-meta">{{school_address}} &bull; CBSE Pattern &bull; ESTD 1997 &bull; Academic Session {{academic_session}}</p>
-    </div>
+    variables: ['school_name', 'school_logo', 'school_address', 'academic_session', 'exam_name', 'student_name', 'father_name', 'admission_number', 'roll_number', 'class_name', 'section', 'certificate_title', 'certificate_body', 'certificate_number', 'issue_date', 'principal_name', 'principal_signature', 'school_stamp', 'qr_code', 'verification_code'],
+    html_content: `<div class="dba-cert-root">
 
-    <div class="cert-title-section">
-      <h2 class="cert-main-title">{{certificate_title}}</h2>
-      <div class="cert-title-divider">
-        <span class="cert-diamond">&diams;</span>
-        <span class="cert-line"></span>
-        <span class="cert-subtitle">OF MERIT & ACADEMIC DISTINCTION</span>
-        <span class="cert-line"></span>
-        <span class="cert-diamond">&diams;</span>
+  <!-- ═══════════════════════════════════════════════════════════
+       LAYER 1: FIXED BACKGROUND (NEVER MODIFY)
+       The background image is rendered as a true background.
+       It is completely independent of the content layer.
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="dba-bg-layer"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       LAYER 2: DYNAMIC CONTENT — SAFE AREA OVERLAY
+       All content is constrained inside the printed safe area.
+       Safe margins: Top 70px, Bottom 65px, Left 110px, Right 110px
+       (These keep all text well inside the ornamental border)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="dba-content-layer">
+
+    <!-- ─── HEADER ─── -->
+    <div class="dba-header">
+      <img src="{{school_logo}}" alt="Logo" class="dba-logo" />
+      <div class="dba-school-title-block">
+        <div class="dba-school-name">{{school_name}}</div>
+        <div class="dba-school-address">{{school_address}}</div>
+        <div class="dba-school-meta">
+          CBSE Pattern &nbsp;•&nbsp; ESTD: 1997 &nbsp;•&nbsp; Academic Session: {{academic_session}}
+        </div>
       </div>
     </div>
 
-    <div class="cert-recipient-section">
-      <p class="cert-presents-label">THIS IS TO CERTIFY THAT</p>
-      <h1 class="cert-student-name">{{student_name}}</h1>
-      <div class="cert-student-details">
-        <span>Admission No: <strong>{{admission_number}}</strong></span> &bull; 
-        <span>Class & Section: <strong>{{class_name}} ({{section}})</strong></span> &bull; 
-        <span>Roll No: <strong>{{roll_number}}</strong></span>
+    <!-- ─── DIVIDER ─── -->
+    <div class="dba-header-rule">
+      <span class="dba-rule-ornament">❖</span>
+    </div>
+
+    <!-- ─── CERTIFICATE TITLE ─── -->
+    <div class="dba-title-block">
+      <div class="dba-cert-title">{{certificate_title}}</div>
+      <div class="dba-cert-subtitle-row">
+        <span class="dba-thin-line"></span>
+        <span class="dba-cert-subtitle">Of Merit &amp; Academic Distinction</span>
+        <span class="dba-thin-line"></span>
       </div>
     </div>
 
-    <div class="cert-body-section">
-      <p class="cert-body-paragraph">{{certificate_body}}</p>
+    <!-- ─── RECIPIENT ─── -->
+    <div class="dba-recipient-block">
+      <div class="dba-certify-label">This is to certify that</div>
+      <div class="dba-student-name">{{student_name}}</div>
+      <div class="dba-student-meta-row">
+        <span class="dba-meta-pill">Class: <strong>{{class_name}}</strong></span>
+        <span class="dba-meta-sep">•</span>
+        <span class="dba-meta-pill">Section: <strong>{{section}}</strong></span>
+        <span class="dba-meta-sep">•</span>
+        <span class="dba-meta-pill">Roll No: <strong>{{roll_number}}</strong></span>
+        <span class="dba-meta-sep">•</span>
+        <span class="dba-meta-pill">Adm No: <strong>{{admission_number}}</strong></span>
+      </div>
     </div>
 
-    <div class="cert-footer-section">
-      <div class="cert-left-meta">
-        <div class="cert-meta-item"><span>Certificate No:</span> <strong>{{certificate_number}}</strong></div>
-        <div class="cert-meta-item"><span>Date of Issue:</span> <strong>{{issue_date}}</strong></div>
-        <div class="cert-qr-container">
-          <img src="{{qr_code}}" alt="QR" class="cert-qr-img" />
-          <div class="cert-qr-text">
-            <span>Scan to Verify</span>
-            <code>{{verification_code}}</code>
+    <!-- ─── DESCRIPTION ─── -->
+    <div class="dba-body-block">
+      <p class="dba-body-text">{{certificate_body}}</p>
+    </div>
+
+    <!-- ─── AUTHENTICATION FOOTER (3 COLUMN) ─── -->
+    <div class="dba-auth-row">
+
+      <!-- Left: Cert No, Date, QR -->
+      <div class="dba-auth-left">
+        <div class="dba-auth-field"><span class="dba-field-label">Certificate No:</span> <span class="dba-field-value">{{certificate_number}}</span></div>
+        <div class="dba-auth-field"><span class="dba-field-label">Date of Issue:</span> <span class="dba-field-value">{{issue_date}}</span></div>
+        <div class="dba-qr-block">
+          <img src="{{qr_code}}" alt="QR Verify" class="dba-qr-img" />
+          <div class="dba-qr-caption">
+            <span class="dba-qr-label">Scan to Verify</span>
+            <code class="dba-qr-code">{{verification_code}}</code>
           </div>
         </div>
       </div>
 
-      <div class="cert-center-seal">
-        <img src="{{school_stamp}}" alt="Official Seal" class="cert-stamp-img" />
-        <span class="cert-stamp-label">OFFICIAL INSTITUTIONAL SEAL</span>
+      <!-- Center: Stamp -->
+      <div class="dba-auth-center">
+        <img src="{{school_stamp}}" alt="Official Seal" class="dba-stamp-img" />
+        <div class="dba-stamp-label">Official Institutional Seal</div>
       </div>
 
-      <div class="cert-right-signature">
-        <img src="{{principal_signature}}" alt="Principal Signature" class="cert-sig-img" />
-        <div class="cert-sig-line"></div>
-        <div class="cert-sig-name">{{principal_name}}</div>
-        <div class="cert-sig-title">Principal & Head of Institution</div>
+      <!-- Right: Signature -->
+      <div class="dba-auth-right">
+        <img src="{{principal_signature}}" alt="Signature" class="dba-sig-img" />
+        <div class="dba-sig-line"></div>
+        <div class="dba-sig-name">{{principal_name}}</div>
+        <div class="dba-sig-title">Principal &amp; Head of Institution</div>
       </div>
+
     </div>
+
   </div>
+  <!-- end content layer -->
+
 </div>`,
-    css_content: `.cert-guilloche-official { font-family: 'Cinzel', 'Georgia', 'Times New Roman', serif; width: 1123px; height: 794px; min-height: 794px; max-height: 794px; box-sizing: border-box; overflow: hidden; margin: 0 auto; background-color: #fafbfc; background-image: url('/official-certificate-border.jpg'); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; position: relative; padding: 78px 115px 72px 115px; display: flex; flex-direction: column; justify-content: space-between; text-align: center; color: #020617; }
-.cert-content-inner { height: 100%; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
-.cert-header-section { display: flex; flex-direction: column; align-items: center; margin-top: 0; }
-.cert-school-logo { width: 78px; height: 78px; object-fit: contain; margin-bottom: 3px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
-.cert-school-name { font-size: 26px; font-weight: 900; color: #0f172a; letter-spacing: 2px; text-transform: uppercase; margin: 0; line-height: 1.15; }
-.cert-school-meta { font-size: 10px; font-weight: 600; color: #334155; letter-spacing: 0.8px; margin: 2px 0 0 0; }
-.cert-title-section { margin: 4px 0; }
-.cert-main-title { font-size: 24px; font-weight: 900; color: #09090b; letter-spacing: 2px; text-transform: uppercase; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.06); }
-.cert-title-divider { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 2px; }
-.cert-diamond { color: #1e3a8a; font-size: 11px; }
-.cert-line { display: inline-block; width: 65px; height: 1.5px; background: #0f172a; }
-.cert-subtitle { font-size: 9.5px; font-weight: 800; color: #1e3a8a; letter-spacing: 2px; text-transform: uppercase; }
-.cert-recipient-section { margin: 2px 0; }
-.cert-presents-label { font-size: 9.5px; font-weight: 800; letter-spacing: 2px; color: #475569; text-transform: uppercase; margin: 0 0 2px 0; }
-.cert-student-name { font-family: 'Great Vibes', 'Brush Script MT', 'Palatino', cursive, serif; font-size: 44px; font-weight: bold; color: #0b1f44; margin: 0; line-height: 1.1; text-shadow: 0 1px 1px rgba(0,0,0,0.12); }
-.cert-student-details { font-size: 11px; font-weight: 600; color: #1e293b; margin-top: 2px; letter-spacing: 0.5px; }
-.cert-body-section { max-width: 800px; margin: 0 auto; }
-.cert-body-paragraph { font-family: 'Georgia', serif; font-size: 13.5px; line-height: 1.55; color: #09090b; font-style: italic; font-weight: 600; margin: 0; }
-.cert-footer-section { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; padding: 0 4px; margin-top: 4px; }
-.cert-left-meta { text-align: left; font-size: 10px; font-weight: 600; color: #0f172a; width: 220px; }
-.cert-meta-item { margin-bottom: 2px; }
-.cert-meta-item span { color: #475569; font-weight: 500; }
-.cert-qr-container { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
-.cert-qr-img { width: 54px; height: 54px; border: 1.5px solid #0f172a; padding: 2px; background: #ffffff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.cert-qr-text span { display: block; font-size: 8px; color: #334155; font-weight: 800; text-transform: uppercase; }
-.cert-qr-text code { display: block; font-size: 8px; font-family: monospace; color: #0f172a; font-weight: 900; }
-.cert-center-seal { text-align: center; }
-.cert-stamp-img { width: 72px; height: 72px; object-fit: contain; margin: 0 auto 3px auto; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.12)); }
-.cert-stamp-label { display: block; font-size: 8px; color: #334155; letter-spacing: 1px; text-transform: uppercase; font-weight: 800; }
-.cert-right-signature { text-align: center; width: 220px; }
-.cert-sig-img { height: 46px; max-width: 170px; object-fit: contain; margin: 0 auto -2px auto; }
-.cert-sig-line { border-top: 1.5px solid #0f172a; width: 100%; margin-bottom: 3px; }
-.cert-sig-name { font-size: 11.5px; font-weight: 900; color: #020617; text-transform: uppercase; letter-spacing: 0.5px; }
-.cert-sig-title { font-size: 9px; font-weight: 600; color: #475569; }`,
+    css_content: `
+/* ══════════════════════════════════════════════════════
+   ROOT — A4 LANDSCAPE CANVAS
+   1123px × 794px (CSS pixels at 96dpi = A4 landscape)
+   position:relative allows both layers to stack.
+══════════════════════════════════════════════════════ */
+.dba-cert-root {
+  position: relative;
+  width: 1123px;
+  height: 794px;
+  min-width: 1123px;
+  min-height: 794px;
+  max-width: 1123px;
+  max-height: 794px;
+  overflow: hidden;
+  margin: 0 auto;
+  box-sizing: border-box;
+  font-family: 'Cinzel', 'Georgia', 'Times New Roman', serif;
+}
+
+/* ══════════════════════════════════════════════════════
+   LAYER 1 — FIXED BACKGROUND
+   background-size: cover fills exactly, no gaps, no crop
+   The background is completely independent of text.
+   NEVER change this layer based on content length.
+══════════════════════════════════════════════════════ */
+.dba-bg-layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url('/official-certificate-border.jpg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════
+   LAYER 2 — DYNAMIC CONTENT / SAFE AREA
+   Positioned absolutely on top of the background.
+   Safe margins keep all text inside the ornamental frame.
+   Top: 68px, Bottom: 62px, Left: 108px, Right: 108px
+   (Never place text outside these boundaries)
+══════════════════════════════════════════════════════ */
+.dba-content-layer {
+  position: absolute;
+  top: 68px;
+  bottom: 62px;
+  left: 108px;
+  right: 108px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  color: #0a0a0a;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* ══════════════════════════════════════════════════════
+   HEADER — Logo + School Name + Address
+   Compact, professional. Logo centered above name.
+══════════════════════════════════════════════════════ */
+.dba-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.dba-logo {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.18));
+  flex-shrink: 0;
+}
+
+.dba-school-title-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.dba-school-name {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0b1d3e;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.dba-school-address {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #2d3748;
+  letter-spacing: 0.8px;
+  font-family: 'Georgia', serif;
+}
+
+.dba-school-meta {
+  font-size: 8.5px;
+  font-weight: 600;
+  color: #4a5568;
+  letter-spacing: 0.8px;
+  font-family: 'Georgia', serif;
+}
+
+/* ══════════════════════════════════════════════════════
+   DIVIDER
+══════════════════════════════════════════════════════ */
+.dba-header-rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.dba-rule-ornament {
+  font-size: 11px;
+  color: #1e3a8a;
+  letter-spacing: 4px;
+}
+
+/* ══════════════════════════════════════════════════════
+   CERTIFICATE TITLE
+   Auto-sizes: large titles wrap gracefully.
+   max-width prevents overflow into decorative borders.
+══════════════════════════════════════════════════════ */
+.dba-title-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.dba-cert-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0a0a0a;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  line-height: 1.2;
+  max-width: 700px;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.dba-cert-subtitle-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.dba-thin-line {
+  display: inline-block;
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(to right, transparent, #1e3a8a, transparent);
+  max-width: 100px;
+}
+
+.dba-cert-subtitle {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #1e3a8a;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════
+   RECIPIENT BLOCK
+   Student name is visually prominent (cursive script).
+   Meta row wraps cleanly if many fields.
+══════════════════════════════════════════════════════ */
+.dba-recipient-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.dba-certify-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  font-family: 'Georgia', serif;
+}
+
+.dba-student-name {
+  font-family: 'Great Vibes', 'Brush Script MT', 'Dancing Script', cursive, serif;
+  font-size: 42px;
+  font-weight: bold;
+  color: #0b1d3e;
+  line-height: 1.1;
+  max-width: 700px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 1px;
+}
+
+.dba-student-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #1e293b;
+  font-family: 'Georgia', serif;
+  max-width: 700px;
+}
+
+.dba-meta-pill {
+  font-size: 9.5px;
+  color: #1e293b;
+}
+
+.dba-meta-sep {
+  font-size: 9px;
+  color: #94a3b8;
+}
+
+/* ══════════════════════════════════════════════════════
+   DESCRIPTION BODY
+   Italic serif paragraph. Wraps automatically.
+   Max-width prevents touching the decorative border frame.
+══════════════════════════════════════════════════════ */
+.dba-body-block {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dba-body-text {
+  font-family: 'Georgia', 'Palatino', serif;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #1a1a2e;
+  font-style: italic;
+  font-weight: 600;
+  text-align: center;
+  max-width: 750px;
+  margin: 0;
+  padding: 0 10px;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+/* ══════════════════════════════════════════════════════
+   AUTHENTICATION FOOTER — 3 COLUMN BALANCED LAYOUT
+   Left: Cert No + Date + QR Code
+   Center: Official Stamp/Seal
+   Right: Principal Signature + Name
+══════════════════════════════════════════════════════ */
+.dba-auth-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+/* Left column — meta + QR */
+.dba-auth-left {
+  text-align: left;
+  width: 195px;
+  flex-shrink: 0;
+}
+
+.dba-auth-field {
+  font-size: 8.5px;
+  color: #1e293b;
+  margin-bottom: 2px;
+  font-family: 'Georgia', serif;
+  line-height: 1.4;
+}
+
+.dba-field-label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.dba-field-value {
+  font-weight: 800;
+  color: #0f172a;
+  font-family: monospace;
+}
+
+.dba-qr-block {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.dba-qr-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border: 2px solid #0f172a;
+  padding: 2px;
+  background: #ffffff;
+  border-radius: 3px;
+  flex-shrink: 0;
+  image-rendering: crisp-edges;
+}
+
+.dba-qr-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.dba-qr-label {
+  font-size: 7.5px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Georgia', serif;
+}
+
+.dba-qr-code {
+  font-family: 'Courier New', monospace;
+  font-size: 6.5px;
+  color: #0f172a;
+  font-weight: 900;
+  word-break: break-all;
+  max-width: 110px;
+  line-height: 1.3;
+}
+
+/* Center column — stamp */
+.dba-auth-center {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.dba-stamp-img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 2px auto;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.15));
+}
+
+.dba-stamp-label {
+  font-size: 7px;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-family: 'Georgia', serif;
+}
+
+/* Right column — signature */
+.dba-auth-right {
+  text-align: center;
+  width: 195px;
+  flex-shrink: 0;
+}
+
+.dba-sig-img {
+  height: 44px;
+  max-width: 160px;
+  object-fit: contain;
+  object-position: center bottom;
+  display: block;
+  margin: 0 auto -1px auto;
+}
+
+.dba-sig-line {
+  border-top: 1.5px solid #0a0a0a;
+  width: 100%;
+  margin-bottom: 3px;
+}
+
+.dba-sig-name {
+  font-size: 10px;
+  font-weight: 900;
+  color: #0a0a0a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.dba-sig-title {
+  font-size: 8px;
+  font-weight: 600;
+  color: #475569;
+  font-family: 'Georgia', serif;
+}`,
   },
+
 
   // Certificate 2: Modern Gradient Achievement Award
   {

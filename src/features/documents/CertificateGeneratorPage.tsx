@@ -35,6 +35,7 @@ export const CertificateGeneratorPage: React.FC = () => {
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [certType, setCertType] = useState<DocType>('CERTIFICATE');
   const [certTitle, setCertTitle] = useState('Certificate of Academic Excellence');
+  const [examName, setExamName] = useState('Annual Examination');
   const [certBody, setCertBody] = useState(
     'In recognition of outstanding scholastic achievement, ranking 1st in Class 10 with distinguished merit in the Academic Year 2025-2026.'
   );
@@ -143,13 +144,15 @@ export const CertificateGeneratorPage: React.FC = () => {
       const compiled = compileTemplateHtml(selectedTemplate.html_content, selectedTemplate.css_content, {
         school_name: currentSchool.name,
         school_logo: currentSchool.logo_url || '/assets/branding/don-bosco-logo.png',
-        school_address: currentSchool.address || 'Raipur Bazar, Nanpur, Sitamarhi',
+        school_address: currentSchool.address || 'Raipur Bazar, Nanpur, Sitamarhi, Bihar — 843326',
         academic_session: '2025-2026',
+        exam_name: examName,
         principal_name: currentSchool.principal_name,
         principal_signature: currentSchool.principal_signature_url,
         school_stamp: currentSchool.stamp_url,
 
         student_name: `${student.first_name} ${student.last_name}`,
+        father_name: student.father_name || '',
         admission_number: student.admission_number,
         roll_number: student.roll_number || '1001',
         class_name: student.class_name || 'Class 10',
@@ -165,7 +168,7 @@ export const CertificateGeneratorPage: React.FC = () => {
       setCompiledHtml(compiled);
     }
     compileSingle();
-  }, [currentSchool, selectedTemplate, selectedStudentId, certTitle, certBody, certNumber, students]);
+  }, [currentSchool, selectedTemplate, selectedStudentId, certTitle, examName, certBody, certNumber, students]);
 
   // Bulk Class Certificate Batch Generation
   const handleBulkGenerateCertificates = async () => {
@@ -375,11 +378,38 @@ export const CertificateGeneratorPage: React.FC = () => {
             value={certTitle}
             onChange={(e) => setCertTitle(e.target.value)}
           />
-          <Input
-            label="Certificate Body / Citation Text"
+          <Select
+            label="Examination / Event Name"
+            value={examName}
+            onChange={(e) => setExamName(e.target.value)}
+          >
+            <option value="Annual Examination">Annual Examination</option>
+            <option value="Half Yearly Examination">Half Yearly Examination</option>
+            <option value="Pre-Board Examination">Pre-Board Examination</option>
+            <option value="Unit Test – I">Unit Test – I</option>
+            <option value="Unit Test – II">Unit Test – II</option>
+            <option value="Periodic Test">Periodic Test</option>
+            <option value="Term Examination">Term Examination</option>
+            <option value="Monthly Assessment">Monthly Assessment</option>
+            <option value="Final Examination">Final Examination</option>
+            <option value="Academic Year 2025-2026">Full Academic Year 2025-2026</option>
+          </Select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Certificate Body / Citation Text
+          </label>
+          <textarea
+            rows={3}
+            className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none resize-none"
             value={certBody}
             onChange={(e) => setCertBody(e.target.value)}
+            placeholder="Enter the certificate body / citation text..."
           />
+          <p className="text-xs text-slate-400 mt-1">
+            Pre-filled from School Settings. Edit here to customize per student.
+          </p>
         </div>
       </div>
 
