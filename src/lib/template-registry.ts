@@ -1167,9 +1167,9 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 /* Left column — meta + QR */
 .dba-auth-left {
   text-align: left;
-  width: 195px;
+  width: 260px; /* Increased to give QR block plenty of space */
   flex-shrink: 0;
-  padding-left: 20px; /* Moves QR code block to the right (towards center) */
+  padding-left: 20px;
 }
 
 .dba-auth-field {
@@ -1199,15 +1199,17 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-qr-img {
-  width: 75px; /* Enlarged QR code */
-  height: 75px; /* Enlarged QR code */
+  width: 75px;
+  height: 75px;
+  min-width: 75px; /* Prevent shrinking to 0px */
+  min-height: 75px; /* Prevent shrinking to 0px */
   object-fit: contain;
   border: 1.5px solid #000000;
   padding: 2px;
   background: #ffffff;
   border-radius: 3px;
   flex-shrink: 0;
-  image-rendering: crisp-edges;
+  image-rendering: auto;
 }
 
 .dba-qr-caption {
@@ -1262,7 +1264,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 /* Right column — signature */
 .dba-auth-right {
   text-align: center;
-  width: 195px;
+  width: 260px; /* Increased to match left column width and prevent text wrapping */
   flex-shrink: 0;
   padding-right: 20px; /* Moves signature block to the left (towards center) */
 }
