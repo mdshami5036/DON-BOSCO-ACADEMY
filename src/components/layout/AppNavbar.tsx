@@ -51,9 +51,9 @@ export const AppNavbar: React.FC = () => {
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-3 font-bold text-slate-900 dark:text-white">
             <img
-              src={currentSchool?.logo_url || '/assets/branding/don-bosco-logo.svg'}
+              src={currentSchool?.logo_url || '/assets/branding/don-bosco-logo.png'}
               alt="Don Bosco Academy Logo"
-              className="w-10 h-10 rounded-lg object-contain bg-slate-950 p-1 border border-amber-500/30 shadow-sm"
+              className="w-10 h-10 rounded-lg object-contain bg-white p-0.5 border border-amber-500/30 shadow-sm"
             />
             <div className="flex flex-col">
               <span className="font-extrabold text-sm md:text-base tracking-tight text-blue-900 dark:text-blue-100 uppercase">

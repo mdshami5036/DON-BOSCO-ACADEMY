@@ -27,6 +27,11 @@ import {
   Trophy,
   ExternalLink,
   ChevronRight,
+  Star,
+  Check,
+  ArrowRight,
+  HeartHandshake,
+  Lightbulb,
 } from 'lucide-react';
 import { SafeImage } from '../../lib/image-helper';
 import { Modal } from '../../components/common/UI';
@@ -37,6 +42,7 @@ export const PublicSchoolPage: React.FC = () => {
   const [school, setSchool] = useState<School | null>(null);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [classes, setClasses] = useState<ClassRoom[]>([]);
+  const [activeTab, setActiveTab] = useState<'all' | 'academic' | 'exam' | 'events'>('all');
   const [isLoading, setIsLoading] = useState(true);
 
   // Online Admission Modal & Form State
@@ -109,8 +115,8 @@ export const PublicSchoolPage: React.FC = () => {
   if (isLoading || !school) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
-        <div className="animate-spin w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full mb-4" />
-        <p className="text-sm font-semibold tracking-wide text-amber-300">Loading DON BOSCO ACADEMY Portal...</p>
+        <div className="animate-spin w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full mb-4" />
+        <p className="text-base font-bold tracking-wide text-amber-300 font-serif">Loading DON BOSCO ACADEMY Portal...</p>
       </div>
     );
   }
@@ -119,7 +125,7 @@ export const PublicSchoolPage: React.FC = () => {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
       
       {/* 1. TOP NOTIFICATION / CONTACT BAR */}
-      <div className="bg-slate-900 border-b border-slate-800 text-xs py-2.5 px-4 sticky top-0 z-40 backdrop-blur-md bg-slate-900/90">
+      <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 border-b border-blue-900/60 text-xs py-2 px-4 sticky top-0 z-40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-4 text-slate-300">
             <span className="flex items-center gap-1.5 font-medium">
@@ -146,24 +152,24 @@ export const PublicSchoolPage: React.FC = () => {
                 href={school.facebook_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-blue-400 hover:text-blue-300 font-semibold transition"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-600/20 text-blue-300 hover:bg-blue-600 hover:text-white border border-blue-500/30 text-[11px] font-bold transition"
               >
                 <Facebook className="w-3.5 h-3.5 fill-current" />
-                <span className="hidden xs:inline">Facebook</span>
+                <span>Facebook</span>
               </a>
             )}
 
             <Link
               to="/verify"
-              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 font-semibold transition"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 text-[11px] font-bold transition"
             >
-              <QrCode className="w-3.5 h-3.5" />
+              <QrCode className="w-3.5 h-3.5 text-amber-400" />
               <span>Verify Marksheet/Cert</span>
             </Link>
 
             <Link
               to="/login"
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-bold transition shadow-sm"
+              className="px-3.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg font-bold text-xs transition shadow-md shadow-blue-600/20"
             >
               Portal Login
             </Link>
@@ -172,14 +178,13 @@ export const PublicSchoolPage: React.FC = () => {
       </div>
 
       {/* 2 & 3. SCHOOL LOGO, BRAND HEADER & NAVIGATION */}
-      <header className="bg-slate-900/95 border-b border-slate-800 sticky top-10 z-30 shadow-xl backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <SafeImage
-              src={school.logo_url}
+      <header className="bg-slate-900/95 border-b border-slate-800 sticky top-9 z-30 shadow-2xl backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3.5 group">
+            <img
+              src="/assets/branding/don-bosco-logo.png"
               alt={school.name}
-              fallbackSrc="/assets/branding/don-bosco-logo.svg"
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-contain bg-slate-950 border-2 border-amber-500/40 p-1 shadow-lg shadow-amber-500/10"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-contain bg-white border-2 border-amber-500/40 p-1 shadow-lg shadow-amber-500/10 group-hover:scale-105 transition-transform"
             />
             <div>
               <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight uppercase font-serif">
@@ -190,13 +195,13 @@ export const PublicSchoolPage: React.FC = () => {
                   ★ {school.tagline || 'KNOWLEDGE IS POWER'} ★
                 </span>
                 <span className="text-slate-400 hidden sm:inline">• ESTD: {school.established_year || '1997'}</span>
-                <span className="text-blue-400 hidden md:inline">• {school.academic_pattern || 'CBSE Pattern'}</span>
+                <span className="text-emerald-400 hidden md:inline">• {school.academic_pattern || 'CBSE Pattern'}</span>
               </div>
             </div>
-          </div>
+          </Link>
 
           <nav className="hidden lg:flex items-center gap-5 text-xs font-bold uppercase tracking-wider text-slate-300">
-            <a href="#about" className="hover:text-amber-400 transition">About Us</a>
+            <a href="#about" className="hover:text-amber-400 transition">About</a>
             <a href="#academics" className="hover:text-amber-400 transition">Academics</a>
             <a href="#facilities" className="hover:text-amber-400 transition">Facilities</a>
             <a href="#admissions" className="hover:text-amber-400 transition">Admissions</a>
@@ -205,7 +210,7 @@ export const PublicSchoolPage: React.FC = () => {
             <a href="#contact" className="hover:text-amber-400 transition">Contact</a>
             <button
               onClick={() => setIsAdmissionModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/20 transition"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/20 transition cursor-pointer"
             >
               Apply Online
             </button>
@@ -213,7 +218,7 @@ export const PublicSchoolPage: React.FC = () => {
         </div>
       </header>
 
-      {/* 4. MAIN SCHOOL BANNER / HERO SECTION */}
+      {/* 4. MAIN SCHOOL HERO SECTION */}
       <section className="relative overflow-hidden bg-slate-950 py-16 md:py-24 border-b border-slate-800">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/30 via-slate-950 to-slate-950 -z-10" />
 
@@ -223,7 +228,7 @@ export const PublicSchoolPage: React.FC = () => {
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase tracking-widest">
                 <Sparkles className="w-4 h-4 text-amber-400" />
-                Excellence in Education Since 1997
+                Excellence in Education Since 1997 • Raipur Bazar
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight font-serif tracking-tight">
@@ -236,18 +241,18 @@ export const PublicSchoolPage: React.FC = () => {
               <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
                 Welcome to <strong>DON BOSCO ACADEMY</strong>, Raipur Bazar, Nanpur, Sitamarhi (Bihar). 
                 A premier <strong>Residential Cum Day School</strong> operating on the <strong>CBSE Pattern</strong> from 
-                <strong> Play to Class 10th</strong>. Fostering discipline, critical thinking, and character for over two decades.
+                <strong> Play Group to Class 10th</strong>. Fostering academic rigor, moral character, and discipline for over two decades.
               </p>
 
               {/* Highlights Pill Badges */}
-              <div className="flex flex-wrap gap-3 pt-2">
-                <span className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2">
+              <div className="flex flex-wrap gap-3 pt-1">
+                <span className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" /> CBSE Curriculum
                 </span>
-                <span className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2">
+                <span className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Play Group to Class 10th
                 </span>
-                <span className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2">
+                <span className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Residential Hostel Facilities
                 </span>
               </div>
@@ -256,7 +261,7 @@ export const PublicSchoolPage: React.FC = () => {
               <div className="flex flex-wrap items-center gap-4 pt-4">
                 <button
                   onClick={() => setIsAdmissionModalOpen(true)}
-                  className="px-8 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-xl shadow-amber-500/20 text-sm uppercase tracking-wider flex items-center gap-2 transition"
+                  className="px-8 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-xl shadow-amber-500/20 text-sm uppercase tracking-wider flex items-center gap-2 transition cursor-pointer"
                 >
                   <Send className="w-4 h-4" /> Admission 2026-27
                 </button>
@@ -278,7 +283,7 @@ export const PublicSchoolPage: React.FC = () => {
                   fallbackSrc="/assets/branding/main-banner.svg"
                   className="w-full h-80 sm:h-96 object-cover rounded-2xl group-hover:scale-102 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent rounded-2xl flex flex-col justify-end p-6">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent rounded-2xl flex flex-col justify-end p-6">
                   <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-widest">
                     DON BOSCO ACADEMY • RAIPUR BAZAR
                   </span>
@@ -307,12 +312,12 @@ export const PublicSchoolPage: React.FC = () => {
             <div className="w-20 h-1 bg-amber-500 mx-auto rounded-full" />
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
               Founded in 1997 at Raipur Bazar, Nanpur, Sitamarhi (Bihar), Don Bosco Academy was established
-              with a solemn commitment to provide top-tier CBSE pattern education in a nurturing, disciplined environment.
+              with a commitment to provide high quality CBSE pattern education in a disciplined, character-building atmosphere.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4 hover:border-slate-700 transition">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4 hover:border-blue-500/40 transition">
               <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold">
                 <Compass className="w-6 h-6" />
               </div>
@@ -323,7 +328,7 @@ export const PublicSchoolPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4 hover:border-slate-700 transition">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4 hover:border-amber-500/40 transition">
               <div className="w-12 h-12 rounded-2xl bg-amber-600/20 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
                 <Award className="w-6 h-6" />
               </div>
@@ -334,7 +339,7 @@ export const PublicSchoolPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4 hover:border-slate-700 transition">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4 hover:border-emerald-500/40 transition">
               <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold">
                 <Shield className="w-6 h-6" />
               </div>
@@ -381,13 +386,13 @@ export const PublicSchoolPage: React.FC = () => {
                 </h2>
                 <p className="text-sm text-slate-300 leading-relaxed">
                   At DON BOSCO ACADEMY, our mission extends far beyond textbooks and examinations. 
-                  Since 1997, our institution in Raipur Bazar has stood as a beacon of scholastic and moral transformation. 
-                  We believe that each child is endowed with boundless potential waiting to be ignited.
+                  Since 1997, our institution in Raipur Bazar has stood as a center of scholastic excellence and character formation. 
+                  We believe that every child possesses unique talent and curiosity.
                 </p>
                 <p className="text-sm text-slate-400 leading-relaxed">
                   Our dedicated faculty, modern digital infrastructure, safe residential hostel facilities, and CBSE curriculum 
-                  ensure that every student emerges as a well-rounded, confident global citizen. We warmly invite parents to visit 
-                  our campus and become part of the Don Bosco family.
+                  ensure that every student emerges confident and prepared for the future. We warmly invite parents to visit 
+                  our campus and become part of our institution.
                 </p>
                 <div className="pt-2">
                   <SafeImage
@@ -423,7 +428,7 @@ export const PublicSchoolPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-amber-500/40 transition">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-pink-500/40 transition">
               <div className="px-3 py-1 bg-pink-500/10 text-pink-400 border border-pink-500/20 text-xs font-bold rounded-lg w-fit">
                 Early Childhood
               </div>
@@ -437,7 +442,7 @@ export const PublicSchoolPage: React.FC = () => {
               </ul>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-amber-500/40 transition">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-blue-500/40 transition">
               <div className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold rounded-lg w-fit">
                 Foundational
               </div>
@@ -451,7 +456,7 @@ export const PublicSchoolPage: React.FC = () => {
               </ul>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-amber-500/40 transition">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-indigo-500/40 transition">
               <div className="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold rounded-lg w-fit">
                 Preparatory
               </div>
@@ -475,7 +480,7 @@ export const PublicSchoolPage: React.FC = () => {
                 <li>• Intensive CBSE Board syllabus preparation</li>
                 <li>• Dedicated Science Practical Labs</li>
                 <li>• Periodic Assessments & Mock Exams</li>
-                <li>• Career counseling & doubt clearing</li>
+                <li>• Doubt clearing & exam counseling</li>
               </ul>
             </div>
 
@@ -496,7 +501,7 @@ export const PublicSchoolPage: React.FC = () => {
             </h2>
             <div className="w-20 h-1 bg-amber-500 mx-auto rounded-full" />
             <p className="text-slate-300 text-sm sm:text-base">
-              Modern infrastructure engineered to provide a secure, stimulating, and technologically advanced learning environment.
+              Modern facilities designed to provide a secure, stimulating, and technologically advanced learning environment.
             </p>
           </div>
 
@@ -509,7 +514,7 @@ export const PublicSchoolPage: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-white font-serif">Smart Classrooms</h3>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Interactive digital panels, audio-visual learning aids, and spacious ergonomic seating.
+                  Interactive digital learning tools, visual teaching aids, and spacious seating.
                 </p>
               </div>
             </div>
@@ -521,7 +526,7 @@ export const PublicSchoolPage: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-white font-serif">Computer & AI Lab</h3>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Modern high-speed computer systems with coding, robotics, and digital literacy curriculum.
+                  Modern computer systems with coding, digital tools, and practical curriculum.
                 </p>
               </div>
             </div>
@@ -531,9 +536,9 @@ export const PublicSchoolPage: React.FC = () => {
                 <Sparkles className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white font-serif">Science & Practical Labs</h3>
+                <h3 className="text-base font-bold text-white font-serif">Science Practical Labs</h3>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Well-equipped Physics, Chemistry, and Biology apparatus for hands-on experimentation.
+                  Physics, Chemistry, and Biology apparatus for hands-on experiments.
                 </p>
               </div>
             </div>
@@ -545,7 +550,7 @@ export const PublicSchoolPage: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-white font-serif">Sports & Athletics Grounds</h3>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Cricket, football, volleyball, badminton courts, and indoor games for physical vitality.
+                  Cricket, football, volleyball, badminton, and indoor games for fitness.
                 </p>
               </div>
             </div>
@@ -557,7 +562,7 @@ export const PublicSchoolPage: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-white font-serif">Residential Hostels</h3>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Safe, hygienic, and supervised boarding hostel for boys and girls with balanced nutritious meals.
+                  Safe, hygienic, and supervised boarding hostel for boys and girls with nutritious meals.
                 </p>
               </div>
             </div>
@@ -569,7 +574,7 @@ export const PublicSchoolPage: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-white font-serif">CCTV & Safe Transport</h3>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  24/7 CCTV campus surveillance, fire safety compliance, and reliable school transport network.
+                  24/7 CCTV campus surveillance, fire safety, and reliable bus transport network.
                 </p>
               </div>
             </div>
@@ -581,7 +586,7 @@ export const PublicSchoolPage: React.FC = () => {
       {/* 11. ADMISSION INFORMATION & APPLICATION BANNER */}
       <section id="admissions" className="py-20 bg-slate-900/60 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-amber-500/20 via-slate-900 to-blue-900/20 border-2 border-amber-500/30 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-900/30 via-slate-900 to-amber-900/20 border-2 border-amber-500/30 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               
               <div className="lg:col-span-8 space-y-4">
@@ -594,7 +599,7 @@ export const PublicSchoolPage: React.FC = () => {
                 <p className="text-sm text-slate-300 leading-relaxed">
                   Admissions are now open for <strong>Play Group, Nursery, LKG, UKG, and Classes 1 to 10</strong>.
                   Limited seats are available for both Day Scholars and Residential Hostel boarders. 
-                  Submit an inquiry online or visit the school office in Raipur Bazar.
+                  Submit an inquiry online or visit our school office in Raipur Bazar.
                 </p>
                 <div className="flex flex-wrap gap-4 pt-2 text-xs font-semibold text-slate-300">
                   <span>✔ Transparent Merit Process</span>
@@ -606,7 +611,7 @@ export const PublicSchoolPage: React.FC = () => {
               <div className="lg:col-span-4 flex flex-col gap-3">
                 <button
                   onClick={() => setIsAdmissionModalOpen(true)}
-                  className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-xl shadow-amber-500/30 text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition"
+                  className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-xl shadow-amber-500/30 text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                   <Send className="w-4 h-4" /> Fill Online Admission Form
                 </button>
@@ -636,7 +641,7 @@ export const PublicSchoolPage: React.FC = () => {
             </h2>
             <div className="w-20 h-1 bg-amber-500 mx-auto rounded-full" />
             <p className="text-slate-300 text-sm sm:text-base">
-              A vibrant calendar of sports tournaments, science exhibitions, cultural drama, and debate competitions.
+              Sports tournaments, science exhibitions, cultural drama, and debate competitions.
             </p>
           </div>
 
@@ -647,7 +652,7 @@ export const PublicSchoolPage: React.FC = () => {
               </div>
               <h3 className="text-base font-bold text-white font-serif">Annual Sports Meet</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Track and field events, inter-house championships, and football/cricket leagues.
+                Track and field events, inter-house championships, and sports leagues.
               </p>
             </div>
 
@@ -655,9 +660,9 @@ export const PublicSchoolPage: React.FC = () => {
               <div className="h-36 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white">
                 <Sparkles className="w-12 h-12" />
               </div>
-              <h3 className="text-base font-bold text-white font-serif">Science & Innovation Fair</h3>
+              <h3 className="text-base font-bold text-white font-serif">Science Exhibition</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Student-engineered science models, robotics exhibitions, and environmental presentations.
+                Student-built science models, robotics, and environmental presentations.
               </p>
             </div>
 
@@ -665,9 +670,9 @@ export const PublicSchoolPage: React.FC = () => {
               <div className="h-36 rounded-2xl bg-gradient-to-tr from-rose-600 to-pink-500 flex items-center justify-center text-white">
                 <Users className="w-12 h-12" />
               </div>
-              <h3 className="text-base font-bold text-white font-serif">Cultural & Art Festival</h3>
+              <h3 className="text-base font-bold text-white font-serif">Cultural Celebrations</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Music, traditional folk dance, theatrical drama, and annual day celebrations.
+                Music, dance, annual function drama, and national festivals.
               </p>
             </div>
 
@@ -677,7 +682,7 @@ export const PublicSchoolPage: React.FC = () => {
               </div>
               <h3 className="text-base font-bold text-white font-serif">Debate & Quiz Club</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Elocution, general knowledge Olympiads, essay writing, and public speaking contests.
+                Speech, general knowledge Olympiads, and essay contests.
               </p>
             </div>
           </div>
@@ -723,7 +728,7 @@ export const PublicSchoolPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 14 & 15. CONTACT INFORMATION & FACEBOOK BUTTON */}
+      {/* 14 & 15. CONTACT INFORMATION & SOCIAL LINKS */}
       <section id="contact" className="py-20 bg-slate-950 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -782,11 +787,11 @@ export const PublicSchoolPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Action Buttons: Email, Call, Facebook */}
+              {/* Action Buttons */}
               <div className="pt-4 border-t border-slate-800 flex flex-col gap-3">
                 <a
                   href={`mailto:${school.email}?subject=Inquiry regarding Don Bosco Academy`}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition"
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md shadow-blue-600/20"
                 >
                   <Mail className="w-4 h-4" /> Send Email to School
                 </a>
@@ -819,8 +824,8 @@ export const PublicSchoolPage: React.FC = () => {
                   <h3 className="text-lg font-bold text-white font-serif">Location & Connectivity</h3>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  DON BOSCO ACADEMY is strategically located at <strong>Raipur Bazar, Nanpur</strong> in the Sitamarhi district of Bihar (PIN: 843326). 
-                  The school enjoys excellent connectivity with major district highways and dedicated school transport coverage across surrounding areas.
+                  DON BOSCO ACADEMY is located at <strong>Raipur Bazar, Nanpur</strong> in the Sitamarhi district of Bihar (PIN: 843326). 
+                  The school is well connected with major district roads and operates transport routes across neighboring areas.
                 </p>
 
                 <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800/80 space-y-3">
@@ -829,7 +834,7 @@ export const PublicSchoolPage: React.FC = () => {
                     <span className="font-semibold text-white">Raipur Bazar, Nanpur, Sitamarhi</span>
                   </div>
                   <div className="flex items-center justify-between text-xs border-b border-slate-800 pb-2">
-                    <span className="text-slate-400">Postal Index:</span>
+                    <span className="text-slate-400">Postal PIN:</span>
                     <span className="font-mono text-amber-400 font-bold">843326</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
@@ -863,9 +868,9 @@ export const PublicSchoolPage: React.FC = () => {
             <div className="space-y-3 md:col-span-2">
               <div className="flex items-center gap-3">
                 <img
-                  src={school.logo_url || '/assets/branding/don-bosco-logo.svg'}
+                  src="/assets/branding/don-bosco-logo.png"
                   alt="Logo"
-                  className="w-10 h-10 object-contain rounded-lg bg-slate-900 border border-slate-700 p-0.5"
+                  className="w-12 h-12 object-contain rounded-xl bg-white p-0.5 border border-amber-500/30"
                 />
                 <span className="font-black text-white text-base tracking-wide font-serif">
                   DON BOSCO ACADEMY
@@ -876,12 +881,12 @@ export const PublicSchoolPage: React.FC = () => {
                 Residential Cum Day School operating on the CBSE curriculum from Play to Class 10th.
               </p>
               <p className="text-xs text-amber-400 font-mono font-bold">
-                Tagline: KNOWLEDGE IS POWER
+                Motto: KNOWLEDGE IS POWER
               </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-bold text-white uppercase tracking-wider text-xs font-mono">Quick Links</h4>
+              <h4 className="font-bold text-white uppercase tracking-wider text-xs font-mono">Quick Navigation</h4>
               <ul className="space-y-1.5 text-xs text-slate-400">
                 <li><a href="#about" className="hover:text-white transition">About School</a></li>
                 <li><a href="#academics" className="hover:text-white transition">Classes & Syllabus</a></li>
@@ -894,7 +899,7 @@ export const PublicSchoolPage: React.FC = () => {
             <div className="space-y-2">
               <h4 className="font-bold text-white uppercase tracking-wider text-xs font-mono">Administration</h4>
               <ul className="space-y-1.5 text-xs text-slate-400">
-                <li><Link to="/login" className="hover:text-white transition">Principal & Staff Login</Link></li>
+                <li><Link to="/login" className="hover:text-white transition">Principal & Faculty Login</Link></li>
                 <li><Link to="/login" className="hover:text-white transition">Student & Parent Portal</Link></li>
                 <li><a href={`mailto:${school.email}`} className="hover:text-white transition">{school.email}</a></li>
                 <li><span className="text-slate-500">Phone: {school.phone}</span></li>
@@ -927,7 +932,7 @@ export const PublicSchoolPage: React.FC = () => {
             </div>
             <h3 className="text-xl font-bold text-white font-serif">Application Submitted!</h3>
             <p className="text-sm text-slate-300 max-w-md mx-auto">
-              Thank you for applying to <strong>DON BOSCO ACADEMY</strong>. The school admission office in Raipur Bazar will review the application and contact you shortly.
+              Thank you for applying to <strong>DON BOSCO ACADEMY</strong>. The school admission office in Raipur Bazar will review your inquiry and contact you shortly.
             </p>
           </div>
         ) : (
@@ -1030,14 +1035,14 @@ export const PublicSchoolPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAdmissionModalOpen(false)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={admissionSubmitting}
-                className="px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl shadow-lg transition disabled:opacity-50"
+                className="px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl shadow-lg transition disabled:opacity-50 cursor-pointer"
               >
                 {admissionSubmitting ? 'Submitting...' : 'Submit Application'}
               </button>

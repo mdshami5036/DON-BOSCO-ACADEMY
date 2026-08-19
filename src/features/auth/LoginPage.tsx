@@ -73,9 +73,9 @@ export const LoginPage: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-6">
         <Link to="/" className="inline-flex flex-col items-center gap-2 mb-2">
           <img
-            src="/assets/branding/don-bosco-logo.svg"
+            src="/assets/branding/don-bosco-logo.png"
             alt="Don Bosco Academy Logo"
-            className="w-20 h-20 rounded-2xl object-contain bg-slate-900 border-2 border-amber-500/40 p-1 shadow-xl shadow-amber-500/10"
+            className="w-24 h-24 rounded-2xl object-contain bg-white border-2 border-amber-500/40 p-1 shadow-xl shadow-amber-500/10"
           />
           <h1 className="font-serif font-black text-2xl sm:text-3xl text-white tracking-wide uppercase mt-1">
             DON BOSCO ACADEMY

@@ -24,6 +24,12 @@ export const SchoolSettingsPage: React.FC = () => {
     id_card_pattern: 'ID/{YEAR}/{ROLL}',
     current_sequence: 1,
   });
+  const [defaultCertBody, setDefaultCertBody] = useState(
+    'In recognition of outstanding scholastic achievement, ranking 1st in Class with distinguished merit in the Academic Year 2025-2026.'
+  );
+  const [defaultMarksheetRemarks, setDefaultMarksheetRemarks] = useState(
+    'Outstanding performance. Promoted to next higher class with distinction.'
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -41,6 +47,8 @@ export const SchoolSettingsPage: React.FC = () => {
         if (s.numbering_patterns) {
           setNumberingPatterns(s.numbering_patterns);
         }
+        if (s.default_certificate_body) setDefaultCertBody(s.default_certificate_body);
+        if (s.default_marksheet_remarks) setDefaultMarksheetRemarks(s.default_marksheet_remarks);
       } finally {
         setIsLoading(false);
       }
@@ -59,6 +67,8 @@ export const SchoolSettingsPage: React.FC = () => {
         theme_color: themeColor,
         grading_system: grades,
         numbering_patterns: numberingPatterns,
+        default_certificate_body: defaultCertBody,
+        default_marksheet_remarks: defaultMarksheetRemarks,
       });
       success('School settings & document numbering formulas updated!');
     } catch (err: any) {
@@ -197,6 +207,58 @@ export const SchoolSettingsPage: React.FC = () => {
                 required
               />
             </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Default Certificate Citation Body & Marksheet Remarks */}
+      <Card
+        title="Default Certificate Citation & Marksheet Remarks"
+        subtitle="Admin sets the default body text printed on every certificate. Each student's name and details are auto-filled."
+      >
+        <div className="space-y-5">
+          <div className="p-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl text-xs text-amber-800 dark:text-amber-300 space-y-1">
+            <div className="font-bold flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-amber-500" /> Template Variables You Can Use in Body Text:
+            </div>
+            <p>
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{student_name}'}</code>,{' '}
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{class_name}'}</code>,{' '}
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{academic_session}'}</code>,{' '}
+              <code className="bg-white dark:bg-slate-900 px-1.5 rounded font-mono text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">{'{rank}'}</code>
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+              Default Certificate Body / Citation Text *
+            </label>
+            <textarea
+              rows={4}
+              className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-slate-800 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              value={defaultCertBody}
+              onChange={(e) => setDefaultCertBody(e.target.value)}
+              placeholder="e.g. In recognition of outstanding scholastic achievement, ranking 1st in {class_name} with distinguished merit in the Academic Year {academic_session}."
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+              This text auto-fills in the Certificate Generator. The teacher can edit it per student before printing.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+              Default Marksheet Teacher Remarks *
+            </label>
+            <textarea
+              rows={2}
+              className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-slate-800 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              value={defaultMarksheetRemarks}
+              onChange={(e) => setDefaultMarksheetRemarks(e.target.value)}
+              placeholder="e.g. Excellent performance. Promoted to next class with distinction."
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+              Default remarks printed on marksheets (can be overridden per student at the time of generation).
+            </p>
           </div>
         </div>
       </Card>

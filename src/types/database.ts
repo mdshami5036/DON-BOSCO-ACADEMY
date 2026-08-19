@@ -128,6 +128,8 @@ export interface SchoolSettings {
   theme_color: string;
   custom_domain?: string | null;
   numbering_patterns?: NumberingPatterns;
+  default_certificate_body?: string;
+  default_marksheet_remarks?: string;
   updated_at: string;
 }
 

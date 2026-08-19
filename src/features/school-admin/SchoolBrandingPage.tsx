@@ -40,7 +40,7 @@ export const SchoolBrandingPage: React.FC = () => {
     website: 'https://donboscoacademy.edu.in',
     facebook_url: 'https://www.facebook.com/donboscoacademy002',
     about: 'Established in 1997, DON BOSCO ACADEMY is a premier Residential Cum Day School in Raipur Bazar, Nanpur, Sitamarhi (Bihar). Operating on the CBSE pattern from Play Group to Class 10th.',
-    logo_url: '/assets/branding/don-bosco-logo.svg',
+    logo_url: '/assets/branding/don-bosco-logo.png',
     banner_url: '/assets/branding/main-banner.svg',
     admission_banner_url: '/assets/branding/admission-banner.svg',
     announcement_banner_url: '/assets/branding/main-banner.svg',

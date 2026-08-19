@@ -66,9 +66,9 @@ export const DocumentVerificationPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 font-bold text-white">
             <img
-              src="/assets/branding/don-bosco-logo.svg"
+              src="/assets/branding/don-bosco-logo.png"
               alt="Don Bosco Academy Logo"
-              className="w-9 h-9 rounded-lg object-contain bg-slate-950 p-1 border border-amber-500/30"
+              className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 border border-amber-500/30"
             />
             <div>
               <span className="font-serif font-bold text-base tracking-wide uppercase">DON BOSCO ACADEMY</span>

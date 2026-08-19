@@ -65,6 +65,7 @@ export const CertificateGeneratorPage: React.FC = () => {
       if (cList.length > 0) setSelectedClassId(cList[0].id);
       if (sList.length > 0) setSelectedStudentId(sList[0].id);
 
+      // Use ONLY the single assigned certificate template (tmpl-cert-01)
       const certTmpls = tList.filter((t) => t.category === 'CERTIFICATE');
       setTemplates(certTmpls);
 
@@ -78,12 +79,18 @@ export const CertificateGeneratorPage: React.FC = () => {
         });
       }
 
-      // Auto-compute next certificate number from school pattern
-      const pattern = settings.numbering_patterns?.certificate_pattern || '{CLASS}/{YEAR}/{SEQ}';
+      // Load default certificate body from school settings set by admin
+      if (settings.default_certificate_body) {
+        setCertBody(settings.default_certificate_body);
+      }
+
+      // Auto-compute next certificate number from school pattern (unique per student)
+      const pattern = settings.numbering_patterns?.certificate_pattern || 'DBA/{CLASS}/{YEAR}/{SEQ}';
+      const seq = settings.numbering_patterns?.current_sequence || 101;
       const initialNum = generateDocumentNumber(pattern, {
         class_name: sList[0]?.class_name || '10TH',
         school_name: currentSchool.name,
-      }, settings.numbering_patterns?.current_sequence || 1);
+      }, seq);
       setCertNumber(initialNum);
     }
     load();
@@ -99,18 +106,22 @@ export const CertificateGeneratorPage: React.FC = () => {
     loadClassStudents();
   }, [currentSchool, selectedClassId]);
 
-  // Recalculate certNumber when student changes
+  // Recalculate certNumber when student changes — each student gets a unique serial
   useEffect(() => {
     async function updateNum() {
       if (!currentSchool || !selectedStudentId) return;
       const student = students.find((s) => s.id === selectedStudentId);
       const settings = await db.getSchoolSettings(currentSchool.id);
-      const pattern = settings.numbering_patterns?.certificate_pattern || '{CLASS}/{YEAR}/{SEQ}';
+      const pattern = settings.numbering_patterns?.certificate_pattern || 'DBA/{CLASS}/{YEAR}/{SEQ}';
+      // Each student gets a unique sequence based on their index in the class list
+      const studentIdx = students.findIndex((s) => s.id === selectedStudentId);
+      const baseSeq = settings.numbering_patterns?.current_sequence || 101;
+      const uniqueSeq = baseSeq + (studentIdx >= 0 ? studentIdx : 0);
       const autoNum = generateDocumentNumber(pattern, {
         class_name: student?.class_name || '10TH',
         roll_number: student?.roll_number,
         school_name: currentSchool.name,
-      }, settings.numbering_patterns?.current_sequence || 1);
+      }, uniqueSeq);
       setCertNumber(autoNum);
     }
     updateNum();
@@ -131,8 +142,8 @@ export const CertificateGeneratorPage: React.FC = () => {
 
       const compiled = compileTemplateHtml(selectedTemplate.html_content, selectedTemplate.css_content, {
         school_name: currentSchool.name,
-        school_logo: currentSchool.logo_url || 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=150',
-        school_address: currentSchool.address,
+        school_logo: currentSchool.logo_url || '/assets/branding/don-bosco-logo.png',
+        school_address: currentSchool.address || 'Raipur Bazar, Nanpur, Sitamarhi',
         academic_session: '2025-2026',
         principal_name: currentSchool.principal_name,
         principal_signature: currentSchool.principal_signature_url,

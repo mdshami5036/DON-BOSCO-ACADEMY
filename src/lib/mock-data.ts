@@ -67,7 +67,7 @@ export const INITIAL_SCHOOLS: School[] = [
     country: 'India',
     postal_code: '843326',
     principal_name: 'Md. Shami Ahmad',
-    logo_url: '/assets/branding/don-bosco-logo.svg',
+    logo_url: '/assets/branding/don-bosco-logo.png',
     banner_url: '/assets/branding/main-banner.svg',
     admission_banner_url: '/assets/branding/admission-banner.svg',
     announcement_banner_url: '/assets/branding/main-banner.svg',
@@ -117,6 +117,8 @@ export const INITIAL_SCHOOL_SETTINGS: Record<string, SchoolSettings> = {
       id_card_pattern: 'DBA/ID/{YEAR}/{ROLL}',
       current_sequence: 101,
     },
+    default_certificate_body: 'In recognition of outstanding scholastic achievement, ranking 1st in Class 10 with distinguished merit in the Academic Year 2025-2026.',
+    default_marksheet_remarks: 'Outstanding performance. Promoted to next higher class with distinction.',
     updated_at: new Date().toISOString(),
   },
 };
