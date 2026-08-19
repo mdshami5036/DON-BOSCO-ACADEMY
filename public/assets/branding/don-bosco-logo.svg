@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047" />
+      <stop offset="30%" stop-color="#EAB308" />
+      <stop offset="70%" stop-color="#CA8A04" />
+      <stop offset="100%" stop-color="#854D0E" />
+    </linearGradient>
+    <linearGradient id="navyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A" />
+      <stop offset="50%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#172554" />
+    </linearGradient>
+    <linearGradient id="crimsonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DC2626" />
+      <stop offset="100%" stop-color="#991B1B" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+    <path id="textArcTop" d="M 70,250 A 180,180 0 0,1 430,250" fill="none" />
+    <path id="textArcBottom" d="M 425,250 A 175,175 0 0,1 75,250" fill="none" />
+  </defs>
+
+  <!-- Outer Ring with Gold Bead Border -->
+  <circle cx="250" cy="250" r="240" fill="none" stroke="url(#goldGrad)" stroke-width="6" stroke-dasharray="3,7" filter="url(#shadow)"/>
+  <circle cx="250" cy="250" r="230" fill="url(#navyGrad)" stroke="url(#goldGrad)" stroke-width="5"/>
+  <circle cx="250" cy="250" r="170" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-dasharray="4,4"/>
+  <circle cx="250" cy="250" r="160" fill="#0F172A" stroke="url(#goldGrad)" stroke-width="4"/>
+
+  <!-- Circular Texts -->
+  <!-- DON BOSCO ACADEMY -->
+  <text font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="27" font-weight="900" fill="url(#goldGrad)" letter-spacing="4">
+    <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
+      DON BOSCO ACADEMY
+    </textPath>
+  </text>
+
+  <!-- RAIPUR BAZAR -->
+  <text font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="23" font-weight="800" fill="url(#goldGrad)" letter-spacing="5">
+    <textPath href="#textArcBottom" startOffset="50%" text-anchor="middle">
+      ★ RAIPUR BAZAR ★
+    </textPath>
+  </text>
+
+  <!-- Center Shield Background -->
+  <g transform="translate(250, 240) scale(0.95)">
+    <!-- Heraldic Shield -->
+    <path d="M 0,-85 C 55,-85 75,-65 75,-25 C 75,45 0,85 0,85 C 0,85 -75,45 -75,-25 C -75,-65 -55,-85 0,-85 Z" 
+          fill="url(#crimsonGrad)" stroke="url(#goldGrad)" stroke-width="4" filter="url(#shadow)"/>
+
+    <!-- Inner Shield Inset -->
+    <path d="M 0,-77 C 48,-77 66,-59 66,-23 C 66,39 0,75 0,75 C 0,75 -66,39 -66,-23 C -66,-59 -48,-77 0,-77 Z" 
+          fill="#1E1B4B" stroke="url(#goldGrad)" stroke-width="1.5"/>
+
+    <!-- Torch of Enlightenment -->
+    <g transform="translate(0, -35)">
+      <!-- Flame -->
+      <path d="M0,-24 C-8,-14 -4,-6 0,0 C4,-6 8,-14 0,-24 Z" fill="#F59E0B"/>
+      <path d="M0,-20 C-4,-12 -2,-6 0,0 C2,-6 4,-12 0,-20 Z" fill="#EF4444"/>
+      <!-- Torch Base -->
+      <polygon points="-5,0 5,0 3,22 -3,22" fill="url(#goldGrad)"/>
+      <rect x="-7" y="-1" width="14" height="3" fill="#B45309" rx="1"/>
+    </g>
+
+    <!-- Open Book of Knowledge -->
+    <g transform="translate(0, 10)">
+      <!-- Left Page -->
+      <path d="M-38,15 C-25,10 -12,12 0,16 L0,-10 C-12,-14 -25,-12 -38,-7 Z" fill="#F8FAFC" stroke="url(#goldGrad)" stroke-width="1.5"/>
+      <!-- Right Page -->
+      <path d="M38,15 C25,10 12,12 0,16 L0,-10 C12,-14 25,-12 38,-7 Z" fill="#F8FAFC" stroke="url(#goldGrad)" stroke-width="1.5"/>
+      <!-- Book Lines -->
+      <line x1="-30" y1="-2" x2="-8" y2="1" stroke="#94A3B8" stroke-width="1"/>
+      <line x1="-30" y1="4" x2="-8" y2="7" stroke="#94A3B8" stroke-width="1"/>
+      <line x1="8" y1="1" x2="30" y2="-2" stroke="#94A3B8" stroke-width="1"/>
+      <line x1="8" y1="7" x2="30" y2="4" stroke="#94A3B8" stroke-width="1"/>
+    </g>
+
+    <!-- ESTD 1997 Badge -->
+    <rect x="-42" y="42" width="84" height="18" rx="4" fill="#0F172A" stroke="url(#goldGrad)" stroke-width="1.5"/>
+    <text x="0" y="55" font-family="'Cinzel', 'Georgia', serif" font-size="11" font-weight="800" fill="url(#goldGrad)" text-anchor="middle" letter-spacing="1.5">ESTD. 1997</text>
+  </g>
+
+  <!-- Tagline Ribbon at Bottom -->
+  <g transform="translate(250, 425)">
+    <!-- Ribbon Banner Background -->
+    <path d="M-180,0 L-150,-15 L150,-15 L180,0 L160,18 L-160,18 Z" fill="url(#crimsonGrad)" stroke="url(#goldGrad)" stroke-width="2.5" filter="url(#shadow)"/>
+    <!-- Ribbon Tails -->
+    <polygon points="-180,0 -160,18 -190,24 -175,10" fill="#7F1D1D"/>
+    <polygon points="180,0 160,18 190,24 175,10" fill="#7F1D1D"/>
+    <text x="0" y="6" font-family="'Cinzel', 'Georgia', serif" font-size="14" font-weight="900" fill="#FEF08A" text-anchor="middle" letter-spacing="3">
+      KNOWLEDGE IS POWER
+    </text>
+  </g>
+</svg>

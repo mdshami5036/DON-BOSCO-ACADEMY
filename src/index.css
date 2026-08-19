@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased bg-slate-50 text-slate-900;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Print Specific Optimizations */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  header, aside, button, .no-print {
+    display: none !important;
+  }
+}
