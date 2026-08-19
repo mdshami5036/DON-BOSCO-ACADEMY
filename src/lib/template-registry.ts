@@ -975,8 +975,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-logo {
-  width: 76px; /* Optimized size to stay completely inside top border safe zone */
-  height: 76px;
+  width: 92px; /* Enlarged logo for better premium look */
+  height: 92px;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,0.18));
