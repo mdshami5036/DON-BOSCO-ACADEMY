@@ -994,7 +994,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 .dba-school-name {
   font-size: 24px;
   font-weight: 950;
-  color: #0b1d3e;
+  color: #000000; /* Darker black */
   letter-spacing: 2px;
   text-transform: uppercase;
   line-height: 1.1;
@@ -1002,16 +1002,16 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-school-address {
   font-size: 10.5px;
-  font-weight: 600;
-  color: #2d3748;
+  font-weight: 700;
+  color: #000000; /* Darker black */
   letter-spacing: 0.5px;
   font-family: 'Georgia', serif;
 }
 
 .dba-school-meta {
   font-size: 10px;
-  font-weight: 600;
-  color: #4a5568;
+  font-weight: 700;
+  color: #000000; /* Darker black */
   letter-spacing: 0.5px;
   font-family: 'Georgia', serif;
 }
@@ -1043,7 +1043,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 .dba-cert-title {
   font-size: 24px;
   font-weight: 900;
-  color: #0a0a0a;
+  color: #000000; /* Darker black */
   letter-spacing: 2px;
   text-transform: uppercase;
   line-height: 1.15;
@@ -1089,7 +1089,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 .dba-certify-label {
   font-size: 10px;
   font-weight: 800;
-  color: #64748b;
+  color: #000000; /* Darker black */
   letter-spacing: 2px;
   text-transform: uppercase;
   font-family: 'Georgia', serif;
@@ -1097,15 +1097,13 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-student-name {
   font-family: 'Great Vibes', 'Brush Script MT', 'Dancing Script', cursive, serif;
-  font-size: 44px;
+  font-size: 46px;
   font-weight: bold;
   color: #0b1d3e;
-  line-height: 1.05;
+  line-height: 1.35; /* Increased to prevent top curves from getting cut off */
   max-width: 700px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   letter-spacing: 1px;
+  padding: 4px 0; /* Prevents overflow clipping */
 }
 
 .dba-student-meta-row {
@@ -1115,20 +1113,20 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   flex-wrap: wrap;
   gap: 3px 8px;
   font-size: 11px;
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: 700; /* Bolder */
+  color: #000000; /* Darker black */
   font-family: 'Georgia', serif;
   max-width: 700px;
 }
 
 .dba-meta-pill {
   font-size: 11px;
-  color: #1e293b;
+  color: #000000; /* Darker black */
 }
 
 .dba-meta-sep {
   font-size: 10px;
-  color: #94a3b8;
+  color: #000000; /* Darker black */
 }
 
 /* ─── DESCRIPTION BODY ─── */
@@ -1142,9 +1140,9 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   font-family: 'Georgia', 'Palatino', serif;
   font-size: 13.5px;
   line-height: 1.55;
-  color: #1a1a2e;
+  color: #000000; /* Darker black */
   font-style: italic;
-  font-weight: 600;
+  font-weight: 700; /* Bolder text for high contrast */
   text-align: center;
   max-width: 760px;
   margin: 0;
@@ -1157,7 +1155,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 ══════════════════════════════════════════════════════ */
 .dba-auth-row {
   position: absolute;
-  bottom: 85px; /* Pulls footer UP from the bottom border */
+  bottom: 100px; /* Pulls footer UP even more from the bottom border */
   left: 110px;
   right: 110px;
   display: flex;
@@ -1171,24 +1169,25 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   text-align: left;
   width: 195px;
   flex-shrink: 0;
+  padding-left: 20px; /* Moves QR code block to the right (towards center) */
 }
 
 .dba-auth-field {
   font-size: 9.5px;
-  color: #1e293b;
+  color: #000000; /* Darker black */
   margin-bottom: 2px;
   font-family: 'Georgia', serif;
   line-height: 1.3;
 }
 
 .dba-field-label {
-  color: #64748b;
-  font-weight: 600;
+  color: #000000; /* Darker black */
+  font-weight: 700;
 }
 
 .dba-field-value {
   font-weight: 800;
-  color: #0f172a;
+  color: #000000; /* Darker black */
   font-family: monospace;
 }
 
@@ -1200,10 +1199,10 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-qr-img {
-  width: 65px; /* Enlarged QR code */
-  height: 65px;
+  width: 75px; /* Enlarged QR code */
+  height: 75px; /* Enlarged QR code */
   object-fit: contain;
-  border: 1.5px solid #0f172a;
+  border: 1.5px solid #000000;
   padding: 2px;
   background: #ffffff;
   border-radius: 3px;
@@ -1219,8 +1218,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-qr-label {
   font-size: 8px;
-  font-weight: 800;
-  color: #475569;
+  font-weight: 900; /* Darker/bolder */
+  color: #000000; /* Darker black */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-family: 'Georgia', serif;
@@ -1229,7 +1228,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 .dba-qr-code {
   font-family: 'Courier New', monospace;
   font-size: 7px;
-  color: #0f172a;
+  color: #000000; /* Darker black */
   font-weight: 900;
   word-break: break-all;
   max-width: 110px;
@@ -1243,7 +1242,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-stamp-img {
-  width: 85px; /* Stamp enlarged */
+  width: 85px;
   height: 85px;
   object-fit: contain;
   display: block;
@@ -1253,8 +1252,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-stamp-label {
   font-size: 8px;
-  font-weight: 800;
-  color: #475569;
+  font-weight: 900; /* Darker/bolder */
+  color: #000000; /* Darker black */
   letter-spacing: 0.8px;
   text-transform: uppercase;
   font-family: 'Georgia', serif;
@@ -1265,10 +1264,11 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   text-align: center;
   width: 195px;
   flex-shrink: 0;
+  padding-right: 20px; /* Moves signature block to the left (towards center) */
 }
 
 .dba-sig-img {
-  height: 52px; /* Signature size increased */
+  height: 52px;
   max-width: 165px;
   object-fit: contain;
   object-position: center bottom;
@@ -1277,7 +1277,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-sig-line {
-  border-top: 1.5px solid #0a0a0a;
+  border-top: 1.5px solid #000000;
   width: 100%;
   margin-bottom: 3px;
 }
@@ -1285,7 +1285,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 .dba-sig-name {
   font-size: 11px;
   font-weight: 950;
-  color: #0a0a0a;
+  color: #000000; /* Darker black */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   line-height: 1.2;
@@ -1293,8 +1293,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-sig-title {
   font-size: 9px;
-  font-weight: 600;
-  color: #475569;
+  font-weight: 700; /* Bolder */
+  color: #000000; /* Darker black */
   font-family: 'Georgia', serif;
 }`,
   },
