@@ -924,43 +924,45 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
    We set bottom: 85px to pull the signatures, stamps, and QR up.
    Top: 72px, Left/Right: 105px.
 ══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   LAYER 2 — DYNAMIC CONTENT / SAFE AREA
+   All dynamic blocks positioned absolutely inside the root canvas.
+══════════════════════════════════════════════════════ */
 .dba-content-layer {
   position: absolute;
-  top: 72px;
-  bottom: 85px;
-  left: 105px;
-  right: 105px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
   color: #0a0a0a;
   overflow: hidden;
   box-sizing: border-box;
 }
 
 /* ══════════════════════════════════════════════════════
-   LAYOUT GROUPS — CONTROL GAPS & COMPACTNESS
+   LAYOUT GROUPS — PIXEL-PERFECT POSITIONING & SPACING
 ══════════════════════════════════════════════════════ */
 .dba-header-group {
+  position: absolute;
+  top: 88px; /* Safe distance below top border rosette, will not get cut off */
+  left: 110px;
+  right: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  width: 100%;
-  flex-shrink: 0;
+  gap: 2px;
 }
 
 .dba-middle-group {
+  position: absolute;
+  top: 250px; /* Shifted up to be closer to header, leaving space for long body text */
+  left: 110px;
+  right: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px; /* Tighter layout gap between Title, Recipient and Description */
-  width: 100%;
-  flex: 1;
-  justify-content: center;
+  gap: 12px; /* Elegant gap between elements */
 }
 
 /* ─── HEADER ─── */
@@ -970,12 +972,11 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   align-items: center;
   gap: 2px;
   width: 100%;
-  flex-shrink: 0;
 }
 
 .dba-logo {
-  width: 80px; /* Enlarged logo for better visibility */
-  height: 80px;
+  width: 76px; /* Optimized size to stay completely inside top border safe zone */
+  height: 76px;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,0.18));
@@ -991,7 +992,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-school-name {
-  font-size: 24px; /* Visually enhanced school name */
+  font-size: 24px;
   font-weight: 950;
   color: #0b1d3e;
   letter-spacing: 2px;
@@ -1000,7 +1001,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-school-address {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 600;
   color: #2d3748;
   letter-spacing: 0.5px;
@@ -1008,7 +1009,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-school-meta {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
   color: #4a5568;
   letter-spacing: 0.5px;
@@ -1021,7 +1022,6 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   align-items: center;
   justify-content: center;
   width: 100%;
-  flex-shrink: 0;
   margin: 1px 0;
 }
 
@@ -1036,13 +1036,12 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   width: 100%;
-  flex-shrink: 0;
 }
 
 .dba-cert-title {
-  font-size: 24px; /* Enhanced heading */
+  font-size: 24px;
   font-weight: 900;
   color: #0a0a0a;
   letter-spacing: 2px;
@@ -1070,7 +1069,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 }
 
 .dba-cert-subtitle {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 800;
   color: #1e3a8a;
   letter-spacing: 1.5px;
@@ -1083,13 +1082,12 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 2px;
   width: 100%;
-  flex-shrink: 0;
 }
 
 .dba-certify-label {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 800;
   color: #64748b;
   letter-spacing: 2px;
@@ -1099,7 +1097,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
 
 .dba-student-name {
   font-family: 'Great Vibes', 'Brush Script MT', 'Dancing Script', cursive, serif;
-  font-size: 46px; /* Highly prominent student name */
+  font-size: 44px;
   font-weight: bold;
   color: #0b1d3e;
   line-height: 1.05;
@@ -1116,7 +1114,7 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   justify-content: center;
   flex-wrap: wrap;
   gap: 3px 8px;
-  font-size: 11px; /* Slightly larger metadata text */
+  font-size: 11px;
   font-weight: 600;
   color: #1e293b;
   font-family: 'Georgia', serif;
@@ -1138,18 +1136,17 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
   width: 100%;
   display: flex;
   justify-content: center;
-  flex-shrink: 0;
 }
 
 .dba-body-text {
   font-family: 'Georgia', 'Palatino', serif;
-  font-size: 13.5px; /* Larger body text for premium readability */
-  line-height: 1.5;
+  font-size: 13.5px;
+  line-height: 1.55;
   color: #1a1a2e;
   font-style: italic;
   font-weight: 600;
   text-align: center;
-  max-width: 750px;
+  max-width: 760px;
   margin: 0;
   padding: 0 10px;
   word-wrap: break-word;
@@ -1159,13 +1156,14 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
    AUTHENTICATION FOOTER — SHIFTED UPWARDS AND EMBOLDENED
 ══════════════════════════════════════════════════════ */
 .dba-auth-row {
+  position: absolute;
+  bottom: 85px; /* Pulls footer UP from the bottom border */
+  left: 110px;
+  right: 110px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  width: 100%;
-  flex-shrink: 0;
   gap: 8px;
-  margin-top: 10px;
 }
 
 /* Left column — meta + QR */
