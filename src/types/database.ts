@@ -508,6 +508,7 @@ export interface PublishableExamLink {
   target_classes?: string[];
   admit_cards_issued?: boolean;
   results_published?: boolean;
+  certificates_issued?: boolean;
   exam_center?: string;
   instructions?: string[];
   created_at: string;

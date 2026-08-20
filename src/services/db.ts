@@ -134,6 +134,21 @@ const INITIAL_EXAM_LINKS: PublishableExamLink[] = [
     created_at: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
+    id: 'link-merit-cert-2026',
+    school_id: 'sch-don-bosco',
+    title: 'Academic Merit & Excellence Certificate Verification Portal',
+    slug: 'annual-merit-certificates-2026',
+    link_type: 'CERTIFICATE_RECORDS',
+    academic_year: '2025-2026',
+    exam_name: 'Annual Merit & Distinction 2026',
+    description: 'Official verified CBSE Certificate of Merit and Scholastic Distinction issued by Head of Institution.',
+    start_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    expiry_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+    is_active: true,
+    certificates_issued: true,
+    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
     id: 'link-term1-archive-2024',
     school_id: 'sch-don-bosco',
     title: 'Unit Test & Pre-Board Registration 2024-25 (CLOSED)',
@@ -1367,22 +1382,26 @@ export const db = {
     return newDoc;
   },
 
-  async verifyDocumentByCode(code: string): Promise<{
+    async verifyDocumentByCode(code: string): Promise<{
     found: boolean;
     status?: 'VALID' | 'REVOKED';
     document?: GeneratedDocument;
     school?: School;
     student?: Student;
   }> {
+    const q = code.trim().toLowerCase();
     const doc = store.generatedDocs.find(
-      (d) => d.verification_code.toLowerCase() === code.trim().toLowerCase()
+      (d) =>
+        d.verification_code.toLowerCase() === q ||
+        d.certificate_no.toLowerCase() === q ||
+        ((d.metadata && d.metadata.admission_number && d.metadata.admission_number.toLowerCase() === q) || (d as any).data?.admission_number?.toLowerCase() === q)
     );
 
     if (!doc) {
       return { found: false };
     }
 
-    const school = store.schools.find((s) => s.id === doc.school_id);
+    const school = store.schools.find((s) => s.id === doc.school_id) || (store.schools[0] as School);
     const student = store.students.find((s) => s.id === doc.student_id);
 
     return {
@@ -1751,10 +1770,110 @@ export const db = {
     return { count: apps.length };
   },
 
+    async issueCertificatesBulk(linkId: string): Promise<{ count: number }> {
+    const link = (store as any).examLinks.find((l: any) => l.id === linkId);
+    const students = store.students;
+    const now = new Date().toISOString();
+    let issuedCount = 0;
+
+    students.forEach((stu, idx) => {
+      const certNo = 'DBA/CLASS10/2026/' + (100 + idx + 1);
+      const vrfCode = 'DBA-VRF-CERT-' + (stu.roll_number || (1000 + idx));
+
+      // Check if already in generatedDocs
+      const existingIdx = store.generatedDocs.findIndex((d) => d.certificate_no === certNo || d.verification_code === vrfCode);
+      const docRecord: GeneratedDocument = {
+        id: 'doc-cert-' + stu.id + '-' + Date.now(),
+        school_id: 'sch-don-bosco',
+        student_id: stu.id,
+        template_id: 'tpl-merit-cert',
+        doc_type: 'CERTIFICATE',
+        title: 'Certificate of Merit & Scholastic Excellence',
+        certificate_no: certNo,
+        verification_code: vrfCode,
+        file_url: '/assets/branding/don-bosco-logo.png',
+        issued_at: now,
+        status: 'VALID',
+        metadata: {
+          student_name: stu.first_name + ' ' + stu.last_name,
+          admission_number: stu.admission_number,
+          roll_number: stu.roll_number,
+          class_name: stu.class_name || 'Class 10',
+          section_name: stu.section_name || 'A',
+          father_name: stu.father_name,
+          mother_name: stu.mother_name,
+          academic_session: link?.academic_year || '2025-2026',
+          exam_name: link?.exam_name || 'CBSE Class X Annual Examination 2026',
+          issue_date: now,
+          certificate_body: 'In recognition of outstanding scholastic achievement, distinguished merit and exemplary discipline at Don Bosco Academy in the Academic Session 2025-2026.',
+        },
+        created_at: now,
+      };
+
+      if (existingIdx >= 0) {
+        store.generatedDocs[existingIdx] = docRecord;
+      } else {
+        store.generatedDocs.unshift(docRecord);
+      }
+      issuedCount++;
+    });
+
+    await this.updateExamLink(linkId, { certificates_issued: true });
+    store.persist();
+    return { count: issuedCount };
+  },
+
   async publishExamResultsBulk(linkId: string): Promise<{ count: number }> {
+    const link = (store as any).examLinks.find((l: any) => l.id === linkId);
+    const students = store.students;
+    const now = new Date().toISOString();
+    let publishedCount = 0;
+
+    students.forEach((stu, idx) => {
+      const mrkNo = 'DBA/MARKS/2026/' + (stu.roll_number || (1000 + idx));
+      const vrfCode = 'DBA-VRF-MRK-' + (stu.roll_number || (1000 + idx));
+
+      const existingIdx = store.generatedDocs.findIndex((d) => d.certificate_no === mrkNo || d.verification_code === vrfCode);
+      const docRecord: GeneratedDocument = {
+        id: 'doc-mrk-' + stu.id + '-' + Date.now(),
+        school_id: 'sch-don-bosco',
+        student_id: stu.id,
+        template_id: 'tpl-cbse-marksheet',
+        doc_type: 'MARKSHEET',
+        title: 'Official CBSE Annual Marksheet',
+        certificate_no: mrkNo,
+        verification_code: vrfCode,
+        file_url: '/assets/branding/don-bosco-logo.png',
+        issued_at: now,
+        status: 'VALID',
+        metadata: {
+          student_name: stu.first_name + ' ' + stu.last_name,
+          admission_number: stu.admission_number,
+          roll_number: stu.roll_number,
+          class_name: stu.class_name || 'Class 10',
+          section_name: stu.section_name || 'A',
+          father_name: stu.father_name,
+          academic_session: link?.academic_year || '2025-2026',
+          exam_name: link?.exam_name || 'CBSE Class X Annual Examination 2026',
+          total_marks: 566,
+          max_marks: 600,
+          percentage: 94.33,
+          grade: 'A1',
+        },
+        created_at: now,
+      };
+
+      if (existingIdx >= 0) {
+        store.generatedDocs[existingIdx] = docRecord;
+      } else {
+        store.generatedDocs.unshift(docRecord);
+      }
+      publishedCount++;
+    });
+
     await this.updateExamLink(linkId, { results_published: true });
     store.persist();
-    return { count: 24 };
+    return { count: publishedCount };
   },
 
   // Audit Logs

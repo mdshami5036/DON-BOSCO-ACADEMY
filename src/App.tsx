@@ -18,6 +18,7 @@ import { DocumentVerificationPage } from './features/verification/DocumentVerifi
 import { ExamPortalHubPage } from './features/exam-portal/ExamPortalHubPage';
 import { ExamFormFillPage } from './features/exam-portal/ExamFormFillPage';
 import { AdmitCardDownloadPage } from './features/exam-portal/AdmitCardDownloadPage';
+import { CertificateDownloadPage } from './features/exam-portal/CertificateDownloadPage';
 import { ExamResultsCheckPage } from './features/exam-portal/ExamResultsCheckPage';
 import { ExamLinksManagementPage } from './features/exams/ExamLinksManagementPage';
 
@@ -102,6 +103,8 @@ export function App() {
             <Route path="/exam-portal/form/:slug" element={<ExamFormFillPage />} />
             <Route path="/exam-portal/admit-card/:slug" element={<AdmitCardDownloadPage />} />
             <Route path="/exam-portal/results/:slug" element={<ExamResultsCheckPage />} />
+            <Route path="/exam-portal/certificate/:slug" element={<CertificateDownloadPage />} />
+            <Route path="/exam-portal/certificates/:slug" element={<CertificateDownloadPage />} />
             <Route path="/exam-portal/:slug" element={<ExamFormFillPage />} />
 
 
