@@ -248,7 +248,7 @@ export const CertificateDownloadPage: React.FC = () => {
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
                     <span>Certificate is 100% Cryptographically Registered on Document Verification Portal</span>
                   </div>
-                  <Link to={`/verify/${foundCert.verification_code}`} target="_blank" className="text-indigo-600 hover:underline flex items-center gap-1 font-extrabold">
+                  <Link to={`/verify?id=${foundCert.verification_code}`} target="_blank" className="text-indigo-600 hover:underline flex items-center gap-1 font-extrabold">
                     <span>Test /verify URL</span><ExternalLink className="w-3 h-3" />
                   </Link>
                 </div>

@@ -78,7 +78,7 @@ export const IdCardGeneratorPage: React.FC = () => {
       if (!student) return;
 
       const vCode = `VERIFY-ID-${student.admission_number.replace(/[^0-9]/g, '') || '5501'}`;
-      const qrDataUrl = await generateQrCodeDataUri(`https://educloud.io/verify/${vCode}`);
+      const qrDataUrl = await generateQrCodeDataUri(`${window.location.origin}/verify?id=${vCode}`);
 
       const compiled = compileTemplateHtml(selectedTemplate.html_content, selectedTemplate.css_content, {
         school_name: currentSchool.name,
@@ -114,7 +114,7 @@ export const IdCardGeneratorPage: React.FC = () => {
       for (let i = 0; i < students.length; i++) {
         const student = students[i];
         const vCode = `VERIFY-ID-${student.admission_number.replace(/[^0-9]/g, '') || String(i + 1)}`;
-        const qrDataUrl = await generateQrCodeDataUri(`https://educloud.io/verify/${vCode}`);
+        const qrDataUrl = await generateQrCodeDataUri(`${window.location.origin}/verify?id=${vCode}`);
 
         const singleHtml = compileTemplateHtml(selectedTemplate.html_content, selectedTemplate.css_content, {
           school_name: currentSchool.name,

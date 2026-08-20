@@ -143,7 +143,7 @@ export const CertificateGeneratorPage: React.FC = () => {
       const vCode = `VERIFY-CERT-${certNumber.replace(/[^a-zA-Z0-9]/g, '-')}`;
       setCurrentVerificationCode(vCode);
 
-      const qrDataUrl = await generateQrCodeDataUri(`https://educloud.io/verify/${vCode}`);
+      const qrDataUrl = await generateQrCodeDataUri(`${window.location.origin}/verify?id=${vCode}`);
 
       // Query exam results to get percentage & obtained marks
       const matchedExam = exams.find((e) => e.name.toLowerCase().includes(examName.toLowerCase()) || examName.toLowerCase().includes(e.name.toLowerCase()));
@@ -225,7 +225,7 @@ export const CertificateGeneratorPage: React.FC = () => {
         }, baseSeq + i);
 
         const vCode = `VERIFY-CERT-${docNumber.replace(/[^a-zA-Z0-9]/g, '-')}`;
-        const qrDataUrl = await generateQrCodeDataUri(`https://educloud.io/verify/${vCode}`);
+        const qrDataUrl = await generateQrCodeDataUri(`${window.location.origin}/verify?id=${vCode}`);
 
         // Find exam result for this student
         const studentResult = allResults.find((r) => r.student_id === student.id);

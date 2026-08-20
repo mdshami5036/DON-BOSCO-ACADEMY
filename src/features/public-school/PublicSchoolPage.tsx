@@ -477,7 +477,7 @@ export const PublicSchoolPage: React.FC = () => {
                   className="px-5 py-3.5 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-sm sm:text-base shadow-soft-card hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
                 >
                   <QrCode className="w-4 h-4 text-indigo-600" />
-                  <span>Verify Marksheet & Cert</span>
+                  <span>📜 Verify Certificate / Marksheet</span>
                 </Link>
               </div>
 

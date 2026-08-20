@@ -149,7 +149,7 @@ export const MarksheetGeneratorPage: React.FC = () => {
       const vCode = `VERIFY-${docNumber.replace(/[^a-zA-Z0-9]/g, '-')}`;
       setCurrentVerificationCode(vCode);
 
-      const qrDataUrl = await generateQrCodeDataUri(`https://educloud.io/verify/${vCode}`);
+      const qrDataUrl = await generateQrCodeDataUri(`${window.location.origin}/verify?id=${vCode}`);
 
       const compiled = compileTemplateHtml(selectedTemplate.html_content, selectedTemplate.css_content, {
         school_name: currentSchool.name,
@@ -250,7 +250,7 @@ export const MarksheetGeneratorPage: React.FC = () => {
         }, (settings.numbering_patterns?.current_sequence || 1) + i);
 
         const vCode = `VERIFY-${docNumber.replace(/[^a-zA-Z0-9]/g, '-')}`;
-        const qrDataUrl = await generateQrCodeDataUri(`https://educloud.io/verify/${vCode}`);
+        const qrDataUrl = await generateQrCodeDataUri(`${window.location.origin}/verify?id=${vCode}`);
 
         // Marks for this student
         const marksList: any[] = [];
