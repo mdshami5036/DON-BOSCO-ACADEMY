@@ -270,7 +270,7 @@ export const AdmitCardDownloadPage: React.FC = () => {
                   <img src="/assets/branding/don-bosco-seal.png" alt="Seal" className="w-14 h-14 object-contain opacity-90" />
                 </div>
                 <div>
-                  <div className="font-mono text-[10px] text-slate-400">VERIFY-ADMIT-{foundStudent.roll_number}</div>
+                  <div className="font-mono text-[10px] text-slate-400">DBA-HALL-TICKET-{foundStudent.roll_number}</div>
                   <div className="text-[11px] font-bold text-slate-700">Official Institutional Seal</div>
                 </div>
               </div>

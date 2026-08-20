@@ -1675,9 +1675,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
       <p>{{school_address}} &bull; Phone: {{school_phone}}</p>
       <div class="hall-ticket-badge">EXAMINATION HALL TICKET &bull; {{academic_session}}</div>
     </div>
-    <div class="admit-qr-col">
-      <img src="{{qr_code}}" alt="QR" class="admit-qr" />
-      <span>{{verification_code}}</span>
+    <div class="admit-seal-col">
+      <div class="admit-badge-pill">OFFICIAL PASS</div>
     </div>
   </div>
 
@@ -1811,9 +1810,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
         <p>{{school_address}}</p>
       </div>
     </div>
-    <div class="hex-qr-box">
-      <img src="{{qr_code}}" alt="QR" />
-      <span>{{verification_code}}</span>
+    <div class="hex-pass-badge">
+      <span>ENTRY PERMIT</span>
     </div>
   </div>
 
@@ -1948,9 +1946,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
         <p><strong>Adm No:</strong> <span class="mono">{{admission_number}}</span></p>
         <p><strong>Class:</strong> {{class_name}} - {{section}}</p>
       </div>
-      <div class="fp-qr-box">
-        <img src="{{qr_code}}" alt="QR" />
-        <code>{{verification_code}}</code>
+      <div class="fp-pass-box">
+        <span class="fp-badge">VERIFIED</span>
       </div>
     </div>
 
@@ -2041,9 +2038,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
         <p>{{school_address}} &bull; Email: {{school_email}}</p>
         <div class="sec-tag">EXAMINATION ADMISSION & HALL PASS &bull; {{academic_session}}</div>
       </div>
-      <div class="sec-qr-wrap">
-        <img src="{{qr_code}}" alt="QR" />
-        <span>{{verification_code}}</span>
+      <div class="sec-badge-wrap">
+        <span class="sec-tag">SEALED PASS</span>
       </div>
     </div>
 
@@ -2183,9 +2179,8 @@ export const MASTER_TEMPLATES: DocumentTemplate[] = [
       <div class="d-bio-item"><small>ADMISSION NO</small><strong>{{admission_number}}</strong></div>
       <div class="d-bio-item"><small>CLASS / SECTION</small><strong>{{class_name}} ({{section}})</strong></div>
       <div class="d-bio-item"><small>FATHER'S NAME</small><strong>{{father_name}}</strong></div>
-      <div class="d-qr-wrap">
-        <img src="{{qr_code}}" alt="QR" />
-        <code>{{verification_code}}</code>
+      <div class="d-stamp-wrap">
+        <div class="d-badge">VERIFIED PASS</div>
       </div>
     </div>
 
