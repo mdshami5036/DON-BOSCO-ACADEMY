@@ -29,6 +29,9 @@ import {
   AuditLog,
   SchoolStatus,
   DocType,
+  PublishableExamLink,
+  ExamApplication,
+  ExamLinkType,
 } from '../types/database';
 
 import {
@@ -65,6 +68,134 @@ import {
   getMasterTemplatesByCategory,
   getDistinctTemplateForSchool,
 } from '../lib/template-registry';
+
+
+const INITIAL_EXAM_LINKS: PublishableExamLink[] = [
+  {
+    id: 'link-annual-2026',
+    school_id: 'sch-don-bosco',
+    title: 'CBSE Annual Examination 2026 - Admit Card Registration Form',
+    slug: 'annual-exam-2026',
+    link_type: 'ADMIT_CARD_FORM',
+    academic_year: '2025-2026',
+    exam_name: 'CBSE Annual Examination 2026',
+    description: 'Mandatory online examination form verification and admit card generation for Play to Class 10th students.',
+    start_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    expiry_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+    is_active: true,
+    target_classes: ['Class 9', 'Class 10'],
+    admit_cards_issued: false,
+    results_published: false,
+    exam_center: 'Don Bosco Academy Main Senior Block, Raipur Bazar',
+    instructions: [
+      'Enter your Admission Number or Roll Number to auto-load your registered scholar records.',
+      'Verify candidate name, parents name, and uploaded photograph carefully.',
+      'After submission, note down your Application Number for tracking.',
+      'Official admit cards with exam seatings and QR codes will be released 7 days prior to commencement.',
+    ],
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'link-admit-download-2026',
+    school_id: 'sch-don-bosco',
+    title: 'Official Admit Card Download Portal (Session 2025-2026)',
+    slug: 'admit-card-download-2026',
+    link_type: 'ADMIT_CARD_DOWNLOAD',
+    academic_year: '2025-2026',
+    exam_name: 'Annual Examination 2026',
+    description: 'Download and print verified CBSE Examination Hall Tickets & Admit Cards with secure QR Verification.',
+    start_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    expiry_date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+    is_active: true,
+    admit_cards_issued: true,
+    results_published: false,
+    exam_center: 'Don Bosco Academy Examination Hall',
+    instructions: [
+      'Enter your Admission Number (e.g. DBA-2026-001) or Roll Number.',
+      'Verify the subject schedule and timings printed on your Admit Card.',
+      'Bring a printed copy with school seal to the examination center on all exam days.',
+    ],
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'link-midterm-results-2025',
+    school_id: 'sch-don-bosco',
+    title: 'Mid-Term Board Assessment Results & Marksheets 2025-26',
+    slug: 'midterm-results-2025',
+    link_type: 'RESULT_PORTAL',
+    academic_year: '2025-2026',
+    exam_name: 'Mid-Term Examination 2025',
+    description: 'Instant online scorecard and digital marksheet search for Classes 1st to 10th.',
+    start_date: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+    expiry_date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+    is_active: true,
+    admit_cards_issued: true,
+    results_published: true,
+    created_at: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'link-term1-archive-2024',
+    school_id: 'sch-don-bosco',
+    title: 'Unit Test & Pre-Board Registration 2024-25 (CLOSED)',
+    slug: 'unit-test-archive-2024',
+    link_type: 'ADMIT_CARD_FORM',
+    academic_year: '2024-2025',
+    exam_name: 'Unit Test Examination 2024',
+    description: 'Previous academic session examination link.',
+    start_date: new Date('2024-09-01').toISOString(),
+    expiry_date: new Date('2024-09-20').toISOString(),
+    is_active: true,
+    admit_cards_issued: true,
+    results_published: true,
+    created_at: new Date('2024-09-01').toISOString(),
+  },
+];
+
+const INITIAL_EXAM_APPLICATIONS: ExamApplication[] = [
+  {
+    id: 'app-001',
+    link_id: 'link-annual-2026',
+    school_id: 'sch-don-bosco',
+    student_id: 'stu-101',
+    student_name: 'Aman Singh',
+    father_name: 'Rajesh Singh',
+    mother_name: 'Sunita Devi',
+    dob: '2010-04-15',
+    gender: 'Male',
+    class_name: 'Class 10',
+    section_name: 'A',
+    roll_number: '1001',
+    admission_number: 'DBA-2026-001',
+    contact_phone: '+91 98765 43210',
+    address: 'Raipur Bazar, Nanpur, Sitamarhi',
+    photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    application_no: 'DBA-EXAM-2026-9001',
+    status: 'VERIFIED',
+    admit_card_no: 'DBA/ADMIT/2026/1001',
+    submitted_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'app-002',
+    link_id: 'link-annual-2026',
+    school_id: 'sch-don-bosco',
+    student_id: 'stu-102',
+    student_name: 'Priya Sharma',
+    father_name: 'Manoj Sharma',
+    mother_name: 'Anita Sharma',
+    dob: '2010-08-22',
+    gender: 'Female',
+    class_name: 'Class 10',
+    section_name: 'A',
+    roll_number: '1002',
+    admission_number: 'DBA-2026-002',
+    contact_phone: '+91 98765 43211',
+    address: 'Nanpur, Sitamarhi',
+    photo_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
+    application_no: 'DBA-EXAM-2026-9002',
+    status: 'SUBMITTED',
+    submitted_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
 
 // Local storage storage keys
 const STORAGE_PREFIX = 'don_bosco_academy_';
@@ -145,6 +276,8 @@ class DataStore {
   timetables: TimetableEntry[] = loadFromStorage('timetables', INITIAL_TIMETABLES);
   admissions: AdmissionApplication[] = loadFromStorage('admissions', INITIAL_ADMISSIONS);
   auditLogs: AuditLog[] = loadFromStorage('audit_logs', INITIAL_AUDIT_LOGS);
+  examLinks: PublishableExamLink[] = loadFromStorage('exam_links', INITIAL_EXAM_LINKS);
+  examApplications: ExamApplication[] = loadFromStorage('exam_applications', INITIAL_EXAM_APPLICATIONS);
 
   persist() {
     saveToStorage('plans', this.plans);
@@ -172,6 +305,8 @@ class DataStore {
     saveToStorage('timetables', this.timetables);
     saveToStorage('admissions', this.admissions);
     saveToStorage('audit_logs', this.auditLogs);
+    saveToStorage('exam_links', this.examLinks);
+    saveToStorage('exam_applications', this.examApplications);
   }
 }
 
@@ -1455,6 +1590,140 @@ export const db = {
       };
       reader.readAsDataURL(file);
     });
+  },
+
+
+  // ==========================================
+  // DYNAMIC EXAM & PORTAL PUBLISHER ENGINE
+  // ==========================================
+
+  async getExamLinks(schoolId?: string): Promise<PublishableExamLink[]> {
+    const sId = schoolId || 'sch-don-bosco';
+    return (store as any).examLinks
+      .filter((l: any) => !sId || l.school_id === sId)
+      .map((l: any) => {
+        const apps = (store as any).examApplications.filter((a: any) => a.link_id === l.id);
+        return { ...l, applications_count: apps.length };
+      });
+  },
+
+  async getExamLinkBySlug(slug: string): Promise<PublishableExamLink | null> {
+    const link = (store as any).examLinks.find((l: any) => l.slug === slug || l.id === slug);
+    if (!link) return null;
+    const apps = (store as any).examApplications.filter((a: any) => a.link_id === link.id);
+    return { ...link, applications_count: apps.length };
+  },
+
+  async createExamLink(payload: Partial<PublishableExamLink>): Promise<PublishableExamLink> {
+    const newLink: PublishableExamLink = {
+      id: 'link-' + Date.now(),
+      school_id: payload.school_id || 'sch-don-bosco',
+      title: payload.title || 'Examination Portal Link',
+      slug: payload.slug || 'exam-portal-' + Date.now(),
+      link_type: payload.link_type || 'ADMIT_CARD_FORM',
+      academic_year: payload.academic_year || '2025-2026',
+      exam_name: payload.exam_name || 'Annual Examination 2026',
+      description: payload.description || '',
+      start_date: payload.start_date || new Date().toISOString(),
+      expiry_date: payload.expiry_date || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+      is_active: payload.is_active !== undefined ? payload.is_active : true,
+      target_classes: payload.target_classes || ['Class 9', 'Class 10'],
+      admit_cards_issued: false,
+      results_published: false,
+      exam_center: payload.exam_center || 'Don Bosco Academy Examination Hall, Sitamarhi',
+      instructions: payload.instructions || [
+        'Enter Admission Number or Roll Number to auto populate records.',
+        'Verify your details and submit.',
+      ],
+      created_at: new Date().toISOString(),
+    };
+
+    (store as any).examLinks.unshift(newLink);
+    store.persist();
+    return newLink;
+  },
+
+  async updateExamLink(id: string, payload: Partial<PublishableExamLink>): Promise<PublishableExamLink | null> {
+    const index = (store as any).examLinks.findIndex((l: any) => l.id === id || l.slug === id);
+    if (index === -1) return null;
+    (store as any).examLinks[index] = { ...(store as any).examLinks[index], ...payload };
+    store.persist();
+    return (store as any).examLinks[index];
+  },
+
+  async deleteExamLink(id: string): Promise<boolean> {
+    const index = (store as any).examLinks.findIndex((l: any) => l.id === id);
+    if (index === -1) return false;
+    (store as any).examLinks.splice(index, 1);
+    store.persist();
+    return true;
+  },
+
+  async getExamApplications(linkId?: string, schoolId?: string): Promise<ExamApplication[]> {
+    return (store as any).examApplications.filter((a: any) => {
+      if (linkId && a.link_id !== linkId) return false;
+      if (schoolId && a.school_id !== schoolId) return false;
+      return true;
+    });
+  },
+
+  async submitExamApplication(payload: Partial<ExamApplication>): Promise<ExamApplication> {
+    const applicationNo = 'DBA-EXAM-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+    const newApp: ExamApplication = {
+      id: 'app-' + Date.now(),
+      link_id: payload.link_id || 'link-annual-2026',
+      school_id: payload.school_id || 'sch-don-bosco',
+      student_id: payload.student_id,
+      student_name: payload.student_name || 'Scholar Candidate',
+      father_name: payload.father_name || '',
+      mother_name: payload.mother_name || '',
+      dob: payload.dob || '2010-01-01',
+      gender: payload.gender || 'Male',
+      class_name: payload.class_name || 'Class 10',
+      section_name: payload.section_name || 'A',
+      roll_number: payload.roll_number || '1001',
+      admission_number: payload.admission_number || 'DBA-2026-001',
+      contact_phone: payload.contact_phone || '',
+      address: payload.address || '',
+      photo_url: payload.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      application_no: applicationNo,
+      status: 'SUBMITTED',
+      submitted_at: new Date().toISOString(),
+    };
+
+    (store as any).examApplications.unshift(newApp);
+    store.persist();
+    return newApp;
+  },
+
+  async lookupStudentForExamForm(query: string, classFilter?: string): Promise<Student | null> {
+    const q = query.trim().toLowerCase();
+    const students = await this.getStudents('sch-don-bosco');
+    const matched = students.find((s) => {
+      const matchAdm = s.admission_number.toLowerCase() === q;
+      const matchRoll = s.roll_number?.toLowerCase() === q;
+      const matchName = (s.first_name + ' ' + s.last_name).toLowerCase().includes(q);
+      return matchAdm || matchRoll || matchName;
+    });
+    return matched || null;
+  },
+
+  async issueAdmitCardsBulk(linkId: string): Promise<{ count: number }> {
+    const apps = (store as any).examApplications.filter((a: any) => a.link_id === linkId);
+    apps.forEach((a: any, idx: number) => {
+      a.status = 'ADMIT_CARD_ISSUED';
+      a.admit_card_no = 'DBA/ADMIT/2026/' + (a.roll_number || (1000 + idx));
+    });
+
+    await this.updateExamLink(linkId, { admit_cards_issued: true });
+    store.persist();
+    return { count: apps.length };
+  },
+
+  async publishExamResultsBulk(linkId: string): Promise<{ count: number }> {
+    await this.updateExamLink(linkId, { results_published: true });
+    store.persist();
+    return { count: 24 };
   },
 
   // Audit Logs

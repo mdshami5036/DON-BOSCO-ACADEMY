@@ -79,6 +79,7 @@ export const SchoolAdminLayout: React.FC = () => {
         { label: 'Daily Attendance', href: '/school/attendance', icon: CalendarCheck },
         { label: 'Fee Collection & Dues', href: '/school/fees', icon: CreditCard },
         { label: 'Exams & Assessment', href: '/school/exams', icon: FileSpreadsheet },
+        { label: 'Exam & Portal Publisher', href: '/school/exam-links', icon: BookOpen, badge: 'Live' },
         { label: 'Automated Results Engine', href: '/school/results', icon: Award },
       ],
     },

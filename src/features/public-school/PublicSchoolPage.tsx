@@ -339,7 +339,7 @@ export const PublicSchoolPage: React.FC = () => {
             <a href="#about" className="hover:text-indigo-600 transition-colors whitespace-nowrap">About</a>
             <a href="#academics" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Academic Wings</a>
             <Link
-              to="/login"
+              to="/exam-portal"
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/80 hover:bg-indigo-100 hover:text-indigo-900 transition-colors whitespace-nowrap font-extrabold shadow-2xs"
             >
               <span>🎓 ERP / EXAM PORTAL</span>
@@ -392,7 +392,7 @@ export const PublicSchoolPage: React.FC = () => {
                 📚 Academic Wings
               </a>
               <Link
-                to="/login"
+                to="/exam-portal"
                 onClick={() => setIsMobileNavOpen(false)}
                 className="p-2.5 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition font-extrabold flex items-center gap-1.5"
               >

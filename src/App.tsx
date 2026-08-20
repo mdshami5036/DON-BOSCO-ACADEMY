@@ -14,6 +14,13 @@ import { LandingPage } from './features/landing/LandingPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { SchoolRegisterPage } from './features/auth/SchoolRegisterPage';
 import { DocumentVerificationPage } from './features/verification/DocumentVerificationPage';
+// Dynamic ERP & Exam Portal Pages
+import { ExamPortalHubPage } from './features/exam-portal/ExamPortalHubPage';
+import { ExamFormFillPage } from './features/exam-portal/ExamFormFillPage';
+import { AdmitCardDownloadPage } from './features/exam-portal/AdmitCardDownloadPage';
+import { ExamResultsCheckPage } from './features/exam-portal/ExamResultsCheckPage';
+import { ExamLinksManagementPage } from './features/exams/ExamLinksManagementPage';
+
 import { PublicSchoolPage } from './features/public-school/PublicSchoolPage';
 
 // Super Admin Pages
@@ -88,6 +95,15 @@ export function App() {
             <Route path="/verify" element={<DocumentVerificationPage />} />
             <Route path="/verify/:code" element={<DocumentVerificationPage />} />
             <Route path="/school/:slug" element={<PublicSchoolPage />} />
+            {/* Dynamic Public ERP & Exam Portal Routes */}
+            <Route path="/exam-portal" element={<ExamPortalHubPage />} />
+            <Route path="/erp-portal" element={<Navigate to="/exam-portal" replace />} />
+            <Route path="/portal" element={<Navigate to="/exam-portal" replace />} />
+            <Route path="/exam-portal/form/:slug" element={<ExamFormFillPage />} />
+            <Route path="/exam-portal/admit-card/:slug" element={<AdmitCardDownloadPage />} />
+            <Route path="/exam-portal/results/:slug" element={<ExamResultsCheckPage />} />
+            <Route path="/exam-portal/:slug" element={<ExamFormFillPage />} />
+
 
             {/* School Admin Protected Routes */}
             <Route
@@ -111,6 +127,7 @@ export function App() {
               <Route path="attendance" element={<AttendancePage />} />
               <Route path="fees" element={<FeesManagementPage />} />
               <Route path="exams" element={<ExamsManagementPage />} />
+              <Route path="exam-links" element={<ExamLinksManagementPage />} />
               <Route path="results" element={<ResultsEnginePage />} />
               <Route path="documents/marksheets" element={<MarksheetGeneratorPage />} />
               <Route path="documents/certificates" element={<CertificateGeneratorPage />} />

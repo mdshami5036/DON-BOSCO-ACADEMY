@@ -490,3 +490,49 @@ export interface AuditLog {
   ip_address?: string | null;
   created_at: string;
 }
+
+export type ExamLinkType = 'ADMIT_CARD_FORM' | 'ADMIT_CARD_DOWNLOAD' | 'RESULT_PORTAL' | 'CERTIFICATE_RECORDS';
+
+export interface PublishableExamLink {
+  id: string;
+  school_id: string;
+  title: string;
+  slug: string;
+  link_type: ExamLinkType;
+  academic_year: string;
+  exam_name: string;
+  description: string;
+  start_date: string;
+  expiry_date: string;
+  is_active: boolean;
+  target_classes?: string[];
+  admit_cards_issued?: boolean;
+  results_published?: boolean;
+  exam_center?: string;
+  instructions?: string[];
+  created_at: string;
+  applications_count?: number;
+}
+
+export interface ExamApplication {
+  id: string;
+  link_id: string;
+  school_id: string;
+  student_id?: string;
+  student_name: string;
+  father_name: string;
+  mother_name: string;
+  dob: string;
+  gender: string;
+  class_name: string;
+  section_name: string;
+  roll_number: string;
+  admission_number: string;
+  contact_phone: string;
+  address: string;
+  photo_url?: string;
+  application_no: string;
+  status: 'SUBMITTED' | 'VERIFIED' | 'ADMIT_CARD_ISSUED' | 'REJECTED';
+  admit_card_no?: string;
+  submitted_at: string;
+}
