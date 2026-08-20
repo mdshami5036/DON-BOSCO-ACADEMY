@@ -1,3 +1,4 @@
+import { formatDDMMYYYYTime } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { db } from '../../services/db';
 import { AuditLog } from '../../types/database';
@@ -60,7 +61,7 @@ export const GlobalAuditLogsPage: React.FC = () => {
               {filteredLogs.map((l) => (
                 <tr key={l.id} className="hover:bg-slate-800/40 transition">
                   <td className="px-6 py-3.5 font-mono text-[11px] text-slate-400">
-                    {new Date(l.created_at).toLocaleString()}
+                    {formatDDMMYYYYTime(l.created_at)}
                   </td>
                   <td className="px-4 py-3.5 font-medium text-white">
                     {l.user_email}

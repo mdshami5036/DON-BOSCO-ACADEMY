@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { db } from '../../services/db';
@@ -188,7 +189,7 @@ export const CertificateGeneratorPage: React.FC = () => {
         certificate_title: certTitle,
         certificate_body: substitutedBody, // Use substituted body text
         certificate_number: certNumber,
-        issue_date: new Date().toLocaleDateString('en-GB'),
+        issue_date: formatDDMMYYYY(new Date()),
         qr_code: qrDataUrl,
         verification_code: vCode,
       });
@@ -281,7 +282,7 @@ export const CertificateGeneratorPage: React.FC = () => {
           certificate_title: certTitle,
           certificate_body: substitutedBody,
           certificate_number: docNumber,
-          issue_date: new Date().toLocaleDateString('en-GB'),
+          issue_date: formatDDMMYYYY(new Date()),
           qr_code: qrDataUrl,
           verification_code: vCode,
         });

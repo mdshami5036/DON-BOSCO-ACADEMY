@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -113,7 +114,7 @@ export const DocumentRecordsPage: React.FC = () => {
                     {d.verification_code}
                   </td>
                   <td className="px-4 py-3.5 text-slate-400">
-                    {new Date(d.issued_at).toLocaleDateString()}
+                    {formatDDMMYYYY(d.issued_at)}
                   </td>
                   <td className="px-4 py-3.5">
                     {d.status === 'VALID' ? (

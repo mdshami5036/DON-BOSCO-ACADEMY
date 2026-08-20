@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { db } from '../../services/db';
@@ -78,7 +79,7 @@ export const HomeworkManagementPage: React.FC = () => {
             <div className="flex items-center justify-between mb-2">
               <Badge variant="primary">{hw.class_name}</Badge>
               <span className="text-[11px] font-semibold text-rose-600 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" /> Due: {hw.due_date}
+                <Clock className="w-3.5 h-3.5" /> Due: {formatDDMMYYYY(hw.due_date)}
               </span>
             </div>
 

@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../../services/db';
@@ -253,7 +254,7 @@ export const ExamPortalHubPage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-slate-400">Deadline:</span>
                         <span className="font-mono font-bold text-slate-700">
-                          {new Date(item.expiry_date).toLocaleDateString('en-GB')}
+                          {formatDDMMYYYY(item.expiry_date)}
                         </span>
                       </div>
                     </div>

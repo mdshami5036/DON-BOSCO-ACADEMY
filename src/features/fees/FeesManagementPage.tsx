@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { db } from '../../services/db';
@@ -136,7 +137,7 @@ export const FeesManagementPage: React.FC = () => {
         <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 16px; background: #f8fafc; padding: 10px; border-radius: 6px;">
           <div>
             <div><strong>Receipt No:</strong> ${payment.receipt_no}</div>
-            <div><strong>Date:</strong> ${payment.payment_date}</div>
+            <div><strong>Date:</strong> ${formatDDMMYYYY(payment.payment_date)}</div>
             <div><strong>Payment Mode:</strong> ${payment.payment_method}</div>
           </div>
           <div>
@@ -271,7 +272,7 @@ export const FeesManagementPage: React.FC = () => {
                       <td className="px-6 py-3.5 font-mono font-bold text-indigo-600 dark:text-indigo-400">
                         {p.receipt_no}
                       </td>
-                      <td className="px-4 py-3.5">{p.payment_date}</td>
+                      <td className="px-4 py-3.5">{formatDDMMYYYY(p.payment_date)}</td>
                       <td className="px-4 py-3.5 font-semibold text-slate-900 dark:text-white">
                         {student ? `${student.first_name} ${student.last_name}` : 'Student'}
                       </td>

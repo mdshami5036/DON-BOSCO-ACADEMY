@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from './date-utils';
 // HTML Template Engine for Dynamic Document Generation
 import { normalizeImageUrl } from './image-helper';
 
@@ -189,7 +190,10 @@ export function compileTemplateHtml(
     principal_signature: normalizeImageUrl(data.principal_signature) || 'https://upload.wikimedia.org/wikipedia/commons/f/f8/Signature_example.svg',
     school_stamp: normalizeImageUrl(data.school_stamp) || 'https://upload.wikimedia.org/wikipedia/commons/e/ea/Sample_Seal.svg',
     banner_url: normalizeImageUrl(data.banner_url) || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200',
-    issue_date: data.issue_date || new Date().toLocaleDateString('en-GB'),
+    issue_date: formatDDMMYYYY(data.issue_date || new Date()),
+    date_of_birth: data.date_of_birth ? formatDDMMYYYY(data.date_of_birth) : undefined,
+    dob: data.dob ? formatDDMMYYYY(data.dob) : (data.date_of_birth ? formatDDMMYYYY(data.date_of_birth) : undefined),
+    valid_until: data.valid_until ? formatDDMMYYYY(data.valid_until) : undefined,
     academic_session: data.academic_session || '2025-2026',
     result_status: data.result_status || 'PASS',
   };

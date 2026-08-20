@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -185,7 +186,7 @@ export const StudentsListPage: React.FC = () => {
       Roll_No: s.roll_number,
       Name: `${s.first_name} ${s.last_name}`,
       Gender: s.gender,
-      DOB: s.date_of_birth,
+      DOB: formatDDMMYYYY(s.date_of_birth),
       Class: s.class_name,
       Section: s.section_name,
       Father_Name: s.father_name,
@@ -203,7 +204,7 @@ export const StudentsListPage: React.FC = () => {
       Roll_No: s.roll_number,
       Name: `${s.first_name} ${s.last_name}`,
       Gender: s.gender,
-      DOB: s.date_of_birth,
+      DOB: formatDDMMYYYY(s.date_of_birth),
       Class: s.class_name,
       Section: s.section_name,
       Father_Name: s.father_name,
@@ -319,6 +320,10 @@ export const StudentsListPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Gender & Blood:</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{student.gender} ({student.blood_group || 'O+'})</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">DOB (dd/mm/yyyy):</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{formatDDMMYYYY(student.date_of_birth)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Father's Name:</span>

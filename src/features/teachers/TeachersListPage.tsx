@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { db } from '../../services/db';
@@ -95,7 +96,7 @@ export const TeachersListPage: React.FC = () => {
                 <span>{t.phone}</span>
               </div>
               <div className="text-[10px] text-slate-400 pt-1">
-                Joined: {t.joining_date} &bull; {t.qualification}
+                Joined: {formatDDMMYYYY(t.joining_date)} &bull; {t.qualification}
               </div>
             </div>
           </Card>

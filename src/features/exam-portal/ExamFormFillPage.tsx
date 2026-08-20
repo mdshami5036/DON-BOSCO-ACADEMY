@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../../services/db';
@@ -130,7 +131,7 @@ export const ExamFormFillPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-4 mt-4 pt-3 border-t border-white/10 text-xs text-slate-300">
             <div>Exam: <strong className="text-amber-300">{link?.exam_name}</strong></div>
             <div>•</div>
-            <div>Deadline: <strong className="text-white font-mono">{link ? new Date(link.expiry_date).toLocaleDateString('en-GB') : ''}</strong></div>
+            <div>Deadline: <strong className="text-white font-mono">{link ? formatDDMMYYYY(link.expiry_date) : ''}</strong></div>
           </div>
         </div>
         {isExpired && (
@@ -138,7 +139,7 @@ export const ExamFormFillPage: React.FC = () => {
             <Lock className="w-6 h-6 text-rose-600 shrink-0 mt-0.5" />
             <div>
               <h3 className="text-base font-black font-display text-rose-950">Registration Window Closed</h3>
-              <p className="text-xs text-rose-800 mt-0.5">The deadline for this examination form was <strong>{link ? new Date(link.expiry_date).toLocaleDateString('en-GB') : ''}</strong>. Submissions are no longer accepted online. Please visit Don Bosco Academy Administrative Office or contact the Principal.</p>
+              <p className="text-xs text-rose-800 mt-0.5">The deadline for this examination form was <strong>{link ? formatDDMMYYYY(link.expiry_date) : ''}</strong>. Submissions are no longer accepted online. Please visit Don Bosco Academy Administrative Office or contact the Principal.</p>
             </div>
           </div>
         )}

@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { db } from '../../services/db';
 import { useAuth } from '../auth/AuthContext';
@@ -135,7 +136,7 @@ export const ExamLinksManagementPage: React.FC = () => {
                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1">
                   <div className="flex justify-between"><span className="text-slate-400">Exam:</span><strong>{link.exam_name}</strong></div>
                   <div className="flex justify-between"><span className="text-slate-400">Applications:</span><strong className="text-sapphire-900 font-bold">{link.applications_count || 0} Submitted</strong></div>
-                  <div className="flex justify-between"><span className="text-slate-400">Expiry Date:</span><span className="font-mono font-bold text-slate-700">{new Date(link.expiry_date).toLocaleDateString('en-GB')}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400">Expiry Date:</span><span className="font-mono font-bold text-slate-700">{formatDDMMYYYY(link.expiry_date)}</span></div>
                 </div>
               </div>
               <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">

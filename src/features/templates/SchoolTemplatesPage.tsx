@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { db } from '../../services/db';
@@ -152,7 +153,7 @@ export const SchoolTemplatesPage: React.FC = () => {
         certificate_title: 'Certificate of Academic Excellence',
         certificate_body: `In recognition of outstanding scholastic achievement at ${currentSchool.name} for the Academic Year 2025-2026.`,
         certificate_number: '10TH/2026/1',
-        issue_date: new Date().toLocaleDateString('en-GB'),
+        issue_date: formatDDMMYYYY(new Date()),
 
         qr_code: sampleQr,
         verification_code: 'VERIFY-XAV-001-A9F',

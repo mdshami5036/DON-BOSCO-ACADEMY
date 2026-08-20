@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../../services/db';
@@ -195,7 +196,7 @@ export const DocumentVerificationPage: React.FC = () => {
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
                     <span className="text-slate-400 block font-medium">Date of Issue</span>
                     <strong className="text-slate-900">
-                      {new Date(docResult.document.created_at || docResult.document.issued_at || Date.now()).toLocaleDateString('en-GB')}
+                      {formatDDMMYYYY(docResult.document.created_at || docResult.document.issued_at || Date.now())}
                     </strong>
                   </div>
                 </div>

@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -985,7 +986,7 @@ export const PublicSchoolPage: React.FC = () => {
                       </span>
                       <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
-                        {new Date(notice.publish_date || notice.created_at).toLocaleDateString('en-GB')}
+                        {formatDDMMYYYY(notice.publish_date || notice.created_at)}
                       </span>
                     </div>
 
@@ -1330,7 +1331,7 @@ export const PublicSchoolPage: React.FC = () => {
               <span className="px-2.5 py-0.5 rounded-full bg-sapphire-50 text-sapphire-800 font-bold uppercase text-[11px]">
                 {selectedNotice.category || 'General'}
               </span>
-              <span>Published: {new Date(selectedNotice.publish_date || selectedNotice.created_at).toLocaleDateString('en-GB')}</span>
+              <span>Published: {formatDDMMYYYY(selectedNotice.publish_date || selectedNotice.created_at)}</span>
             </div>
 
             <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">

@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { db } from '../../services/db';
@@ -179,7 +180,7 @@ export const MarksheetGeneratorPage: React.FC = () => {
         rank_in_class: res?.rank_in_class || 1,
         remarks: res?.remarks || 'Distinguished academic achievement',
 
-        issue_date: new Date().toLocaleDateString('en-GB'),
+        issue_date: formatDDMMYYYY(new Date()),
         qr_code: qrDataUrl,
         verification_code: vCode,
         marks_list: marksList,
@@ -313,7 +314,7 @@ export const MarksheetGeneratorPage: React.FC = () => {
           rank_in_class: res?.rank_in_class || i + 1,
           remarks: res?.remarks || 'Promoted with distinction',
 
-          issue_date: new Date().toLocaleDateString('en-GB'),
+          issue_date: formatDDMMYYYY(new Date()),
           qr_code: qrDataUrl,
           verification_code: vCode,
           marks_list: marksList,

@@ -1,3 +1,4 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -347,7 +348,7 @@ export const SchoolAdminDashboard: React.FC = () => {
                     <div>
                       <div className="text-xs font-bold text-slate-900">{doc.title}</div>
                       <div className="text-[10px] text-slate-400 font-mono">
-                        {doc.certificate_no || 'DBA-2026-CERT'} • {new Date(doc.created_at).toLocaleDateString('en-GB')}
+                        {doc.certificate_no || 'DBA-2026-CERT'} • {formatDDMMYYYY(doc.created_at)}
                       </div>
                     </div>
                   </div>
