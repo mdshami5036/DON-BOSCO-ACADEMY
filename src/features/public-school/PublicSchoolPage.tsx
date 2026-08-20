@@ -335,10 +335,15 @@ export const PublicSchoolPage: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-5 2xl:gap-7 text-xs 2xl:text-sm font-bold text-slate-700 shrink-0">
+          <nav className="hidden xl:flex items-center gap-4 2xl:gap-6 text-xs 2xl:text-sm font-bold text-slate-700 shrink-0">
             <a href="#about" className="hover:text-indigo-600 transition-colors whitespace-nowrap">About</a>
             <a href="#academics" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Academic Wings</a>
-            <a href="#campus" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Smart Campus</a>
+            <Link
+              to="/login"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/80 hover:bg-indigo-100 hover:text-indigo-900 transition-colors whitespace-nowrap font-extrabold shadow-2xs"
+            >
+              <span>🎓 ERP / EXAM PORTAL</span>
+            </Link>
             <a href="#principal" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Principal's Desk</a>
             <a href="#notices" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Notices</a>
             <a href="#contact" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Contact</a>
@@ -386,13 +391,13 @@ export const PublicSchoolPage: React.FC = () => {
               >
                 📚 Academic Wings
               </a>
-              <a
-                href="#campus"
+              <Link
+                to="/login"
                 onClick={() => setIsMobileNavOpen(false)}
-                className="p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition"
+                className="p-2.5 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition font-extrabold flex items-center gap-1.5"
               >
-                🏛 Smart Campus
-              </a>
+                🎓 ERP / EXAM PORTAL
+              </Link>
               <a
                 href="#principal"
                 onClick={() => setIsMobileNavOpen(false)}
@@ -1132,7 +1137,7 @@ export const PublicSchoolPage: React.FC = () => {
               <ul className="space-y-2 text-xs">
                 <li><a href="#about" className="hover:text-white transition">About Don Bosco</a></li>
                 <li><a href="#academics" className="hover:text-white transition">Curriculum & Wings</a></li>
-                <li><a href="#campus" className="hover:text-white transition">Campus Infrastructure</a></li>
+                <li><Link to="/login" className="hover:text-white transition font-semibold text-indigo-300">🎓 ERP / Exam Portal</Link></li>
                 <li><a href="#principal" className="hover:text-white transition">Principal's Address</a></li>
                 <li><a href="#notices" className="hover:text-white transition">Notice Board</a></li>
                 <li><Link to="/verify" className="hover:text-white transition text-amber-400 font-semibold">Verify Documents</Link></li>
