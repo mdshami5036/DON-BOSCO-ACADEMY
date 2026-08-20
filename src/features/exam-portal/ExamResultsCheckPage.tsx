@@ -1,17 +1,29 @@
+import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../../services/db';
 import { PublishableExamLink } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
-import { FileSpreadsheet, Search, Printer, QrCode, Award, CheckCircle2, TrendingUp, ShieldCheck } from 'lucide-react';
+import { FileSpreadsheet, Search, Printer, QrCode, Award, CheckCircle2, TrendingUp, ShieldCheck, Sparkles } from 'lucide-react';
 
 export const ExamResultsCheckPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { success, error: toastError } = useToast();
   const [link, setLink] = useState<PublishableExamLink | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+
+  // Dual search mode
+  const [searchMode, setSearchMode] = useState<'ADMISSION_NO' | 'ROLL_NO'>('ADMISSION_NO');
+  const [admissionQuery, setAdmissionQuery] = useState('');
+  const [classQuery, setClassQuery] = useState('Class 10');
+  const [rollQuery, setRollQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [resultData, setResultData] = useState<any | null>(null);
+
+  const classOptions = [
+    'Class 10', 'Class 9', 'Class 8', 'Class 7', 'Class 6',
+    'Class 5', 'Class 4', 'Class 3', 'Class 2', 'Class 1',
+    'UKG', 'LKG', 'Nursery', 'Play Group'
+  ];
 
   useEffect(() => {
     async function loadLink() {
@@ -24,10 +36,25 @@ export const ExamResultsCheckPage: React.FC = () => {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    if (searchMode === 'ADMISSION_NO' && !admissionQuery.trim()) {
+      toastError('Please enter Student Admission Number.');
+      return;
+    }
+    if (searchMode === 'ROLL_NO') {
+      if (!classQuery) {
+        toastError('Please select Class first.');
+        return;
+      }
+      if (!rollQuery.trim()) {
+        toastError('Please enter Roll Number.');
+        return;
+      }
+    }
+
     setIsSearching(true);
     try {
-      const stu = await db.lookupStudentForExamForm(searchQuery.trim());
+      const query = searchMode === 'ADMISSION_NO' ? admissionQuery.trim() : rollQuery.trim();
+      const stu = await db.lookupStudentForExamForm(searchMode, query, classQuery);
       if (stu) {
         setResultData({
           student: stu,
@@ -48,7 +75,11 @@ export const ExamResultsCheckPage: React.FC = () => {
         });
         success('Candidate Marksheet retrieved successfully!');
       } else {
-        toastError('No examination marks found for this student query.');
+        toastError(
+          searchMode === 'ADMISSION_NO'
+            ? 'No student marks found for Admission No: ' + admissionQuery
+            : 'No student found in ' + classQuery + ' with Roll No: ' + rollQuery
+        );
       }
     } finally {
       setIsSearching(false);
@@ -76,78 +107,175 @@ export const ExamResultsCheckPage: React.FC = () => {
           </div>
         </div>
       </header>
+
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 space-y-6">
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft-card print:hidden space-y-3">
-          <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-base font-black text-slate-900 font-display">Online Marksheet & Scorecard Verification</h2>
+        {/* DUAL LOOKUP CARD */}
+        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-soft-card print:hidden space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+              <h2 className="text-base font-black text-slate-900 font-display">Online Marksheet & Scorecard Verification</h2>
+            </div>
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setSearchMode('ADMISSION_NO')}
+                className={'px-3 py-1.5 rounded-lg transition cursor-pointer ' + (searchMode === 'ADMISSION_NO' ? 'bg-white text-sapphire-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800')}
+              >
+                🆔 By Admission No (Direct)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchMode('ROLL_NO')}
+                className={'px-3 py-1.5 rounded-lg transition cursor-pointer ' + (searchMode === 'ROLL_NO' ? 'bg-white text-sapphire-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800')}
+              >
+                📋 By Roll No (Select Class)
+              </button>
+            </div>
           </div>
-          <p className="text-xs text-slate-500">Enter Admission Number (e.g. <strong>DBA-2026-001</strong>) or Roll Number (<strong>1001</strong>).</p>
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <input type="text" placeholder="e.g. DBA-2026-001 or 1001..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 px-4 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 font-semibold" />
-            <button type="submit" disabled={isSearching} className="px-6 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-md transition cursor-pointer">
-              {isSearching ? 'Fetching...' : 'Check Result'}
-            </button>
-          </form>
-        </div>
-        {resultData && (
-          <div className="bg-white border-2 border-slate-300 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between border-b-2 border-slate-800 pb-4">
-              <div className="flex items-center gap-4">
-                <img src="/assets/branding/don-bosco-logo.png" alt="School Crest" className="w-16 h-16 object-contain" />
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-[#0B192C] font-display uppercase">DON BOSCO ACADEMY</h1>
-                  <p className="text-xs font-bold text-coral-600">Raipur Bazar, Nanpur, Sitamarhi (Bihar) • ESTD: 1997</p>
-                  <p className="text-[11px] font-semibold text-slate-600">Official CBSE Annual Statement of Marks ({resultData.academic_year})</p>
+
+          <form onSubmit={handleSearch} className="space-y-3">
+            {searchMode === 'ADMISSION_NO' ? (
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Enter Student Admission Number *</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="e.g. DBA-2026-001 or DBA-2026-002..."
+                      value={admissionQuery}
+                      onChange={(e) => setAdmissionQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 font-semibold"
+                    />
+                  </div>
+                  <button type="submit" disabled={isSearching} className="px-6 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-md transition cursor-pointer">
+                    {isSearching ? 'Loading...' : 'Check Marksheet'}
+                  </button>
                 </div>
               </div>
-              <div className="text-right">
-                <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs">{resultData.result_status}</span>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">1. Select Class * (Mandatory)</label>
+                    <select
+                      value={classQuery}
+                      onChange={(e) => setClassQuery(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-sapphire-500"
+                    >
+                      {classOptions.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">2. Enter Student Roll Number *</label>
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="e.g. 1001, 1002, 1, 2..."
+                        value={rollQuery}
+                        onChange={(e) => setRollQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 font-semibold"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button type="submit" disabled={isSearching} className="px-6 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-md transition cursor-pointer">
+                    {isSearching ? 'Loading...' : `Check Results in ${classQuery}`}
+                  </button>
+                </div>
+              </div>
+            )}
+          </form>
+        </div>
+
+        {/* MARKSHEET DISPLAY */}
+        {resultData && (
+          <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl p-6 sm:p-8 space-y-6 text-slate-900 print:border-none print:shadow-none print:p-0">
+            <div className="flex items-center justify-between border-b-2 border-sapphire-900 pb-4">
+              <div className="flex items-center gap-4">
+                <img src="/assets/branding/don-bosco-logo.png" alt="Logo" className="w-16 h-16 object-contain rounded-xl border border-slate-200 p-1" />
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black font-display text-sapphire-950 uppercase tracking-tight">DON BOSCO ACADEMY</h2>
+                  <p className="text-xs text-slate-600 font-medium">Raipur Bazar, Nanpur, Sitamarhi (Bihar) - 843326</p>
+                  <p className="text-[11px] font-bold text-coral-600 uppercase tracking-wide">CBSE Pattern • ESTD: 1997 • KNOWLEDGE IS POWER</p>
+                </div>
+              </div>
+              <div className="text-right hidden sm:block">
+                <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-900 rounded-lg text-xs font-black uppercase tracking-wider border border-emerald-300">OFFICIAL MARKSHEET</div>
+                <div className="text-xs font-mono font-bold text-slate-500 mt-1">Session {resultData.academic_year}</div>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <div><span className="text-slate-400 block text-[10px]">Scholar Name</span><strong>{resultData.student.first_name} {resultData.student.last_name}</strong></div>
-              <div><span className="text-slate-400 block text-[10px]">Roll No</span><strong className="font-mono">{resultData.student.roll_number || '1001'}</strong></div>
-              <div><span className="text-slate-400 block text-[10px]">Admission No</span><strong className="font-mono">{resultData.student.admission_number}</strong></div>
-              <div><span className="text-slate-400 block text-[10px]">Class & Sec</span><strong>{resultData.student.class_name || 'Class 10'} ({resultData.student.section_name || 'A'})</strong></div>
+            <div className="bg-sapphire-50/70 p-3 rounded-2xl border border-sapphire-200 text-center">
+              <h3 className="text-base font-black text-sapphire-950 font-display">{resultData.exam_name}</h3>
+              <p className="text-xs text-slate-600 mt-0.5">Statement of Scholastic Achievement & Performance Record</p>
             </div>
-            <table className="w-full text-xs text-left border border-slate-300 rounded-xl overflow-hidden">
-              <thead className="bg-slate-100 text-slate-700 font-bold">
-                <tr>
-                  <th className="p-2.5 border-b border-slate-300">Subject Name</th>
-                  <th className="p-2.5 border-b border-slate-300">Max Marks</th>
-                  <th className="p-2.5 border-b border-slate-300">Theory</th>
-                  <th className="p-2.5 border-b border-slate-300">Practical</th>
-                  <th className="p-2.5 border-b border-slate-300">Total Marks</th>
-                  <th className="p-2.5 border-b border-slate-300">Grade</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {resultData.marks.map((row: any, idx: number) => (
-                  <tr key={idx}>
-                    <td className="p-2.5 font-bold text-slate-900">{row.subject}</td>
-                    <td className="p-2.5 text-slate-600 font-mono">{row.max}</td>
-                    <td className="p-2.5 text-slate-700 font-mono">{row.theory}</td>
-                    <td className="p-2.5 text-slate-700 font-mono">{row.practical}</td>
-                    <td className="p-2.5 font-extrabold text-sapphire-900 font-mono">{row.total}</td>
-                    <td className="p-2.5 font-black text-emerald-700">{row.grade}</td>
+            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <img src={resultData.student.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'} alt={resultData.student.first_name} className="w-24 h-28 object-cover rounded-xl border-2 border-sapphire-800 shrink-0 bg-white p-0.5" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs flex-1 w-full">
+                <div><span className="text-slate-400 block">Candidate Name:</span><strong className="text-sm text-slate-900 font-extrabold">{resultData.student.first_name} {resultData.student.last_name}</strong></div>
+                <div><span className="text-slate-400 block">Admission No:</span><strong className="text-sm text-sapphire-900 font-mono font-bold">{resultData.student.admission_number}</strong></div>
+                <div><span className="text-slate-400 block">Father's Name:</span><strong className="text-slate-800">{resultData.student.father_name || 'Rajesh Singh'}</strong></div>
+                <div><span className="text-slate-400 block">Mother's Name:</span><strong className="text-slate-800">{resultData.student.mother_name || 'Sunita Devi'}</strong></div>
+                <div><span className="text-slate-400 block">Class & Section:</span><strong className="text-slate-800">{resultData.student.class_name || 'Class 10'} (Section {resultData.student.section_name || 'A'})</strong></div>
+                <div><span className="text-slate-400 block">Roll Number:</span><strong className="text-slate-800 font-mono">{resultData.student.roll_number || '1001'}</strong></div>
+              </div>
+            </div>
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
+                  <tr>
+                    <th className="p-2.5">Subject</th>
+                    <th className="p-2.5 text-center">Max Marks</th>
+                    <th className="p-2.5 text-center">Theory</th>
+                    <th className="p-2.5 text-center">Practical</th>
+                    <th className="p-2.5 text-center">Total</th>
+                    <th className="p-2.5 text-center">Grade</th>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot className="bg-slate-50 font-bold border-t-2 border-slate-300">
-                <tr>
-                  <td className="p-2.5 font-black text-slate-900">GRAND TOTAL & PERCENTAGE</td>
-                  <td className="p-2.5 font-mono">{resultData.max_total}</td>
-                  <td colSpan={2}></td>
-                  <td className="p-2.5 font-black text-sapphire-900 font-mono text-sm">{resultData.grand_total}</td>
-                  <td className="p-2.5 font-black text-coral-600 text-sm">{resultData.percentage}%</td>
-                </tr>
-              </tfoot>
-            </table>
-            <div className="pt-4 border-t-2 border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-3"><QrCode className="w-12 h-12 text-slate-900" /><span className="text-[10px] text-slate-500 font-medium">Verified by DBA Examination Controller</span></div>
-              <div className="text-center"><img src="/assets/branding/don-bosco-stamp.svg" alt="Seal" className="w-12 h-12 mx-auto" /><span className="text-[9px] font-bold text-slate-400 uppercase">Official Seal</span></div>
-              <div className="text-center"><img src="/assets/branding/principal-signature.svg" alt="Sign" className="w-16 h-8 mx-auto" /><span className="text-xs font-bold text-slate-900 block">Md. Shami Ahmad</span><span className="text-[9px] font-bold text-slate-500 uppercase">Principal</span></div>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {resultData.marks.map((m: any, idx: number) => (
+                    <tr key={idx} className="hover:bg-slate-50">
+                      <td className="p-2.5 font-bold text-slate-800">{m.subject}</td>
+                      <td className="p-2.5 text-center font-mono text-slate-600">{m.max}</td>
+                      <td className="p-2.5 text-center font-mono text-slate-700">{m.theory}</td>
+                      <td className="p-2.5 text-center font-mono text-slate-700">{m.practical}</td>
+                      <td className="p-2.5 text-center font-mono font-black text-sapphire-900">{m.total}</td>
+                      <td className="p-2.5 text-center font-bold text-emerald-600">{m.grade}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-extrabold uppercase text-emerald-800 tracking-wider">Final Examination Result</span>
+                <h3 className="text-lg font-black text-emerald-950 mt-0.5">{resultData.result_status}</h3>
+              </div>
+              <div className="flex items-center gap-6 text-right">
+                <div><span className="text-[11px] text-slate-500 block">Grand Total</span><strong className="text-base font-black font-mono text-slate-900">{resultData.grand_total} / {resultData.max_total}</strong></div>
+                <div><span className="text-[11px] text-slate-500 block">Percentage</span><strong className="text-xl font-black font-mono text-coral-600">{resultData.percentage}%</strong></div>
+              </div>
+            </div>
+            <div className="pt-6 border-t-2 border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs">
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-white border border-slate-300 rounded-xl shadow-2xs">
+                  <img src="/assets/branding/don-bosco-seal.png" alt="Seal" className="w-14 h-14 object-contain opacity-90" />
+                </div>
+                <div>
+                  <div className="font-mono text-[10px] text-slate-400">VERIFY-RESULT-{resultData.student.roll_number || '1001'}</div>
+                  <div className="text-[11px] font-bold text-slate-700">Official Institutional Seal</div>
+                </div>
+              </div>
+              <div className="text-center sm:text-right">
+                <img src="/assets/branding/principal-signature.png" alt="Signature" className="h-10 mx-auto sm:ml-auto object-contain" />
+                <div className="font-bold text-slate-900 mt-1">Md. Shami Ahmad</div>
+                <div className="text-[10px] text-slate-500 font-semibold">Principal & Head of Institution</div>
+              </div>
             </div>
           </div>
         )}

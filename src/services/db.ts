@@ -1696,15 +1696,46 @@ export const db = {
     return newApp;
   },
 
-  async lookupStudentForExamForm(query: string, classFilter?: string): Promise<Student | null> {
+    async lookupStudentForExamForm(
+    mode: 'ADMISSION_NO' | 'ROLL_NO',
+    query: string,
+    classFilter?: string
+  ): Promise<Student | null> {
     const q = query.trim().toLowerCase();
+    if (!q) return null;
     const students = await this.getStudents('sch-don-bosco');
-    const matched = students.find((s) => {
-      const matchAdm = s.admission_number.toLowerCase() === q;
-      const matchRoll = s.roll_number?.toLowerCase() === q;
-      const matchName = (s.first_name + ' ' + s.last_name).toLowerCase().includes(q);
-      return matchAdm || matchRoll || matchName;
-    });
+
+    if (mode === 'ADMISSION_NO') {
+      const matched = students.find(
+        (s) => s.admission_number.toLowerCase() === q || s.id.toLowerCase() === q
+      );
+      return matched || null;
+    } else {
+      const matched = students.find((s) => {
+        const matchRoll = s.roll_number?.toLowerCase() === q;
+        const matchClass = !classFilter ||
+          (s.class_name && s.class_name.toLowerCase() === classFilter.toLowerCase()) ||
+          s.current_class_id === classFilter;
+        return matchRoll && matchClass;
+      });
+      return matched || null;
+    }
+  },
+
+  async checkStudentAlreadySubmitted(
+    linkId: string,
+    studentIdentifier: string
+  ): Promise<ExamApplication | null> {
+    if (!linkId || !studentIdentifier) return null;
+    const q = studentIdentifier.trim().toLowerCase();
+    const apps = (store as any).examApplications as ExamApplication[];
+    const matched = apps.find(
+      (a) =>
+        a.link_id === linkId &&
+        (a.admission_number.toLowerCase() === q ||
+          (a.student_id && a.student_id.toLowerCase() === q) ||
+          (a.roll_number && a.roll_number.toLowerCase() === q))
+    );
     return matched || null;
   },
 

@@ -1,18 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { formatDDMMYYYY } from '../../lib/date-utils';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../../services/db';
 import { PublishableExamLink, Student, School } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
-import { FileBadge, Search, Printer, Download, QrCode, CheckCircle2, Calendar, Clock, MapPin, ShieldCheck, AlertTriangle, Lock } from 'lucide-react';
+import { FileBadge, Search, Printer, Download, QrCode, CheckCircle2, Calendar, Clock, MapPin, ShieldCheck, AlertTriangle, Lock, Sparkles } from 'lucide-react';
 
 export const AdmitCardDownloadPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { success, error: toastError } = useToast();
   const [link, setLink] = useState<PublishableExamLink | null>(null);
   const [school, setSchool] = useState<School | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+
+  // Dual search mode
+  const [searchMode, setSearchMode] = useState<'ADMISSION_NO' | 'ROLL_NO'>('ADMISSION_NO');
+  const [admissionQuery, setAdmissionQuery] = useState('');
+  const [classQuery, setClassQuery] = useState('Class 10');
+  const [rollQuery, setRollQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [foundStudent, setFoundStudent] = useState<any | null>(null);
+
+  const classOptions = [
+    'Class 10', 'Class 9', 'Class 8', 'Class 7', 'Class 6',
+    'Class 5', 'Class 4', 'Class 3', 'Class 2', 'Class 1',
+    'UKG', 'LKG', 'Nursery', 'Play Group'
+  ];
 
   useEffect(() => {
     async function loadLink() {
@@ -33,10 +45,25 @@ export const AdmitCardDownloadPage: React.FC = () => {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    if (searchMode === 'ADMISSION_NO' && !admissionQuery.trim()) {
+      toastError('Please enter Student Admission Number.');
+      return;
+    }
+    if (searchMode === 'ROLL_NO') {
+      if (!classQuery) {
+        toastError('Please select Class first.');
+        return;
+      }
+      if (!rollQuery.trim()) {
+        toastError('Please enter Roll Number.');
+        return;
+      }
+    }
+
     setIsSearching(true);
     try {
-      const stu = await db.lookupStudentForExamForm(searchQuery.trim());
+      const query = searchMode === 'ADMISSION_NO' ? admissionQuery.trim() : rollQuery.trim();
+      const stu = await db.lookupStudentForExamForm(searchMode, query, classQuery);
       if (stu) {
         setFoundStudent({
           ...stu,
@@ -55,7 +82,11 @@ export const AdmitCardDownloadPage: React.FC = () => {
         });
         success('Official Admit Card loaded successfully!');
       } else {
-        toastError('No student record found. Enter Admission Number e.g. DBA-2026-001 or Roll No 1001');
+        toastError(
+          searchMode === 'ADMISSION_NO'
+            ? 'No student found with Admission No: ' + admissionQuery
+            : 'No student found in ' + classQuery + ' with Roll No: ' + rollQuery
+        );
       }
     } finally {
       setIsSearching(false);
@@ -87,99 +118,166 @@ export const AdmitCardDownloadPage: React.FC = () => {
           </div>
         </div>
       </header>
+
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 space-y-6">
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft-card print:hidden space-y-4">
-          <div className="flex items-center gap-2">
-            <FileBadge className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-base font-black text-slate-900 font-display">Find & Download Your Examination Admit Card</h2>
-          </div>
-          <p className="text-xs text-slate-500">Enter your Admission Number (e.g. <strong>DBA-2026-001</strong>) or Roll Number (<strong>1001</strong>) to retrieve your verified CBSE Admit Card.</p>
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input type="text" placeholder="Enter Admission No / Roll No..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 font-semibold" />
+        {/* DUAL LOOKUP CARD */}
+        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-soft-card print:hidden space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <FileBadge className="w-5 h-5 text-indigo-600" />
+              <h2 className="text-base font-black text-slate-900 font-display">Find & Download Your Examination Admit Card</h2>
             </div>
-            <button type="submit" disabled={isSearching} className="px-6 py-2.5 rounded-xl bg-sapphire-900 hover:bg-sapphire-800 text-white font-extrabold text-xs shadow-md transition cursor-pointer">
-              {isSearching ? 'Searching...' : 'Retrieve Admit Card'}
-            </button>
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setSearchMode('ADMISSION_NO')}
+                className={'px-3 py-1.5 rounded-lg transition cursor-pointer ' + (searchMode === 'ADMISSION_NO' ? 'bg-white text-sapphire-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800')}
+              >
+                🆔 By Admission No (Direct)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchMode('ROLL_NO')}
+                className={'px-3 py-1.5 rounded-lg transition cursor-pointer ' + (searchMode === 'ROLL_NO' ? 'bg-white text-sapphire-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800')}
+              >
+                📋 By Roll No (Select Class)
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSearch} className="space-y-3">
+            {searchMode === 'ADMISSION_NO' ? (
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Enter Student Admission Number *</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="e.g. DBA-2026-001 or DBA-2026-002..."
+                      value={admissionQuery}
+                      onChange={(e) => setAdmissionQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 font-semibold"
+                    />
+                  </div>
+                  <button type="submit" disabled={isSearching} className="px-6 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-sm hover:bg-sapphire-800 transition cursor-pointer">
+                    {isSearching ? 'Loading...' : 'Find Admit Card'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">1. Select Class * (Mandatory)</label>
+                    <select
+                      value={classQuery}
+                      onChange={(e) => setClassQuery(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-sapphire-500"
+                    >
+                      {classOptions.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">2. Enter Student Roll Number *</label>
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="e.g. 1001, 1002, 1, 2..."
+                        value={rollQuery}
+                        onChange={(e) => setRollQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 font-semibold"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button type="submit" disabled={isSearching} className="px-6 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-sm hover:bg-sapphire-800 transition cursor-pointer">
+                    {isSearching ? 'Loading...' : `Find Admit Card in ${classQuery}`}
+                  </button>
+                </div>
+              </div>
+            )}
           </form>
         </div>
+
+        {/* PRINTABLE ADMIT CARD TEMPLATE */}
         {foundStudent && (
-          <div className="bg-white border-2 border-slate-300 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
-            <div className="flex items-center justify-between border-b-2 border-slate-800 pb-4">
+          <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl p-6 sm:p-8 space-y-6 text-slate-900 print:border-none print:shadow-none print:p-0">
+            <div className="flex items-center justify-between border-b-2 border-sapphire-900 pb-4">
               <div className="flex items-center gap-4">
-                <img src="/assets/branding/don-bosco-logo.png" alt="School Crest" className="w-16 h-16 object-contain" />
+                <img src="/assets/branding/don-bosco-logo.png" alt="Logo" className="w-16 h-16 object-contain rounded-xl border border-slate-200 p-1" />
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-[#0B192C] font-display tracking-tight uppercase">DON BOSCO ACADEMY</h1>
-                  <p className="text-xs font-bold text-coral-600">Raipur Bazar, Nanpur, Sitamarhi, Bihar - 843326 • ESTD: 1997</p>
-                  <p className="text-[11px] font-semibold text-slate-600">CBSE Pattern • Official Hall Ticket & Admit Card</p>
+                  <h2 className="text-xl sm:text-2xl font-black font-display text-sapphire-950 uppercase tracking-tight">DON BOSCO ACADEMY</h2>
+                  <p className="text-xs text-slate-600 font-medium">Raipur Bazar, Nanpur, Sitamarhi (Bihar) - 843326</p>
+                  <p className="text-[11px] font-bold text-coral-600 uppercase tracking-wide">CBSE Pattern • ESTD: 1997 • KNOWLEDGE IS POWER</p>
                 </div>
               </div>
               <div className="text-right hidden sm:block">
-                <span className="text-[10px] font-mono font-bold text-slate-400 block">ADMIT CARD SERIAL</span>
-                <strong className="text-xs font-mono font-black text-slate-900">{foundStudent.admit_card_no}</strong>
+                <div className="inline-block px-3 py-1 bg-amber-100 text-amber-900 rounded-lg text-xs font-black uppercase tracking-wider border border-amber-300">OFFICIAL ADMIT CARD</div>
+                <div className="text-xs font-mono font-bold text-slate-500 mt-1">Session {link?.academic_year || '2025-2026'}</div>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
-              <div className="sm:col-span-9 grid grid-cols-2 gap-3 text-xs">
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200"><span className="text-slate-400 block text-[10px]">Candidate Name</span><strong className="text-slate-900 text-sm font-display">{foundStudent.first_name} {foundStudent.last_name}</strong></div>
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200"><span className="text-slate-400 block text-[10px]">Admission No</span><strong className="text-slate-900 text-sm font-mono">{foundStudent.admission_number}</strong></div>
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200"><span className="text-slate-400 block text-[10px]">Class & Section</span><strong className="text-slate-900">{foundStudent.class_name || 'Class 10'} (Sec {foundStudent.section_name || 'A'})</strong></div>
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200"><span className="text-slate-400 block text-[10px]">Roll Number</span><strong className="text-slate-900 font-mono font-bold">{foundStudent.roll_number || '1001'}</strong></div>
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200"><span className="text-slate-400 block text-[10px]">Father's Name</span><strong className="text-slate-900">{foundStudent.father_name}</strong></div>
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200"><span className="text-slate-400 block text-[10px]">Mother's Name</span><strong className="text-slate-900">{foundStudent.mother_name}</strong></div>
-              </div>
-              <div className="sm:col-span-3 flex flex-col items-center">
-                <img src={foundStudent.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'} alt="Candidate Photo" className="w-24 h-28 object-cover rounded-xl border-2 border-slate-800 p-0.5 bg-white shadow-md" />
-                <span className="text-[9px] font-bold text-slate-500 mt-1 uppercase">Candidate Photograph</span>
-              </div>
+            <div className="bg-sapphire-50/70 p-3 rounded-2xl border border-sapphire-200 text-center">
+              <h3 className="text-base font-black text-sapphire-950 font-display">{link?.exam_name || 'CBSE Class X Annual Examination 2026'}</h3>
+              <p className="text-xs text-slate-600 mt-0.5">Hall Ticket & Examination Attendance Schedule</p>
             </div>
-            <div className="p-3 rounded-2xl bg-sapphire-50 border border-sapphire-200 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-sapphire-800" /><span className="text-slate-700">Exam Center: <strong>{foundStudent.exam_center}</strong></span></div>
-              <span className="text-emerald-700 font-bold">Center Code: DBA-8433</span>
+            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <img src={foundStudent.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'} alt={foundStudent.first_name} className="w-24 h-28 object-cover rounded-xl border-2 border-sapphire-800 shrink-0 bg-white p-0.5" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs flex-1 w-full">
+                <div><span className="text-slate-400 block">Candidate Name:</span><strong className="text-sm text-slate-900 font-extrabold">{foundStudent.first_name} {foundStudent.last_name}</strong></div>
+                <div><span className="text-slate-400 block">Admit Card No:</span><strong className="text-sm text-sapphire-900 font-mono font-bold">{foundStudent.admit_card_no}</strong></div>
+                <div><span className="text-slate-400 block">Father's Name:</span><strong className="text-slate-800">{foundStudent.father_name}</strong></div>
+                <div><span className="text-slate-400 block">Mother's Name:</span><strong className="text-slate-800">{foundStudent.mother_name}</strong></div>
+                <div><span className="text-slate-400 block">Class & Section:</span><strong className="text-slate-800">{foundStudent.class_name || 'Class 10'} (Section {foundStudent.section_name || 'A'})</strong></div>
+                <div><span className="text-slate-400 block">Roll Number & Adm No:</span><strong className="text-slate-800 font-mono">Roll: {foundStudent.roll_number} • {foundStudent.admission_number}</strong></div>
+                <div className="sm:col-span-2"><span className="text-slate-400 block">Exam Center:</span><strong className="text-slate-800">{foundStudent.exam_center}</strong></div>
+              </div>
             </div>
             <div className="space-y-2">
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">Examination Date & Time Schedule</h4>
-              <table className="w-full text-xs text-left border border-slate-300 rounded-xl overflow-hidden">
-                <thead className="bg-slate-100 text-slate-700 font-bold">
-                  <tr>
-                    <th className="p-2.5 border-b border-slate-300">Subject</th>
-                    <th className="p-2.5 border-b border-slate-300">Date</th>
-                    <th className="p-2.5 border-b border-slate-300">Timing</th>
-                    <th className="p-2.5 border-b border-slate-300">Room</th>
-                    <th className="p-2.5 border-b border-slate-300">Invigilator Sign</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {foundStudent.timetable.map((row: any, i: number) => (
-                    <tr key={i}>
-                      <td className="p-2.5 font-bold text-slate-900">{row.subject}</td>
-                      <td className="p-2.5 font-mono text-slate-700">{row.date}</td>
-                      <td className="p-2.5 text-slate-700">{row.time}</td>
-                      <td className="p-2.5 font-mono text-slate-700">{row.room}</td>
-                      <td className="p-2.5 border-l border-slate-200"></td>
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">Subject Schedule & Invigilator Attestation</h4>
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
+                    <tr>
+                      <th className="p-2.5">Subject</th>
+                      <th className="p-2.5">Date (dd/mm/yyyy)</th>
+                      <th className="p-2.5">Time</th>
+                      <th className="p-2.5">Room</th>
+                      <th className="p-2.5 text-center">Invigilator Sign</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {foundStudent.timetable.map((t: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-slate-50">
+                        <td className="p-2.5 font-bold text-slate-800">{t.subject}</td>
+                        <td className="p-2.5 font-mono text-slate-600">{t.date}</td>
+                        <td className="p-2.5 text-slate-600">{t.time}</td>
+                        <td className="p-2.5 font-semibold text-slate-700">{t.room}</td>
+                        <td className="p-2.5 text-center"><div className="w-24 h-6 border-b border-slate-300 mx-auto"></div></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="pt-4 border-t-2 border-slate-800 flex items-center justify-between">
+            <div className="pt-6 border-t-2 border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-14 h-14 bg-white p-1 border border-slate-300 rounded-lg flex items-center justify-center"><QrCode className="w-12 h-12 text-slate-900" /></div>
+                <div className="p-1.5 bg-white border border-slate-300 rounded-xl shadow-2xs">
+                  <img src="/assets/branding/don-bosco-seal.png" alt="Seal" className="w-14 h-14 object-contain opacity-90" />
+                </div>
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 block uppercase">QR Verification</span>
-                  <span className="text-[10px] font-mono font-bold text-emerald-700 block">SCAN TO VERIFY</span>
-                  <span className="text-[9px] text-slate-400 block">Tamper-Proof DBA Cryptography</span>
+                  <div className="font-mono text-[10px] text-slate-400">VERIFY-ADMIT-{foundStudent.roll_number}</div>
+                  <div className="text-[11px] font-bold text-slate-700">Official Institutional Seal</div>
                 </div>
               </div>
-              <div className="text-center">
-                <img src="/assets/branding/don-bosco-stamp.svg" alt="Official Seal" className="w-14 h-14 object-contain mx-auto" />
-                <span className="text-[9px] font-bold text-slate-400 uppercase">Institutional Seal</span>
-              </div>
-              <div className="text-center">
-                <img src="/assets/branding/principal-signature.svg" alt="Signature" className="w-20 h-10 object-contain mx-auto" />
-                <div className="text-xs font-black text-slate-900">Md. Shami Ahmad</div>
-                <span className="text-[9px] font-bold text-slate-500 uppercase block">Head of Institution / Principal</span>
+              <div className="text-center sm:text-right">
+                <img src="/assets/branding/principal-signature.png" alt="Signature" className="h-10 mx-auto sm:ml-auto object-contain" />
+                <div className="font-bold text-slate-900 mt-1">Md. Shami Ahmad</div>
+                <div className="text-[10px] text-slate-500 font-semibold">Principal & Head of Institution</div>
               </div>
             </div>
           </div>
