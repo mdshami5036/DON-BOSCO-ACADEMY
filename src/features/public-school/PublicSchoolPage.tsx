@@ -50,6 +50,8 @@ import {
   Home,
   Target,
   Sparkle,
+  Menu,
+  X,
 } from 'lucide-react';
 import { Modal } from '../../components/common/UI';
 
@@ -98,6 +100,7 @@ export const PublicSchoolPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Online Admission Modal & Form State
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isAdmissionModalOpen, setIsAdmissionModalOpen] = useState(false);
   const [admissionSubmitting, setAdmissionSubmitting] = useState(false);
   const [admissionSuccess, setAdmissionSuccess] = useState(false);
@@ -296,35 +299,35 @@ export const PublicSchoolPage: React.FC = () => {
       </div>
 
       {/* 2. STICKY GLASS HEADER WITH REAL BRAND CREST */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-8 z-40 shadow-sm transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3.5 group">
-            <div className="relative">
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-8 z-40 shadow-xs transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:gap-4">
+          
+          {/* Brand Identity */}
+          <Link to="/" className="flex items-center gap-3 shrink-0 group">
+            <div className="relative shrink-0">
               <img
                 src="/assets/branding/don-bosco-logo.png"
                 alt={school.name}
-                className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl object-contain bg-white border-2 border-sapphire-700/30 p-1 shadow-md shadow-sapphire-900/10 group-hover:scale-105 transition-transform"
+                className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl object-contain bg-white border border-sapphire-700/20 p-0.5 shadow-xs group-hover:scale-105 transition-transform"
               />
-              <div className="absolute -bottom-1 -right-1 bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full border border-white shadow-xs">
+              <div className="absolute -bottom-1 -right-1 bg-amber-400 text-slate-950 font-black text-[8px] sm:text-[9px] px-1.5 py-0.2 rounded-full border border-white shadow-2xs whitespace-nowrap">
                 ESTD 1997
               </div>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0B192C] tracking-tight font-display">
-                  {school.name}
-                </h1>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold mt-0.5">
-                <span className="text-coral-500 font-bold tracking-wider">
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-base sm:text-xl md:text-2xl font-black text-[#0B192C] tracking-tight font-display whitespace-nowrap">
+                {school.name}
+              </h1>
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
+                <span className="text-coral-500 font-bold tracking-wide">
                   ★ {school.tagline || 'KNOWLEDGE IS POWER'} ★
                 </span>
-                <span className="text-slate-400 hidden sm:inline">•</span>
-                <span className="text-emerald-700 font-medium hidden sm:inline">
+                <span className="text-slate-300 hidden sm:inline">•</span>
+                <span className="text-emerald-700 font-semibold hidden sm:inline">
                   {school.school_type || 'Residential Cum Day School'}
                 </span>
-                <span className="text-slate-400 hidden md:inline">•</span>
-                <span className="text-indigo-700 font-medium hidden md:inline">
+                <span className="text-slate-300 hidden md:inline">•</span>
+                <span className="text-sapphire-800 font-bold hidden md:inline">
                   {school.academic_pattern || 'CBSE Pattern'}
                 </span>
               </div>
@@ -332,29 +335,88 @@ export const PublicSchoolPage: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-700">
-            <a href="#about" className="hover:text-indigo-600 transition-colors">About</a>
-            <a href="#academics" className="hover:text-indigo-600 transition-colors">Academic Wings</a>
-            <a href="#campus" className="hover:text-indigo-600 transition-colors">Smart Campus</a>
-            <a href="#principal" className="hover:text-indigo-600 transition-colors">Principal's Desk</a>
-            <a href="#notices" className="hover:text-indigo-600 transition-colors">Notices</a>
-            <a href="#contact" className="hover:text-indigo-600 transition-colors">Contact</a>
+          <nav className="hidden xl:flex items-center gap-5 2xl:gap-7 text-xs 2xl:text-sm font-bold text-slate-700 shrink-0">
+            <a href="#about" className="hover:text-indigo-600 transition-colors whitespace-nowrap">About</a>
+            <a href="#academics" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Academic Wings</a>
+            <a href="#campus" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Smart Campus</a>
+            <a href="#principal" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Principal's Desk</a>
+            <a href="#notices" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Notices</a>
+            <a href="#contact" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Contact</a>
           </nav>
 
-          {/* High-Energy Admission CTA Button */}
-          <div className="flex items-center gap-3">
+          {/* Right Action: Admission Button + Mobile Toggle */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               onClick={() => setIsAdmissionModalOpen(true)}
-              className="relative group overflow-hidden px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-coral-500 via-coral-600 to-[#EB3C16] text-white font-extrabold text-xs sm:text-sm tracking-wide shadow-md shadow-coral-500/30 hover:shadow-coral-glow hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+              className="relative group overflow-hidden px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-coral-500 via-coral-600 to-[#EB3C16] text-white font-extrabold text-xs sm:text-sm tracking-wide shadow-md shadow-coral-500/30 hover:shadow-coral-glow hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <span className="relative z-10 flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-amber-300 animate-bounce" />
-                <span>Admission 2026-27</span>
+              <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
+                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 animate-bounce shrink-0" />
+                <span className="whitespace-nowrap">Admission 2026-27</span>
               </span>
               <span className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             </button>
+
+            {/* Mobile Hamburger Toggle Button */}
+            <button
+              onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+              className="xl:hidden p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 transition shrink-0 cursor-pointer"
+              aria-label="Toggle navigation menu"
+            >
+              {isMobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Dropdown */}
+        {isMobileNavOpen && (
+          <div className="xl:hidden border-t border-slate-100 bg-white/98 backdrop-blur-md px-4 py-4 space-y-3 shadow-lg animate-in slide-in-from-top-2 duration-200">
+            <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-800">
+              <a
+                href="#about"
+                onClick={() => setIsMobileNavOpen(false)}
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition"
+              >
+                🏫 About School
+              </a>
+              <a
+                href="#academics"
+                onClick={() => setIsMobileNavOpen(false)}
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition"
+              >
+                📚 Academic Wings
+              </a>
+              <a
+                href="#campus"
+                onClick={() => setIsMobileNavOpen(false)}
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition"
+              >
+                🏛 Smart Campus
+              </a>
+              <a
+                href="#principal"
+                onClick={() => setIsMobileNavOpen(false)}
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition"
+              >
+                ✍ Principal's Desk
+              </a>
+              <a
+                href="#notices"
+                onClick={() => setIsMobileNavOpen(false)}
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition"
+              >
+                📢 Live Notices
+              </a>
+              <a
+                href="#contact"
+                onClick={() => setIsMobileNavOpen(false)}
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition"
+              >
+                📞 Contact School
+              </a>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* 3. DYNAMIC SPLIT HERO SECTION WITH 3D FLOATING WIDGETS */}
