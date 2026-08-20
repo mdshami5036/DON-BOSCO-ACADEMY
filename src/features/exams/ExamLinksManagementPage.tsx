@@ -12,7 +12,10 @@ export const ExamLinksManagementPage: React.FC = () => {
   const { success, error: toastError } = useToast();
   const [links, setLinks] = useState<PublishableExamLink[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Create / Edit Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState<PublishableExamLink | null>(null);
   const [form, setForm] = useState({
     title: '',
     slug: '',
@@ -20,8 +23,9 @@ export const ExamLinksManagementPage: React.FC = () => {
     academic_year: '2025-2026',
     exam_name: '',
     description: '',
-    expiry_days: 14,
+    expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     exam_center: 'Don Bosco Academy Examination Hall, Sitamarhi',
+    is_active: true,
   });
 
   const loadLinks = async () => {
@@ -39,31 +43,81 @@ export const ExamLinksManagementPage: React.FC = () => {
     loadLinks();
   }, [currentSchool]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleOpenCreate = () => {
+    setEditingLink(null);
+    setForm({
+      title: '',
+      slug: '',
+      link_type: 'ADMIT_CARD_FORM',
+      academic_year: '2025-2026',
+      exam_name: '',
+      description: '',
+      expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      exam_center: 'Don Bosco Academy Examination Hall, Sitamarhi',
+      is_active: true,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (link: PublishableExamLink) => {
+    setEditingLink(link);
+    const expDate = link.expiry_date ? link.expiry_date.split('T')[0] : new Date().toISOString().split('T')[0];
+    setForm({
+      title: link.title || '',
+      slug: link.slug || '',
+      link_type: link.link_type,
+      academic_year: link.academic_year || '2025-2026',
+      exam_name: link.exam_name || '',
+      description: link.description || '',
+      expiry_date: expDate,
+      exam_center: link.exam_center || 'Don Bosco Academy Examination Hall, Sitamarhi',
+      is_active: link.is_active !== undefined ? link.is_active : true,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title || !form.exam_name) {
       toastError('Title and Exam Name are required.');
       return;
     }
     try {
-      const expiryDate = new Date(Date.now() + form.expiry_days * 24 * 60 * 60 * 1000).toISOString();
+      const expiryIso = new Date(form.expiry_date + 'T23:59:59').toISOString();
       const slug = form.slug || form.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      await db.createExamLink({
-        school_id: currentSchool?.id || 'sch-don-bosco',
-        title: form.title,
-        slug,
-        link_type: form.link_type,
-        academic_year: form.academic_year,
-        exam_name: form.exam_name,
-        description: form.description,
-        expiry_date: expiryDate,
-        exam_center: form.exam_center,
-      });
-      success('New Examination Portal Link published live!');
+
+      if (editingLink) {
+        await db.updateExamLink(editingLink.id, {
+          title: form.title,
+          slug,
+          link_type: form.link_type,
+          academic_year: form.academic_year,
+          exam_name: form.exam_name,
+          description: form.description,
+          expiry_date: expiryIso,
+          exam_center: form.exam_center,
+          is_active: form.is_active,
+        });
+        success('Examination Portal Link updated successfully!');
+      } else {
+        await db.createExamLink({
+          school_id: currentSchool?.id || 'sch-don-bosco',
+          title: form.title,
+          slug,
+          link_type: form.link_type,
+          academic_year: form.academic_year,
+          exam_name: form.exam_name,
+          description: form.description,
+          expiry_date: expiryIso,
+          exam_center: form.exam_center,
+          is_active: form.is_active,
+        });
+        success('New Examination Portal Link published live!');
+      }
       setIsModalOpen(false);
       loadLinks();
     } catch (err: any) {
-      toastError(err.message || 'Error creating link');
+      toastError(err.message || 'Error saving link');
     }
   };
 
@@ -106,13 +160,13 @@ export const ExamLinksManagementPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0B192C] font-display">Exam & Admit Card Portal Publisher</h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">Publish time-limited exam forms, 1-click batch issue admit cards, release marksheets, and manage expiration.</p>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">Publish time-limited exam forms, edit existing links, 1-click batch issue admit cards, release marksheets, and manage expiration.</p>
         </div>
         <div className="flex items-center gap-3">
           <a href="/exam-portal" target="_blank" className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition flex items-center gap-1.5 shadow-2xs">
             <ExternalLink className="w-4 h-4 text-indigo-600" /><span>View Public Portal</span>
           </a>
-          <button onClick={() => setIsModalOpen(true)} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-coral-500 to-[#EB3C16] text-white font-extrabold text-xs shadow-md shadow-coral-500/20 hover:shadow-coral-glow transition flex items-center gap-1.5 cursor-pointer">
+          <button onClick={handleOpenCreate} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-coral-500 to-[#EB3C16] text-white font-extrabold text-xs shadow-md shadow-coral-500/20 hover:shadow-coral-glow transition flex items-center gap-1.5 cursor-pointer">
             <Plus className="w-4 h-4" /><span>Publish New Portal Link</span>
           </button>
         </div>
@@ -136,13 +190,21 @@ export const ExamLinksManagementPage: React.FC = () => {
                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1">
                   <div className="flex justify-between"><span className="text-slate-400">Exam:</span><strong>{link.exam_name}</strong></div>
                   <div className="flex justify-between"><span className="text-slate-400">Applications:</span><strong className="text-sapphire-900 font-bold">{link.applications_count || 0} Submitted</strong></div>
-                  <div className="flex justify-between"><span className="text-slate-400">Expiry Date:</span><span className="font-mono font-bold text-slate-700">{formatDDMMYYYY(link.expiry_date)}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400">Deadline (dd/mm/yyyy):</span><span className="font-mono font-bold text-slate-700">{formatDDMMYYYY(link.expiry_date)}</span></div>
+                  {link.exam_center && <div className="flex justify-between"><span className="text-slate-400">Center:</span><span className="text-slate-700 truncate max-w-[200px]">{link.exam_center}</span></div>}
                 </div>
               </div>
               <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <button onClick={() => handleCopyLink(link.slug)} className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Copy Link URL"><Copy className="w-3.5 h-3.5" /><span>Copy URL</span></button>
-                  <button onClick={() => handleDelete(link.id)} className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs transition cursor-pointer" title="Delete Link"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleOpenEdit(link)} className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Edit Link">
+                    <Edit2 className="w-3.5 h-3.5" /><span>Edit</span>
+                  </button>
+                  <button onClick={() => handleCopyLink(link.slug)} className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Copy Link URL">
+                    <Copy className="w-3.5 h-3.5" /><span>Copy URL</span>
+                  </button>
+                  <button onClick={() => handleDelete(link.id)} className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs transition cursor-pointer" title="Delete Link">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
                 {link.link_type === 'ADMIT_CARD_FORM' && (
                   <button onClick={() => handleIssueAdmitCards(link.id)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-sapphire-900 to-indigo-700 text-white font-extrabold text-xs shadow-sm hover:shadow-indigo-glow transition flex items-center gap-1.5 cursor-pointer">
@@ -159,21 +221,61 @@ export const ExamLinksManagementPage: React.FC = () => {
           );
         })}
       </div>
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Publish Dynamic Examination Portal Link" size="lg">
-        <form onSubmit={handleCreate} className="space-y-4 text-xs">
-          <div><label className="block font-bold text-slate-700 mb-1">Portal Title *</label><input type="text" required placeholder="e.g. CBSE Annual Board Exam 2026 - Admit Card Form" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs" /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="block font-bold text-slate-700 mb-1">Link Function / Type</label><select value={form.link_type} onChange={(e) => setForm({ ...form, link_type: e.target.value as any })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs"><option value="ADMIT_CARD_FORM">📝 Examination / Admit Card Form</option><option value="ADMIT_CARD_DOWNLOAD">🎟️ Admit Card Download Portal</option><option value="RESULT_PORTAL">📊 Marksheets & Results Portal</option><option value="CERTIFICATE_RECORDS">📜 Certificate Records Archive</option></select></div>
-            <div><label className="block font-bold text-slate-700 mb-1">Academic Session</label><select value={form.academic_year} onChange={(e) => setForm({ ...form, academic_year: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs"><option value="2025-2026">2025-2026</option><option value="2026-2027">2026-2027</option></select></div>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingLink ? 'Edit Published Examination Portal Link' : 'Publish New Examination Portal Link'} size="lg">
+        <form onSubmit={handleSave} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-bold text-slate-700 mb-1">Portal Title *</label>
+            <input type="text" required placeholder="e.g. CBSE Annual Board Exam 2026 - Admit Card Form" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="block font-bold text-slate-700 mb-1">Exam Name *</label><input type="text" required placeholder="e.g. CBSE Class X Annual Board Exam 2026" value={form.exam_name} onChange={(e) => setForm({ ...form, exam_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs" /></div>
-            <div><label className="block font-bold text-slate-700 mb-1">Active Duration (Days)</label><input type="number" min="1" max="90" value={form.expiry_days} onChange={(e) => setForm({ ...form, expiry_days: parseInt(e.target.value) || 14 })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Link Function / Type</label>
+              <select value={form.link_type} onChange={(e) => setForm({ ...form, link_type: e.target.value as any })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900">
+                <option value="ADMIT_CARD_FORM">📝 Examination / Admit Card Form</option>
+                <option value="ADMIT_CARD_DOWNLOAD">🎟️ Admit Card Download Portal</option>
+                <option value="RESULT_PORTAL">📊 Marksheets & Results Portal</option>
+                <option value="CERTIFICATE_RECORDS">📜 Certificate Records Archive</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Academic Session</label>
+              <select value={form.academic_year} onChange={(e) => setForm({ ...form, academic_year: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900">
+                <option value="2025-2026">2025-2026</option>
+                <option value="2026-2027">2026-2027</option>
+              </select>
+            </div>
           </div>
-          <div><label className="block font-bold text-slate-700 mb-1">Instructions / Description</label><textarea rows={2} placeholder="Candidate instructions for this portal..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Exam Name *</label>
+              <input type="text" required placeholder="e.g. CBSE Class X Annual Board Exam 2026" value={form.exam_name} onChange={(e) => setForm({ ...form, exam_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
+            </div>
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Expiry / Deadline Date *</label>
+              <input type="date" required value={form.expiry_date} onChange={(e) => setForm({ ...form, expiry_date: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Custom URL Slug</label>
+              <input type="text" placeholder="e.g. annual-admit-card-2026" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-mono" />
+            </div>
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Examination Center</label>
+              <input type="text" placeholder="e.g. Don Bosco Academy Exam Hall" value={form.exam_center} onChange={(e) => setForm({ ...form, exam_center: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
+            </div>
+          </div>
+          <div>
+            <label className="block font-bold text-slate-700 mb-1">Instructions / Description</label>
+            <textarea rows={2} placeholder="Candidate instructions for this portal..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <input type="checkbox" id="is_active_check" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="w-4 h-4 rounded text-indigo-600" />
+            <label htmlFor="is_active_check" className="font-bold text-slate-700 text-xs cursor-pointer">Active Portal Link (Uncheck to temporarily disable)</label>
+          </div>
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
             <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 font-bold text-slate-600 text-xs">Cancel</button>
-            <button type="submit" className="px-5 py-2 rounded-xl bg-sapphire-900 text-white font-bold text-xs">Publish Link Live</button>
+            <button type="submit" className="px-5 py-2 rounded-xl bg-sapphire-900 text-white font-bold text-xs">{editingLink ? 'Save Changes' : 'Publish Link Live'}</button>
           </div>
         </form>
       </Modal>
