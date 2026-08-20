@@ -4,7 +4,7 @@ import { db } from '../../services/db';
 import { useAuth } from '../auth/AuthContext';
 import { PublishableExamLink, ExamLinkType } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
-import { Link as LinkIcon, Plus, QrCode, Calendar, Clock, CheckCircle2, AlertTriangle, Lock, ExternalLink, Users, FileBadge, FileSpreadsheet, Trash2, Edit2, Sparkles, Share2, Copy, Award, ShieldCheck } from 'lucide-react';
+import { Link as LinkIcon, Plus, QrCode, Calendar, Clock, CheckCircle2, AlertTriangle, Lock, ExternalLink, Users, FileBadge, FileSpreadsheet, Trash2, Edit2, Sparkles, Share2, Copy, Award, ShieldCheck, Check } from 'lucide-react';
 import { Modal } from '../../components/common/UI';
 
 export const ExamLinksManagementPage: React.FC = () => {
@@ -27,6 +27,9 @@ export const ExamLinksManagementPage: React.FC = () => {
     exam_center: 'Don Bosco Academy Examination Hall, Sitamarhi',
     is_active: true,
   });
+
+  // Published Link Live Dialog
+  const [publishedDialog, setPublishedDialog] = useState<{ isOpen: boolean; url: string; title: string } | null>(null);
 
   const loadLinks = async () => {
     try {
@@ -100,7 +103,7 @@ export const ExamLinksManagementPage: React.FC = () => {
         });
         success('Examination Portal Link updated successfully!');
       } else {
-        await db.createExamLink({
+        const created = await db.createExamLink({
           school_id: currentSchool?.id || 'sch-don-bosco',
           title: form.title,
           slug,
@@ -112,7 +115,16 @@ export const ExamLinksManagementPage: React.FC = () => {
           exam_center: form.exam_center,
           is_active: form.is_active,
         });
-        success('New Examination Portal Link published live!');
+        let urlPath = '/exam-portal/form/' + slug;
+        if (form.link_type === 'ADMIT_CARD_DOWNLOAD') urlPath = '/exam-portal/admit-card/' + slug;
+        if (form.link_type === 'RESULT_PORTAL') urlPath = '/exam-portal/results/' + slug;
+        if (form.link_type === 'CERTIFICATE_RECORDS') urlPath = '/exam-portal/certificate/' + slug;
+        setPublishedDialog({
+          isOpen: true,
+          url: window.location.origin + urlPath,
+          title: form.title,
+        });
+        success('New Examination Portal Link posted live to ERP Portal!');
       }
       setIsModalOpen(false);
       loadLinks();
@@ -121,30 +133,48 @@ export const ExamLinksManagementPage: React.FC = () => {
     }
   };
 
-  const handleIssueAdmitCards = async (linkId: string) => {
+  const handleIssueAdmitCards = async (link: PublishableExamLink) => {
     try {
-      const res = await db.issueAdmitCardsBulk(linkId);
-      success('1-Click Batch: ' + res.count + ' Admit Cards issued with QR verification!');
+      const res = await db.issueAdmitCardsBulk(link.id);
+      success('1-Click Batch: ' + res.count + ' Admit Cards Approved & Issued for this exam session!');
+      const url = window.location.origin + '/exam-portal/admit-card/' + link.slug;
+      setPublishedDialog({
+        isOpen: true,
+        url,
+        title: link.title + ' (Admit Cards Released)',
+      });
       loadLinks();
     } catch (err: any) {
-      toastError(err.message || 'Error issuing admit cards');
+      toastError(err.message || 'Error approving admit cards');
     }
   };
 
-  const handlePublishResults = async (linkId: string) => {
+  const handlePublishResults = async (link: PublishableExamLink) => {
     try {
-      const res = await db.publishExamResultsBulk(linkId);
+      const res = await db.publishExamResultsBulk(link.id);
       success('1-Click Batch: ' + res.count + ' Marksheets published live & auto-synced to /verify portal!');
+      const url = window.location.origin + '/exam-portal/results/' + link.slug;
+      setPublishedDialog({
+        isOpen: true,
+        url,
+        title: link.title + ' (Marksheets Published)',
+      });
       loadLinks();
     } catch (err: any) {
       toastError(err.message || 'Error publishing results');
     }
   };
 
-  const handleIssueCertificates = async (linkId: string) => {
+  const handleIssueCertificates = async (link: PublishableExamLink) => {
     try {
-      const res = await db.issueCertificatesBulk(linkId);
+      const res = await db.issueCertificatesBulk(link.id);
       success('1-Click Batch: ' + res.count + ' Certificates issued with dynamic numbers & auto-synced to /verify portal!');
+      const url = window.location.origin + '/exam-portal/certificate/' + link.slug;
+      setPublishedDialog({
+        isOpen: true,
+        url,
+        title: link.title + ' (Certificates Issued)',
+      });
       loadLinks();
     } catch (err: any) {
       toastError(err.message || 'Error issuing certificates');
@@ -174,11 +204,11 @@ export const ExamLinksManagementPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0B192C] font-display">Exam & Admit Card Portal Publisher</h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">Publish separate certificate and marksheet links, enforce admin issuance locks, and auto-sync records with cryptographic QR verification.</p>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">Publish official links to the ERP portal, manage admin issuance locks, approve admit cards, and sync verified credentials.</p>
         </div>
         <div className="flex items-center gap-3">
           <a href="/exam-portal" target="_blank" className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition flex items-center gap-1.5 shadow-2xs">
-            <ExternalLink className="w-4 h-4 text-indigo-600" /><span>View Public Portal</span>
+            <ExternalLink className="w-4 h-4 text-indigo-600" /><span>View Public ERP Portal</span>
           </a>
           <button onClick={handleOpenCreate} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-coral-500 to-[#EB3C16] text-white font-extrabold text-xs shadow-md shadow-coral-500/20 hover:shadow-coral-glow transition flex items-center gap-1.5 cursor-pointer">
             <Plus className="w-4 h-4" /><span>Publish New Portal Link</span>
@@ -217,6 +247,11 @@ export const ExamLinksManagementPage: React.FC = () => {
                         {link.results_published ? '✓ Published & Verified' : '🔒 Locked (Unpublished)'}
                       </span>
                     )}
+                    {link.link_type === 'ADMIT_CARD_DOWNLOAD' && (
+                      <span className={'px-2 py-0.5 rounded-md font-bold text-[10px] ' + (link.admit_cards_issued ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
+                        {link.admit_cards_issued ? '✓ Admit Cards Live' : '🔒 Locked (Pending Admin Release)'}
+                      </span>
+                    )}
                     {link.link_type === 'ADMIT_CARD_FORM' && (
                       <span className={'px-2 py-0.5 rounded-md font-bold text-[10px] ' + (link.admit_cards_issued ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800')}>
                         {link.admit_cards_issued ? '✓ Admit Cards Released' : `${link.applications_count || 0} Submissions`}
@@ -239,18 +274,18 @@ export const ExamLinksManagementPage: React.FC = () => {
                   </button>
                 </div>
 
-                {link.link_type === 'ADMIT_CARD_FORM' && (
-                  <button onClick={() => handleIssueAdmitCards(link.id)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-sapphire-900 to-indigo-700 text-white font-extrabold text-xs shadow-sm hover:shadow-indigo-glow transition flex items-center gap-1.5 cursor-pointer">
-                    <FileBadge className="w-4 h-4 text-amber-300" /><span>{link.admit_cards_issued ? 'Re-Issue Admit Cards' : '1-Click Issue Admit Cards'}</span>
+                {(link.link_type === 'ADMIT_CARD_FORM' || link.link_type === 'ADMIT_CARD_DOWNLOAD') && (
+                  <button onClick={() => handleIssueAdmitCards(link)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-sapphire-900 to-indigo-700 text-white font-extrabold text-xs shadow-sm hover:shadow-indigo-glow transition flex items-center gap-1.5 cursor-pointer">
+                    <FileBadge className="w-4 h-4 text-amber-300" /><span>{link.admit_cards_issued ? 'Re-Approve & Post Admit Cards' : '1-Click Approve & Post Admit Cards'}</span>
                   </button>
                 )}
                 {link.link_type === 'RESULT_PORTAL' && (
-                  <button onClick={() => handlePublishResults(link.id)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 text-white font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                  <button onClick={() => handlePublishResults(link)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 text-white font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
                     <FileSpreadsheet className="w-4 h-4" /><span>{link.results_published ? 'Re-Publish Marksheets' : '1-Click Publish Marksheets (Sync /verify)'}</span>
                   </button>
                 )}
                 {link.link_type === 'CERTIFICATE_RECORDS' && (
-                  <button onClick={() => handleIssueCertificates(link.id)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                  <button onClick={() => handleIssueCertificates(link)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
                     <Award className="w-4 h-4 text-amber-200" /><span>{link.certificates_issued ? 'Re-Issue Certificates' : '1-Click Issue Certificates (Sync /verify)'}</span>
                   </button>
                 )}
@@ -260,20 +295,21 @@ export const ExamLinksManagementPage: React.FC = () => {
         })}
       </div>
 
+      {/* Create / Edit Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingLink ? 'Edit Examination Portal Link' : 'Publish New Examination Portal Link'} size="lg">
         <form onSubmit={handleSave} className="space-y-4 text-xs">
           <div>
             <label className="block font-bold text-slate-700 mb-1">Portal Title *</label>
-            <input type="text" required placeholder="e.g. CBSE Annual Board Exam 2026 - Certificate Portal" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
+            <input type="text" required placeholder="e.g. CBSE Class X Annual Board Exam 2026 - Admit Card Portal" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-bold text-slate-700 mb-1">Link Function / Type</label>
               <select value={form.link_type} onChange={(e) => setForm({ ...form, link_type: e.target.value as any })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-bold">
-                <option value="CERTIFICATE_RECORDS">📜 Certificate Records & Download Portal</option>
-                <option value="RESULT_PORTAL">📊 Marksheets & Scorecard Portal</option>
                 <option value="ADMIT_CARD_FORM">📝 Examination / Admit Card Form</option>
                 <option value="ADMIT_CARD_DOWNLOAD">🎟️ Admit Card Download Portal</option>
+                <option value="RESULT_PORTAL">📊 Marksheets & Scorecard Portal</option>
+                <option value="CERTIFICATE_RECORDS">📜 Certificate Records & Download Portal</option>
               </select>
             </div>
             <div>
@@ -297,7 +333,7 @@ export const ExamLinksManagementPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-bold text-slate-700 mb-1">Custom URL Slug</label>
-              <input type="text" placeholder="e.g. annual-cert-2026" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-mono" />
+              <input type="text" placeholder="e.g. annual-admit-card-2026" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-mono" />
             </div>
             <div>
               <label className="block font-bold text-slate-700 mb-1">Examination Center</label>
@@ -314,10 +350,51 @@ export const ExamLinksManagementPage: React.FC = () => {
           </div>
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
             <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 font-bold text-slate-600 text-xs">Cancel</button>
-            <button type="submit" className="px-5 py-2 rounded-xl bg-sapphire-900 text-white font-bold text-xs">{editingLink ? 'Save Changes' : 'Publish Link Live'}</button>
+            <button type="submit" className="px-5 py-2 rounded-xl bg-sapphire-900 text-white font-bold text-xs">{editingLink ? 'Save Changes' : 'Publish Link Live to ERP Portal'}</button>
           </div>
         </form>
       </Modal>
+
+      {/* Published URL Pop-up */}
+      {publishedDialog && (
+        <Modal isOpen={publishedDialog.isOpen} onClose={() => setPublishedDialog(null)} title="🎉 Portal Link Published Live to ERP!" size="md">
+          <div className="space-y-4 text-xs">
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2">
+              <div className="flex items-center gap-2 font-black text-sm font-display">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                <span>{publishedDialog.title}</span>
+              </div>
+              <p className="text-xs text-emerald-800">
+                Yeh link safaltapoorvak <strong>ERP / Exam Portal</strong> par live post kar diya gaya hai. Students ab is link se apna Admit Card / Result / Certificate check kar sakte hain.
+              </p>
+            </div>
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Live Public Portal URL</label>
+              <div className="flex gap-2">
+                <input type="text" readOnly value={publishedDialog.url} className="flex-1 p-2.5 rounded-xl border border-slate-300 font-mono text-xs bg-slate-50 text-slate-800" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(publishedDialog.url);
+                    success('URL copied to clipboard!');
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-sapphire-900 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5" /><span>Copy</span>
+                </button>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <a href={publishedDialog.url} target="_blank" className="px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold text-xs hover:bg-indigo-100 transition flex items-center gap-1">
+                <span>Open Portal</span><ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <button type="button" onClick={() => setPublishedDialog(null)} className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs">
+                Done
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

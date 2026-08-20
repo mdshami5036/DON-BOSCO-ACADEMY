@@ -4,38 +4,36 @@ import { useParams, Link } from 'react-router-dom';
 import { db } from '../../services/db';
 import { PublishableExamLink, Student, ExamApplication } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
-import { BookOpen, Search, CheckCircle2, Lock, Sparkles, Send, AlertTriangle, FileBadge, ArrowRight, UserCheck, ShieldAlert } from 'lucide-react';
+import { FileText, Search, Send, CheckCircle2, User, Phone, MapPin, Calendar, Clock, AlertTriangle, Lock, Sparkles, ShieldCheck } from 'lucide-react';
 
 export const ExamFormFillPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { success, error: toastError } = useToast();
   const [link, setLink] = useState<PublishableExamLink | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionReceipt, setSubmissionReceipt] = useState<ExamApplication | null>(null);
+  const [alreadySubmittedApp, setAlreadySubmittedApp] = useState<ExamApplication | null>(null);
 
-  // Search Mode: 'ADMISSION_NO' (unique, direct) vs 'ROLL_NO' (requires class)
+  // Dual search mode
   const [searchMode, setSearchMode] = useState<'ADMISSION_NO' | 'ROLL_NO'>('ADMISSION_NO');
   const [admissionQuery, setAdmissionQuery] = useState('');
   const [classQuery, setClassQuery] = useState('Class 10');
   const [rollQuery, setRollQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [matchedStudent, setMatchedStudent] = useState<Student | null>(null);
-  const [alreadySubmittedApp, setAlreadySubmittedApp] = useState<ExamApplication | null>(null);
 
-  // Form State
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionReceipt, setSubmissionReceipt] = useState<ExamApplication | null>(null);
   const [formData, setFormData] = useState({
     student_name: '',
     father_name: '',
     mother_name: '',
-    dob: '2010-04-15',
+    dob: '2010-01-01',
     gender: 'Male',
     class_name: 'Class 10',
     section_name: 'A',
     roll_number: '',
     admission_number: '',
     contact_phone: '',
-    address: 'Raipur Bazar, Nanpur, Sitamarhi',
+    address: '',
     photo_url: '',
   });
 
@@ -48,14 +46,8 @@ export const ExamFormFillPage: React.FC = () => {
   useEffect(() => {
     async function loadLink() {
       if (!slug) return;
-      try {
-        const found = await db.getExamLinkBySlug(slug);
-        setLink(found);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+      const found = await db.getExamLinkBySlug(slug);
+      setLink(found);
     }
     loadLink();
   }, [slug]);
@@ -70,7 +62,7 @@ export const ExamFormFillPage: React.FC = () => {
     }
     if (searchMode === 'ROLL_NO') {
       if (!classQuery) {
-        toastError('Please select student Class first.');
+        toastError('Please select Class first.');
         return;
       }
       if (!rollQuery.trim()) {
@@ -87,31 +79,28 @@ export const ExamFormFillPage: React.FC = () => {
 
       if (stu) {
         setMatchedStudent(stu);
-        // Check if student already submitted for this exam link
-        if (link) {
-          const existing = await db.checkStudentAlreadySubmitted(link.id, stu.admission_number || stu.id);
-          if (existing) {
-            setAlreadySubmittedApp(existing);
-            toastError('Already Submitted! This student has already filled and submitted this examination form.');
-            return;
-          }
-        }
-
         setFormData({
-          student_name: stu.first_name + ' ' + stu.last_name,
-          father_name: stu.father_name || 'Rajesh Singh',
-          mother_name: stu.mother_name || 'Sunita Devi',
-          dob: stu.date_of_birth || '2010-04-15',
+          student_name: `${stu.first_name} ${stu.last_name}`,
+          father_name: stu.father_name || '',
+          mother_name: stu.mother_name || '',
+          dob: stu.date_of_birth || '2010-01-01',
           gender: stu.gender || 'Male',
           class_name: stu.class_name || classQuery || 'Class 10',
           section_name: stu.section_name || 'A',
-          roll_number: stu.roll_number || (searchMode === 'ROLL_NO' ? rollQuery : '1001'),
-          admission_number: stu.admission_number || (searchMode === 'ADMISSION_NO' ? admissionQuery.toUpperCase() : 'DBA-2026-001'),
-          contact_phone: stu.parent_phone || '+91 98765 43210',
-          address: stu.address || 'Raipur Bazar, Nanpur, Sitamarhi',
-          photo_url: stu.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+          roll_number: stu.roll_number || rollQuery,
+          admission_number: stu.admission_number || admissionQuery,
+          contact_phone: (stu as any).emergency_contact || (stu as any).parent_phone || '+91 98765 43210',
+          address: stu.address || 'Raipur Bazar, Sitamarhi',
+          photo_url: stu.photo_url || '',
         });
-        success('Student records auto-loaded from Don Bosco Academy register!');
+
+        if (link) {
+          const already = await db.checkStudentAlreadySubmitted(link.id, stu.admission_number || stu.id);
+          if (already) {
+            setAlreadySubmittedApp(already);
+          }
+        }
+        success('Student profile auto-loaded successfully!');
       } else {
         toastError(
           searchMode === 'ADMISSION_NO'
@@ -136,7 +125,6 @@ export const ExamFormFillPage: React.FC = () => {
       return;
     }
 
-    // Final Duplicate Guard
     const existing = await db.checkStudentAlreadySubmitted(link.id, formData.admission_number);
     if (existing) {
       setAlreadySubmittedApp(existing);
@@ -177,6 +165,7 @@ export const ExamFormFillPage: React.FC = () => {
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 space-y-6">
+        {/* HERO BANNER */}
         <div className="bg-gradient-to-r from-sapphire-950 via-[#0F2756] to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-soft-hover border border-sapphire-800 relative overflow-hidden">
           <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold border border-amber-400/30">★ Session {link?.academic_year || '2025-2026'}</span>
           <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight mt-2 text-white">{link?.title || 'Examination Registration & Admit Card Form'}</h1>
@@ -202,22 +191,24 @@ export const ExamFormFillPage: React.FC = () => {
         {submissionReceipt ? (
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-soft-card text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto"><CheckCircle2 className="w-9 h-9" /></div>
-            <h2 className="text-2xl font-black text-slate-900 font-display">Form Submitted Successfully!</h2>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">Your candidate registration particulars have been saved. Keep your Application Number for tracking.</p>
+            <h2 className="text-2xl font-black text-slate-900 font-display">✓ Form Submitted Successfully!</h2>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">Aapka Pariksha Form safaltapoorvak jama ho chuka hai. Application Number ko dhyan se note kar lein.</p>
             <div className="max-w-md mx-auto p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2 text-xs">
               <div className="flex justify-between"><span className="text-slate-400">Application Number:</span><strong className="text-sapphire-900 font-mono text-sm">{submissionReceipt.application_no}</strong></div>
               <div className="flex justify-between"><span className="text-slate-400">Candidate Name:</span><strong className="text-slate-900">{submissionReceipt.student_name}</strong></div>
               <div className="flex justify-between"><span className="text-slate-400">Class & Roll:</span><strong className="text-slate-900">{submissionReceipt.class_name} • Roll #{submissionReceipt.roll_number}</strong></div>
-              <div className="flex justify-between"><span className="text-slate-400">Admission No:</span><strong className="text-slate-900">{submissionReceipt.admission_number}</strong></div>
-              <div className="flex justify-between"><span className="text-slate-400">Submission Date:</span><strong className="text-slate-900">{formatDDMMYYYY(submissionReceipt.submitted_at)}</strong></div>
+              <div className="flex justify-between"><span className="text-slate-400">Admission No:</span><strong className="text-slate-900 font-mono">{submissionReceipt.admission_number}</strong></div>
+              <div className="flex justify-between"><span className="text-slate-400">Submission Date:</span><strong className="text-slate-900 font-mono">{formatDDMMYYYY(submissionReceipt.submitted_at)}</strong></div>
+            </div>
+            <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-2xl text-indigo-900 text-xs font-semibold max-w-md mx-auto">
+              📢 Note: Admit Card School Administration / Principal dwara approve aur release kiye jane ke baad ERP Portal par prapt hoga.
             </div>
             <div className="pt-2 flex justify-center gap-3">
-              <Link to="/exam-portal" className="px-5 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-md">Back to Exam Portals Hub</Link>
+              <Link to="/exam-portal" className="px-6 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-md">← Back to ERP / Exam Portals Hub</Link>
             </div>
           </div>
         ) : (!isExpired && (
           <div className="space-y-6">
-
             {/* 1-TAP AUTO LOAD CONTAINER WITH DUAL TABS */}
             <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-soft-card space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
@@ -256,7 +247,7 @@ export const ExamFormFillPage: React.FC = () => {
                           placeholder="e.g. DBA-2026-001 or DBA-2026-002..."
                           value={admissionQuery}
                           onChange={(e) => setAdmissionQuery(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500"
+                          className="w-full pl-10 pr-4 py-2.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 font-semibold"
                         />
                       </div>
                       <button type="submit" disabled={isSearching} className="px-5 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-sm hover:bg-sapphire-800 transition cursor-pointer">
@@ -289,7 +280,7 @@ export const ExamFormFillPage: React.FC = () => {
                             placeholder="e.g. 1001, 1002, 1, 2..."
                             value={rollQuery}
                             onChange={(e) => setRollQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500"
+                            className="w-full pl-10 pr-4 py-2.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 font-semibold"
                           />
                         </div>
                       </div>
@@ -307,35 +298,35 @@ export const ExamFormFillPage: React.FC = () => {
               </form>
             </div>
 
-            {/* ALREADY SUBMITTED ALERT BANNER */}
+            {/* ALREADY SUBMITTED ALERT BANNER (WITH GREEN CHECKMARK) */}
             {alreadySubmittedApp && (
-              <div className="p-6 rounded-3xl bg-amber-50 border-2 border-amber-300 shadow-soft-card space-y-3 animate-in fade-in duration-200">
+              <div className="p-6 rounded-3xl bg-emerald-50 border-2 border-emerald-300 shadow-soft-card space-y-3 animate-in fade-in duration-200">
                 <div className="flex items-start gap-3">
-                  <ShieldAlert className="w-7 h-7 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
                   <div className="flex-1">
-                    <h3 className="text-base font-black text-amber-950 font-display">⚠️ Already Submitted / फॉर्म पहले ही सबमिट हो चुका है!</h3>
-                    <p className="text-xs text-amber-800 mt-0.5">
-                      Candidate <strong>{alreadySubmittedApp.student_name}</strong> (Adm No: <strong>{alreadySubmittedApp.admission_number}</strong>, {alreadySubmittedApp.class_name} Roll #{alreadySubmittedApp.roll_number}) has <strong>already submitted</strong> this examination registration form on <strong>{formatDDMMYYYY(alreadySubmittedApp.submitted_at)}</strong>.
+                    <h3 className="text-base font-black text-emerald-950 font-display flex items-center gap-2">
+                      <span>✓ Already Submitted / फॉर्म पहले ही सफलतापूर्वक सबमिट हो चुका है!</span>
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-200 text-emerald-900 font-bold text-[10px]">SUBMITTED</span>
+                    </h3>
+                    <p className="text-xs text-emerald-800 mt-1">
+                      Candidate <strong>{alreadySubmittedApp.student_name}</strong> (Adm No: <strong>{alreadySubmittedApp.admission_number}</strong>, {alreadySubmittedApp.class_name} Roll #{alreadySubmittedApp.roll_number}) ka form <strong>{formatDDMMYYYY(alreadySubmittedApp.submitted_at)}</strong> ko successfully jama ho chuka hai.
                     </p>
-                    <div className="mt-3 p-3 rounded-xl bg-white border border-amber-200 text-xs space-y-1.5 text-slate-700">
-                      <div className="flex justify-between"><span className="text-slate-400">Existing Application No:</span><strong className="font-mono text-sapphire-900">{alreadySubmittedApp.application_no}</strong></div>
-                      <div className="flex justify-between"><span className="text-slate-400">Submission Status:</span><span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]">{alreadySubmittedApp.status}</span></div>
-                      {alreadySubmittedApp.admit_card_no && (
-                        <div className="flex justify-between"><span className="text-slate-400">Issued Admit Card No:</span><strong className="font-mono text-indigo-700">{alreadySubmittedApp.admit_card_no}</strong></div>
-                      )}
+                    <div className="mt-3 p-3.5 rounded-xl bg-white border border-emerald-200 text-xs space-y-1.5 text-slate-700">
+                      <div className="flex justify-between"><span className="text-slate-400">Application Number:</span><strong className="font-mono text-sapphire-900">{alreadySubmittedApp.application_no}</strong></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Submission Status:</span><span className="font-bold text-emerald-700">{alreadySubmittedApp.status}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Admit Card Status:</span><span className="font-bold text-amber-700">Pending Admin Approval / Release</span></div>
                     </div>
+                    <p className="text-[11px] text-emerald-700 mt-2 font-medium">
+                      📢 School Administration / Principal dwara approve hone ke baad is session ka Admit Card ERP Portal par live ho jayega.
+                    </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Link
-                        to={`/exam-portal/admit-card/${slug}`}
-                        className="px-4 py-2 rounded-xl bg-sapphire-900 text-white font-bold text-xs hover:bg-sapphire-800 transition flex items-center gap-1.5"
-                      >
-                        <FileBadge className="w-4 h-4 text-amber-300" /><span>View / Download Admit Card</span>
-                      </Link>
-                      <Link
                         to="/exam-portal"
-                        className="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition"
+                        className="px-4 py-2 rounded-xl bg-emerald-900 text-white font-bold text-xs hover:bg-emerald-800 transition flex items-center gap-1.5"
                       >
-                        Back to Portals
+                        <span>← Return to ERP / Exam Portals Hub</span>
                       </Link>
                     </div>
                   </div>
@@ -343,32 +334,56 @@ export const ExamFormFillPage: React.FC = () => {
               </div>
             )}
 
-            {/* FORM BODY (ONLY SHOWN IF NOT ALREADY SUBMITTED) */}
+            {/* APPLICATION FORM */}
             {!alreadySubmittedApp && (
               <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-soft-card space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 className="text-base font-black text-slate-900 font-display">Candidate & Academic Particulars</h3>
-                  {matchedStudent && (
-                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Verified School Scholar
-                    </span>
-                  )}
+                <div className="border-b border-slate-100 pb-4">
+                  <h2 className="text-lg font-black text-slate-900 font-display">Candidate Examination Particulars</h2>
+                  <p className="text-xs text-slate-500">Review auto-filled information before confirming submission.</p>
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div><label className="block font-bold text-slate-700 mb-1">Student Full Name *</label><input type="text" required value={formData.student_name} onChange={(e) => setFormData({ ...formData, student_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sapphire-500" /></div>
-                  <div><label className="block font-bold text-slate-700 mb-1">Admission Number (Unique) *</label><input type="text" required value={formData.admission_number} onChange={(e) => setFormData({ ...formData, admission_number: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-sapphire-500" /></div>
-                  <div><label className="block font-bold text-slate-700 mb-1">Father's Name</label><input type="text" value={formData.father_name} onChange={(e) => setFormData({ ...formData, father_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" /></div>
-                  <div><label className="block font-bold text-slate-700 mb-1">Mother's Name</label><input type="text" value={formData.mother_name} onChange={(e) => setFormData({ ...formData, mother_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" /></div>
-                  <div><label className="block font-bold text-slate-700 mb-1">Class</label><input type="text" value={formData.class_name} onChange={(e) => setFormData({ ...formData, class_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" /></div>
-                  <div><label className="block font-bold text-slate-700 mb-1">Roll Number</label><input type="text" value={formData.roll_number} onChange={(e) => setFormData({ ...formData, roll_number: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-mono" /></div>
-                  <div><label className="block font-bold text-slate-700 mb-1">Contact Phone Number</label><input type="text" value={formData.contact_phone} onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" /></div>
-                  <div><label className="block font-bold text-slate-700 mb-1">Date of Birth</label><input type="date" value={formData.dob} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" /></div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Full Name of Candidate *</label>
+                    <input type="text" required value={formData.student_name} onChange={(e) => setFormData({ ...formData, student_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900" />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Admission Number * (Unique)</label>
+                    <input type="text" required value={formData.admission_number} onChange={(e) => setFormData({ ...formData, admission_number: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sapphire-900" />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Father's Name *</label>
+                    <input type="text" required value={formData.father_name} onChange={(e) => setFormData({ ...formData, father_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-slate-900" />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Mother's Name</label>
+                    <input type="text" value={formData.mother_name} onChange={(e) => setFormData({ ...formData, mother_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-slate-900" />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Class & Section</label>
+                    <div className="flex gap-2">
+                      <input type="text" value={formData.class_name} onChange={(e) => setFormData({ ...formData, class_name: e.target.value })} className="w-2/3 p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900" />
+                      <input type="text" value={formData.section_name} onChange={(e) => setFormData({ ...formData, section_name: e.target.value })} className="w-1/3 p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 text-center" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Roll Number *</label>
+                    <input type="text" required value={formData.roll_number} onChange={(e) => setFormData({ ...formData, roll_number: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 font-mono font-bold text-slate-900" />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Contact Phone Number *</label>
+                    <input type="text" required value={formData.contact_phone} onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-slate-900" />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Residential Address</label>
+                    <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-slate-900" />
+                  </div>
                 </div>
-                <div><label className="block text-xs font-bold text-slate-700 mb-1">Residential Address</label><input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" /></div>
+
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs text-slate-400">By submitting, you certify all candidate particulars are accurate as per CBSE records.</span>
-                  <button type="submit" disabled={isSubmitting} className="px-6 py-3 rounded-xl bg-gradient-to-r from-coral-500 to-[#EB3C16] text-white font-extrabold text-xs shadow-md shadow-coral-500/20 hover:shadow-coral-glow transition flex items-center gap-1.5 cursor-pointer">
-                    <Send className="w-4 h-4" /><span>{isSubmitting ? 'Submitting...' : 'Submit Examination Form'}</span>
+                  <Link to="/exam-portal" className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800">Cancel</Link>
+                  <button type="submit" disabled={isSubmitting} className="px-8 py-3 rounded-xl bg-gradient-to-r from-coral-500 to-[#EB3C16] text-white font-extrabold text-xs shadow-md shadow-coral-500/20 hover:shadow-coral-glow transition flex items-center gap-2 cursor-pointer">
+                    {isSubmitting ? <span>Submitting...</span> : <><span>Confirm & Submit Exam Form</span><Send className="w-4 h-4" /></>}
                   </button>
                 </div>
               </form>
