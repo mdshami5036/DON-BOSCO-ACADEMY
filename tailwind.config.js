@@ -7,6 +7,46 @@ export default {
   theme: {
     extend: {
       colors: {
+        sapphire: {
+          DEFAULT: '#0F2756',
+          50: '#F0F4FC',
+          100: '#E1E9F8',
+          200: '#C3D3F1',
+          300: '#95B3E8',
+          400: '#5E8CDC',
+          500: '#3466CD',
+          600: '#1E4DB8',
+          700: '#153A90',
+          800: '#0F2756',
+          900: '#0B1B3C',
+          950: '#060F22',
+        },
+        indigo: {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#3730a3',
+          900: '#312e81',
+          950: '#1e1b4b',
+        },
+        coral: {
+          DEFAULT: '#FF5733',
+          50: '#FFF2EE',
+          100: '#FFE2DA',
+          200: '#FFC8B8',
+          300: '#FFA38C',
+          400: '#FF7C5D',
+          500: '#FF5733',
+          600: '#EB3C16',
+          700: '#C72A08',
+          800: '#A4250A',
+          900: '#86240E',
+        },
         brand: {
           50: '#eef2ff',
           100: '#e0e7ff',
@@ -19,6 +59,31 @@ export default {
           800: '#3730a3',
           900: '#312e81',
           950: '#1e1b4b',
+        },
+      },
+      boxShadow: {
+        'soft-card': '0 10px 30px -5px rgba(15, 39, 86, 0.06), 0 2px 6px -1px rgba(15, 39, 86, 0.02)',
+        'soft-hover': '0 20px 40px -10px rgba(15, 39, 86, 0.12), 0 6px 12px -2px rgba(15, 39, 86, 0.04)',
+        'coral-glow': '0 0 25px -3px rgba(255, 87, 51, 0.45)',
+        'indigo-glow': '0 0 25px -3px rgba(79, 70, 229, 0.45)',
+      },
+      animation: {
+        'float-slow': 'float 4s ease-in-out infinite',
+        'float-reverse': 'floatRev 5s ease-in-out infinite',
+        'pulse-glow': 'pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        floatRev: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(10px)' },
+        },
+        pulseGlow: {
+          '0%, 100%': { opacity: '1', boxShadow: '0 0 20px rgba(255, 87, 51, 0.5)' },
+          '50%': { opacity: '0.85', boxShadow: '0 0 35px rgba(255, 87, 51, 0.8)' },
         },
       },
     },

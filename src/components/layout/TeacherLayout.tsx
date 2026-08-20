@@ -18,26 +18,26 @@ export const TeacherLayout: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { label: 'Teacher Dashboard', href: '/teacher', icon: LayoutDashboard },
+    { label: 'Faculty Dashboard', href: '/teacher', icon: LayoutDashboard },
     { label: 'Mark Class Attendance', href: '/teacher/attendance', icon: CalendarCheck },
     { label: 'Enter Subject Marks', href: '/teacher/marks', icon: FileSpreadsheet },
     { label: 'Homework & Assignments', href: '/teacher/homework', icon: BookOpen },
-    { label: 'My Teaching Schedule', href: '/teacher/timetable', icon: Calendar },
+    { label: 'Weekly Teaching Schedule', href: '/teacher/timetable', icon: Calendar },
     { label: 'School Notices', href: '/teacher/notices', icon: Bell },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
       <AppNavbar />
 
       <div className="flex-1 flex overflow-hidden">
-        <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-shrink-0 flex flex-col p-4">
-          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/50 mb-4">
-            <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-xs">
-              <GraduationCap className="w-4 h-4" /> Faculty Portal
+        <aside className="w-64 bg-white border-r border-slate-200/90 flex-shrink-0 flex flex-col p-4 shadow-xs">
+          <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 mb-4">
+            <div className="flex items-center gap-1.5 text-emerald-800 font-extrabold text-xs uppercase tracking-wider">
+              <GraduationCap className="w-4 h-4 text-emerald-600" /> Faculty Workspace
             </div>
-            <p className="text-[11px] text-emerald-600 mt-0.5">{user?.full_name}</p>
-            <p className="text-[10px] text-slate-500">{currentSchool?.name}</p>
+            <p className="text-xs font-bold text-slate-900 mt-1">{user?.full_name || 'Faculty Member'}</p>
+            <p className="text-[10px] text-slate-500 font-medium">Class 10th Teacher • Don Bosco</p>
           </div>
 
           <nav className="space-y-1 flex-1">
@@ -49,22 +49,22 @@ export const TeacherLayout: React.FC = () => {
                   to={item.href}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition',
+                      'flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition duration-200',
                       isActive
-                        ? 'bg-emerald-600 text-white font-semibold shadow-sm'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs font-extrabold'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     )
                   }
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{item.label}</span>
                 </NavLink>
               );
             })}
           </nav>
         </aside>
 
-        <main className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-950">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#F8FAFC]">
           <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>

@@ -155,8 +155,11 @@ export const Modal: React.FC<{
   title: string;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl';
-}> = ({ isOpen, onClose, title, children, maxWidth = 'lg' }) => {
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl';
+}> = ({ isOpen, onClose, title, children, maxWidth, size = 'lg' }) => {
   if (!isOpen) return null;
+
+  const actualSize = maxWidth || size;
 
   const widthMap = {
     sm: 'max-w-sm',
@@ -169,7 +172,7 @@ export const Modal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className={cn('bg-white dark:bg-slate-900 w-full rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform transition-all', widthMap[maxWidth])}>
+      <div className={cn('bg-white dark:bg-slate-900 w-full rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform transition-all', widthMap[actualSize])}>
         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">{title}</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition">

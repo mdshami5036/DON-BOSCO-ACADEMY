@@ -391,6 +391,7 @@ export interface GeneratedDocument {
   status: DocStatus;
   issued_by?: string | null;
   issued_at: string;
+  created_at?: string;
   revoked_at?: string | null;
   revocation_reason?: string | null;
   student?: Student;
@@ -431,6 +432,7 @@ export interface Notice {
   school_id: string;
   title: string;
   content: string;
+  category?: 'ACADEMIC' | 'EXAM' | 'ADMISSION' | 'HOLIDAY' | 'EVENTS' | 'GENERAL' | string;
   attachment_url?: string | null;
   target_role: 'ALL' | 'TEACHER' | 'STUDENT' | 'PARENT';
   class_id?: string | null;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../../services/db';
 import { School, Notice, ClassRoom } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
@@ -32,9 +33,57 @@ import {
   ArrowRight,
   HeartHandshake,
   Lightbulb,
+  FileText,
+  Download,
+  Search,
+  Filter,
+  CheckCircle,
+  PlayCircle,
+  Laptop,
+  Flame,
+  UserCheck,
+  BookMarked,
+  Microscope,
+  Palette,
+  Music,
+  Bus,
+  Home,
+  Target,
+  Sparkle,
 } from 'lucide-react';
-import { SafeImage } from '../../lib/image-helper';
 import { Modal } from '../../components/common/UI';
+
+// Animated Live Number Counter
+const AnimatedCounter: React.FC<{ value: number; suffix?: string; duration?: number; decimals?: number }> = ({
+  value,
+  suffix = '',
+  duration = 2,
+  decimals = 0,
+}) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp: number | null = null;
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / (duration * 1000), 1);
+      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(easeProgress * value);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    const reqId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(reqId);
+  }, [value, duration]);
+
+  return (
+    <span>
+      {decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString()}
+      {suffix}
+    </span>
+  );
+};
 
 export const PublicSchoolPage: React.FC = () => {
   const { success, error: toastError } = useToast();
@@ -42,7 +91,10 @@ export const PublicSchoolPage: React.FC = () => {
   const [school, setSchool] = useState<School | null>(null);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [classes, setClasses] = useState<ClassRoom[]>([]);
-  const [activeTab, setActiveTab] = useState<'all' | 'academic' | 'exam' | 'events'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'ACADEMIC' | 'EXAM' | 'ADMISSION' | 'HOLIDAY'>('all');
+  const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const [activeWing, setActiveWing] = useState<'pre-primary' | 'primary' | 'middle' | 'secondary'>('primary');
+  const [noticeSearch, setNoticeSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Online Admission Modal & Form State
@@ -52,7 +104,7 @@ export const PublicSchoolPage: React.FC = () => {
 
   const [admissionForm, setAdmissionForm] = useState({
     student_name: '',
-    dob: '2016-04-10',
+    dob: '2018-05-12',
     gender: 'Male',
     applying_class_id: '',
     previous_school: '',
@@ -100,11 +152,23 @@ export const PublicSchoolPage: React.FC = () => {
         ...admissionForm,
       });
       setAdmissionSuccess(true);
-      success('Admission inquiry submitted successfully! The school office will contact you.');
+      success('Admission inquiry submitted successfully! The school admissions desk will contact you.');
       setTimeout(() => {
         setIsAdmissionModalOpen(false);
         setAdmissionSuccess(false);
-      }, 3000);
+        setAdmissionForm({
+          student_name: '',
+          dob: '2018-05-12',
+          gender: 'Male',
+          applying_class_id: classes[0]?.id || '',
+          previous_school: '',
+          parent_name: '',
+          parent_phone: '',
+          parent_email: '',
+          address: '',
+          notes: '',
+        });
+      }, 2500);
     } catch (err: any) {
       toastError(err.message || 'Error submitting application');
     } finally {
@@ -112,747 +176,595 @@ export const PublicSchoolPage: React.FC = () => {
     }
   };
 
+  const filteredNotices = notices.filter((n) => {
+    const matchCategory =
+      activeTab === 'all' ||
+      (activeTab === 'ACADEMIC' && (n.category === 'ACADEMIC' || !n.category)) ||
+      (activeTab === 'EXAM' && n.category === 'EXAM') ||
+      (activeTab === 'ADMISSION' && n.category === 'ADMISSION') ||
+      (activeTab === 'HOLIDAY' && (n.category === 'HOLIDAY' || n.category === 'EVENTS'));
+
+    const matchSearch =
+      noticeSearch === '' ||
+      n.title.toLowerCase().includes(noticeSearch.toLowerCase()) ||
+      n.content.toLowerCase().includes(noticeSearch.toLowerCase());
+
+    return matchCategory && matchSearch;
+  });
+
   if (isLoading || !school) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
-        <div className="animate-spin w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full mb-4" />
-        <p className="text-base font-bold tracking-wide text-amber-300 font-serif">Loading DON BOSCO ACADEMY Portal...</p>
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center text-slate-800">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
+          className="w-14 h-14 border-4 border-sapphire-600 border-t-coral-500 rounded-full mb-4 shadow-lg"
+        />
+        <p className="text-base font-bold tracking-wide text-sapphire-900 font-display">
+          Loading DON BOSCO ACADEMY Official Portal...
+        </p>
       </div>
     );
   }
 
+  const wingData = {
+    'pre-primary': {
+      title: 'Pre-Primary Wing (Play, Nursery, LKG, UKG)',
+      badge: 'Early Childhood Foundational Stage',
+      desc: 'Play-based experiential learning fostering curiosity, sensory-motor skills, cognitive thinking, and emotional growth in a caring, safe environment.',
+      features: ['Activity-Based Smart Play Classrooms', 'Phonics, Rhymes & Language Immersion', 'Motor Skills & Creative Art Play', 'Caring Faculty & 1:15 Teacher-Student Ratio'],
+      image: 'https://images.unsplash.com/photo-1588072432836-e10032774350?w=800&auto=format&fit=crop&q=80',
+    },
+    'primary': {
+      title: 'Primary Wing (Classes 1st to 5th)',
+      badge: 'Core Academic & Value Building',
+      desc: 'Comprehensive CBSE foundational curriculum emphasizing conceptual clarity in Mathematics, Science, Languages (English, Hindi, Sanskrit), and Environmental Studies.',
+      features: ['STEM-Driven Interactive Science & Math Lab', 'Reading Culture & Dedicated Children’s Library', 'Computer Fundamentals & Digital Literacy', 'Yoga, Karate, Physical Fitness & Sports'],
+      image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80',
+    },
+    'middle': {
+      title: 'Middle School Wing (Classes 6th to 8th)',
+      badge: 'Analytical & Experimental Inquiry',
+      desc: 'Transition to analytical rigor with integrated science experiments, coding fundamentals, collaborative projects, debate, and leadership workshops.',
+      features: ['Hands-on Physics, Chemistry & Biology Labs', 'AI, Robotics & Python Programming Basics', 'Public Speaking, Quizzing & Olympiad Training', 'Comprehensive Moral & Personality Development'],
+      image: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&auto=format&fit=crop&q=80',
+    },
+    'secondary': {
+      title: 'Secondary Wing (Classes 9th & 10th)',
+      badge: 'CBSE Board Excellence & Career Foundation',
+      desc: 'Intensive academic preparation for CBSE Class X Board examinations with specialized faculty mentoring, periodic tests, remedial support, and career guidance.',
+      features: ['100% CBSE Board Pass Track Record (99.4% Avg)', 'Rigorous Periodic Assessment & Mock Board Series', 'Career Counseling & NTSE / Olympiad Mentorship', 'Modern Audio-Visual Smart Lecture Theatres'],
+      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80',
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#334155] flex flex-col font-sans selection:bg-coral-500 selection:text-white">
       
-      {/* 1. TOP NOTIFICATION / CONTACT BAR */}
-      <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 border-b border-blue-900/60 text-xs py-2 px-4 sticky top-0 z-40 backdrop-blur-md">
+      {/* 1. TOP ANNOUNCEMENT & CONTACT BAR */}
+      <div className="bg-[#0F2756] text-white border-b border-sapphire-800/80 text-xs py-2 px-4 sticky top-0 z-50 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-4 text-slate-300">
+          <div className="flex flex-wrap items-center gap-4 text-slate-200">
             <span className="flex items-center gap-1.5 font-medium">
-              <MapPin className="w-3.5 h-3.5 text-amber-400" />
-              {school.address}, {school.city} ({school.postal_code || '843326'})
+              <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>{school.address}, {school.city} ({school.postal_code || '843326'})</span>
             </span>
             <span className="hidden sm:flex items-center gap-1.5 font-medium">
-              <Mail className="w-3.5 h-3.5 text-amber-400" />
-              <a href={`mailto:${school.email}`} className="hover:text-amber-300 transition">
+              <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <a href={`mailto:${school.email}`} className="hover:text-amber-300 transition-colors">
                 {school.email}
               </a>
             </span>
             <span className="hidden md:flex items-center gap-1.5 font-medium">
-              <Phone className="w-3.5 h-3.5 text-amber-400" />
-              <a href={`tel:${school.phone}`} className="hover:text-amber-300 transition">
+              <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <a href={`tel:${school.phone}`} className="hover:text-amber-300 transition-colors">
                 {school.phone}
               </a>
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {school.facebook_url && (
               <a
                 href={school.facebook_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-600/20 text-blue-300 hover:bg-blue-600 hover:text-white border border-blue-500/30 text-[11px] font-bold transition"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 text-white hover:bg-blue-600 border border-white/10 text-[11px] font-bold transition"
               >
-                <Facebook className="w-3.5 h-3.5 fill-current" />
-                <span>Facebook</span>
+                <Facebook className="w-3 h-3 fill-current" />
+                <span className="hidden sm:inline">Facebook</span>
               </a>
             )}
 
             <Link
               to="/verify"
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 text-[11px] font-bold transition"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-300 hover:bg-amber-400/30 text-[11px] font-bold transition"
             >
-              <QrCode className="w-3.5 h-3.5 text-amber-400" />
-              <span>Verify Marksheet/Cert</span>
+              <QrCode className="w-3 h-3 text-amber-400" />
+              <span>Verify Docs</span>
             </Link>
 
             <Link
               to="/login"
-              className="px-3.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg font-bold text-xs transition shadow-md shadow-blue-600/20"
+              className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white rounded-lg font-bold text-xs shadow-sm hover:shadow-indigo-glow transition"
             >
-              Portal Login
+              <span>Portal Login</span>
+              <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
       </div>
 
-      {/* 2 & 3. SCHOOL LOGO, BRAND HEADER & NAVIGATION */}
-      <header className="bg-slate-900/95 border-b border-slate-800 sticky top-9 z-30 shadow-2xl backdrop-blur-md">
+      {/* 2. STICKY GLASS HEADER WITH REAL BRAND CREST */}
+      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-8 z-40 shadow-sm transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3.5 group">
-            <img
-              src="/assets/branding/don-bosco-logo.png"
-              alt={school.name}
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-contain bg-white border-2 border-amber-500/40 p-1 shadow-lg shadow-amber-500/10 group-hover:scale-105 transition-transform"
-            />
+            <div className="relative">
+              <img
+                src="/assets/branding/don-bosco-logo.png"
+                alt={school.name}
+                className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl object-contain bg-white border-2 border-sapphire-700/30 p-1 shadow-md shadow-sapphire-900/10 group-hover:scale-105 transition-transform"
+              />
+              <div className="absolute -bottom-1 -right-1 bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full border border-white shadow-xs">
+                ESTD 1997
+              </div>
+            </div>
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight uppercase font-serif">
-                {school.name}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0B192C] tracking-tight font-display">
+                  {school.name}
+                </h1>
+              </div>
               <div className="flex flex-wrap items-center gap-2 text-xs font-semibold mt-0.5">
-                <span className="text-amber-400 font-mono tracking-wider">
+                <span className="text-coral-500 font-bold tracking-wider">
                   ★ {school.tagline || 'KNOWLEDGE IS POWER'} ★
                 </span>
-                <span className="text-slate-400 hidden sm:inline">• ESTD: {school.established_year || '1997'}</span>
-                <span className="text-emerald-400 hidden md:inline">• {school.academic_pattern || 'CBSE Pattern'}</span>
+                <span className="text-slate-400 hidden sm:inline">•</span>
+                <span className="text-emerald-700 font-medium hidden sm:inline">
+                  {school.school_type || 'Residential Cum Day School'}
+                </span>
+                <span className="text-slate-400 hidden md:inline">•</span>
+                <span className="text-indigo-700 font-medium hidden md:inline">
+                  {school.academic_pattern || 'CBSE Pattern'}
+                </span>
               </div>
             </div>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-5 text-xs font-bold uppercase tracking-wider text-slate-300">
-            <a href="#about" className="hover:text-amber-400 transition">About</a>
-            <a href="#academics" className="hover:text-amber-400 transition">Academics</a>
-            <a href="#facilities" className="hover:text-amber-400 transition">Facilities</a>
-            <a href="#admissions" className="hover:text-amber-400 transition">Admissions</a>
-            <a href="#activities" className="hover:text-amber-400 transition">Activities</a>
-            <a href="#notices" className="hover:text-amber-400 transition">Notices</a>
-            <a href="#contact" className="hover:text-amber-400 transition">Contact</a>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-700">
+            <a href="#about" className="hover:text-indigo-600 transition-colors">About</a>
+            <a href="#academics" className="hover:text-indigo-600 transition-colors">Academic Wings</a>
+            <a href="#campus" className="hover:text-indigo-600 transition-colors">Smart Campus</a>
+            <a href="#principal" className="hover:text-indigo-600 transition-colors">Principal's Desk</a>
+            <a href="#notices" className="hover:text-indigo-600 transition-colors">Notices</a>
+            <a href="#contact" className="hover:text-indigo-600 transition-colors">Contact</a>
+          </nav>
+
+          {/* High-Energy Admission CTA Button */}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setIsAdmissionModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/20 transition cursor-pointer"
+              className="relative group overflow-hidden px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-coral-500 via-coral-600 to-[#EB3C16] text-white font-extrabold text-xs sm:text-sm tracking-wide shadow-md shadow-coral-500/30 hover:shadow-coral-glow hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
             >
-              Apply Online
+              <span className="relative z-10 flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-amber-300 animate-bounce" />
+                <span>Admission 2026-27</span>
+              </span>
+              <span className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             </button>
-          </nav>
+          </div>
         </div>
       </header>
 
-      {/* 4. MAIN SCHOOL HERO SECTION */}
-      <section className="relative overflow-hidden bg-slate-950 py-16 md:py-24 border-b border-slate-800">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/30 via-slate-950 to-slate-950 -z-10" />
+      {/* 3. DYNAMIC SPLIT HERO SECTION WITH 3D FLOATING WIDGETS */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-sapphire-50/50 via-white to-[#F8FAFC] py-14 sm:py-20 lg:py-24 border-b border-slate-200">
+        {/* Subtle decorative background blur orbs */}
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-gradient-to-tr from-indigo-200/40 via-coral-100/30 to-amber-200/30 blur-3xl rounded-full pointer-events-none -z-10" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
             
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase tracking-widest">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                Excellence in Education Since 1997 • Raipur Bazar
+            {/* Left Column: School Value Proposition & CTAs */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+              className="lg:col-span-7 space-y-6"
+            >
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sapphire-50 border border-sapphire-200 text-sapphire-800 text-xs font-bold shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-coral-500 animate-ping" />
+                <span className="text-sapphire-900 font-extrabold">CBSE Pattern Standard</span>
+                <span className="text-slate-300">•</span>
+                <span className="text-indigo-700">Play to Class 10th</span>
+                <span className="text-slate-300">•</span>
+                <span className="text-emerald-700 font-semibold">ESTD 1997</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight font-serif tracking-tight">
-                Nurturing Minds,<br />
-                <span className="bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent">
-                  Inspiring Greatness.
-                </span>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#0B192C] leading-[1.15] tracking-tight font-display">
+                Nurturing Future Leaders with{' '}
+                <span className="bg-gradient-to-r from-sapphire-800 via-indigo-600 to-coral-500 bg-clip-text text-transparent">
+                  Academic Excellence
+                </span>{' '}
+                & Modern Innovation.
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
-                Welcome to <strong>DON BOSCO ACADEMY</strong>, Raipur Bazar, Nanpur, Sitamarhi (Bihar). 
-                A premier <strong>Residential Cum Day School</strong> operating on the <strong>CBSE Pattern</strong> from 
-                <strong> Play Group to Class 10th</strong>. Fostering academic rigor, moral character, and discipline for over two decades.
+              <p className="text-base sm:text-lg text-[#334155] leading-relaxed max-w-2xl">
+                Welcome to <strong>DON BOSCO ACADEMY</strong>, Raipur Bazar, Nanpur, Sitamarhi. Empowering students since 1997 with holistic CBSE pedagogy, world-class smart classrooms, digital STEM labs, value-centric moral training, and premier residential facilities.
               </p>
-
-              {/* Highlights Pill Badges */}
-              <div className="flex flex-wrap gap-3 pt-1">
-                <span className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> CBSE Curriculum
-                </span>
-                <span className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Play Group to Class 10th
-                </span>
-                <span className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Residential Hostel Facilities
-                </span>
-              </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-4 pt-4">
+              <div className="flex flex-wrap items-center gap-4 pt-2">
                 <button
                   onClick={() => setIsAdmissionModalOpen(true)}
-                  className="px-8 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-xl shadow-amber-500/20 text-sm uppercase tracking-wider flex items-center gap-2 transition cursor-pointer"
+                  className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-coral-500 to-[#EB3C16] text-white font-black text-sm sm:text-base shadow-lg shadow-coral-500/30 hover:shadow-coral-glow hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
                 >
-                  <Send className="w-4 h-4" /> Admission 2026-27
+                  <Sparkles className="w-5 h-5 text-amber-200" />
+                  <span>Apply for Admission 2026-27</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
-                <a
-                  href="#contact"
-                  className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold rounded-2xl text-sm transition flex items-center gap-2"
-                >
-                  <Phone className="w-4 h-4 text-amber-400" /> Contact Campus
-                </a>
-              </div>
-            </div>
 
-            {/* Hero Main Banner Card */}
-            <div className="lg:col-span-5">
-              <div className="relative rounded-3xl overflow-hidden border-2 border-slate-800 bg-slate-900 shadow-2xl p-2 group hover:border-amber-500/40 transition-all">
-                <SafeImage
-                  src={school.banner_url || '/assets/branding/main-banner.svg'}
-                  alt="Don Bosco Academy Main Banner"
-                  fallbackSrc="/assets/branding/main-banner.svg"
-                  className="w-full h-80 sm:h-96 object-cover rounded-2xl group-hover:scale-102 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent rounded-2xl flex flex-col justify-end p-6">
-                  <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-widest">
-                    DON BOSCO ACADEMY • RAIPUR BAZAR
-                  </span>
-                  <h3 className="text-xl font-bold text-white mt-1 font-serif">
-                    Empowering Every Student to Lead
-                  </h3>
+                <Link
+                  to="/verify"
+                  className="px-5 py-3.5 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-sm sm:text-base shadow-soft-card hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+                >
+                  <QrCode className="w-4 h-4 text-indigo-600" />
+                  <span>Verify Marksheet & Cert</span>
+                </Link>
+              </div>
+
+              {/* Quick Trust Highlights */}
+              <div className="pt-4 border-t border-slate-200/80 grid grid-cols-3 gap-4 text-slate-700">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold">100% Smart Labs</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold">Expert Faculty</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold">Safe Campus & Hostel</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-          </div>
-        </div>
-      </section>
-
-      {/* 5 & 6. SCHOOL INTRODUCTION & ABOUT DON BOSCO ACADEMY */}
-      <section id="about" className="py-20 bg-slate-900/50 border-b border-slate-800 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest font-mono">
-              Institutional Heritage
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white font-serif">
-              About Don Bosco Academy
-            </h2>
-            <div className="w-20 h-1 bg-amber-500 mx-auto rounded-full" />
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Founded in 1997 at Raipur Bazar, Nanpur, Sitamarhi (Bihar), Don Bosco Academy was established
-              with a commitment to provide high quality CBSE pattern education in a disciplined, character-building atmosphere.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4 hover:border-blue-500/40 transition">
-              <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold">
-                <Compass className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white font-serif">Our Vision</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                To cultivate enlightened, courageous, and compassionate leaders equipped with deep knowledge,
-                scientific inquiry, moral uprightness, and global competence.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4 hover:border-amber-500/40 transition">
-              <div className="w-12 h-12 rounded-2xl bg-amber-600/20 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
-                <Award className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white font-serif">Our Mission</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Delivering holistic education that fuses rigorous CBSE academic curriculum with sports, moral values,
-                leadership training, and individualized student mentoring.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4 hover:border-emerald-500/40 transition">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold">
-                <Shield className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white font-serif">Core Values</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                "Knowledge is Power" — Integrity, Discipline, Academic Rigor, Respect for Heritage, and Community Service
-                form the cornerstone of life at Don Bosco Academy.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. PRINCIPAL'S MESSAGE */}
-      <section className="py-20 bg-slate-950 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-slate-900 to-blue-950/40 border border-slate-800 rounded-3xl p-8 md:p-12 shadow-2xl">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              
-              <div className="lg:col-span-4 text-center lg:text-left space-y-4">
-                <div className="relative inline-block mx-auto">
-                  <SafeImage
-                    src={school.principal_photo_url}
-                    alt={school.principal_name}
-                    fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300"
-                    className="w-48 h-48 md:w-56 md:h-56 rounded-3xl object-cover border-4 border-amber-500/30 shadow-2xl mx-auto"
+            {/* Right Column: Hero Visual with 3D Floating Achievement Widgets */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="lg:col-span-5 relative"
+            >
+              <div className="relative mx-auto max-w-md lg:max-w-none">
+                {/* Main Hero Campus Card */}
+                <div className="rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white">
+                  <img
+                    src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=900&auto=format&fit=crop&q=80"
+                    alt="Don Bosco Academy Campus"
+                    className="w-full h-80 sm:h-96 object-cover hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute -bottom-3 right-4 px-3 py-1 bg-amber-500 text-slate-950 text-xs font-black rounded-full uppercase tracking-wider shadow">
-                    Principal Desk
+                  <div className="p-5 bg-gradient-to-b from-white to-slate-50 border-t border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-base text-slate-900 font-display">Campus Main Wing</h4>
+                        <p className="text-xs text-slate-500">Raipur Bazar, Nanpur, Sitamarhi, Bihar</p>
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+                        Open for Admissions
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white font-serif">{school.principal_name}</h3>
-                  <p className="text-xs text-amber-400 font-mono">Head of Institution • Don Bosco Academy</p>
+
+                {/* Floating Widget 1: 99.4% Board Pass Rate (Top Left) */}
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+                  className="absolute -top-6 -left-6 sm:-left-8 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-soft-hover border border-slate-200 flex items-center gap-3"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 font-black shrink-0">
+                    <Trophy className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-base font-extrabold text-slate-900 font-display">99.4% Pass Rate</div>
+                    <div className="text-[11px] text-slate-500 font-medium">CBSE Board Exam Honors</div>
+                  </div>
+                </motion.div>
+
+                {/* Floating Widget 2: 1500+ Active Scholars (Bottom Right) */}
+                <motion.div
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
+                  className="absolute -bottom-6 -right-6 sm:-right-8 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-soft-hover border border-slate-200 flex items-center gap-3"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-sapphire-50 border border-sapphire-200 flex items-center justify-center text-sapphire-700 shrink-0">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-base font-extrabold text-slate-900 font-display">1500+ Students</div>
+                    <div className="text-[11px] text-slate-500 font-medium">Holistic Day & Boarding</div>
+                  </div>
+                </motion.div>
+
+                {/* Floating Widget 3: Digital QR Security Badge (Center Bottom) */}
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut', delay: 1 }}
+                  className="hidden sm:flex absolute top-1/2 -right-6 bg-white/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-soft-card border border-slate-200 items-center gap-2 text-xs font-bold text-indigo-700"
+                >
+                  <Shield className="w-4 h-4 text-indigo-600" />
+                  <span>Verifiable Marksheets</span>
+                </motion.div>
+              </div>
+            </motion.div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 4. LIVE STATS COUNTER STRIP */}
+      <section className="bg-[#0F2756] text-white py-10 sm:py-14 border-y border-sapphire-900 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-sapphire-800/60">
+            
+            <div className="pt-4 sm:pt-0 sm:px-4">
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400 font-display">
+                <AnimatedCounter value={28} suffix="+" />
+              </div>
+              <p className="text-sm font-semibold text-slate-200 mt-1">Years of Legacy (Estd 1997)</p>
+            </div>
+
+            <div className="pt-4 sm:pt-0 sm:px-4">
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-white font-display">
+                <AnimatedCounter value={1500} suffix="+" />
+              </div>
+              <p className="text-sm font-semibold text-slate-200 mt-1">Enrolled Happy Scholars</p>
+            </div>
+
+            <div className="pt-4 sm:pt-0 sm:px-4">
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-coral-400 font-display">
+                <AnimatedCounter value={99.4} suffix="%" decimals={1} />
+              </div>
+              <p className="text-sm font-semibold text-slate-200 mt-1">CBSE Board Distinction</p>
+            </div>
+
+            <div className="pt-4 sm:pt-0 sm:px-4">
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-emerald-400 font-display">
+                <AnimatedCounter value={100} suffix="%" />
+              </div>
+              <p className="text-sm font-semibold text-slate-200 mt-1">Smart Labs & Digitized Class</p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 5. ACADEMIC WINGS INTERACTIVE SECTION */}
+      <section id="academics" className="py-16 sm:py-24 bg-[#F8FAFC] relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <span className="text-coral-600 font-extrabold text-xs tracking-wider uppercase bg-coral-50 px-3 py-1 rounded-full border border-coral-200">
+              Structured CBSE Pedagogy
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#0B192C] mt-2 font-display">
+              Academic Wings & Curriculum Structure
+            </h2>
+            <p className="text-base text-[#334155] mt-3">
+              Tailored developmental and scholastic learning tracks from Playgroup foundation to Class 10th CBSE Board success.
+            </p>
+
+            {/* Interactive Tab Switcher with sliding pill */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-8 p-1.5 bg-slate-200/80 rounded-2xl max-w-2xl mx-auto">
+              {(['pre-primary', 'primary', 'middle', 'secondary'] as const).map((wing) => (
+                <button
+                  key={wing}
+                  onClick={() => setActiveWing(wing)}
+                  className={`relative px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold capitalize transition-all duration-200 ${
+                    activeWing === wing ? 'text-white' : 'text-slate-700 hover:text-slate-900'
+                  }`}
+                >
+                  {activeWing === wing && (
+                    <motion.div
+                      layoutId="activeAcademicWing"
+                      className="absolute inset-0 bg-[#0F2756] rounded-xl shadow-md"
+                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10">{wing.replace('-', ' ')}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab Content Display Card */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeWing}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-soft-card grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
+            >
+              <div className="lg:col-span-7 space-y-5">
+                <span className="inline-block px-3 py-1 rounded-full bg-sapphire-50 text-sapphire-800 font-bold text-xs border border-sapphire-200">
+                  {wingData[activeWing].badge}
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
+                  {wingData[activeWing].title}
+                </h3>
+                <p className="text-base text-slate-600 leading-relaxed">
+                  {wingData[activeWing].desc}
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  {wingData[activeWing].features.map((feat, i) => (
+                    <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <span className="text-xs sm:text-sm font-semibold text-slate-800">{feat}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    onClick={() => setIsAdmissionModalOpen(true)}
+                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-indigo-glow transition flex items-center gap-2"
+                  >
+                    <span>Inquire for {activeWing.toUpperCase()} Admission</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              <div className="lg:col-span-8 space-y-4">
-                <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-widest">
-                  Leadership Address
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-bold text-white font-serif">
-                  "Education is the most powerful weapon which you can use to change the world."
-                </h2>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  At DON BOSCO ACADEMY, our mission extends far beyond textbooks and examinations. 
-                  Since 1997, our institution in Raipur Bazar has stood as a center of scholastic excellence and character formation. 
-                  We believe that every child possesses unique talent and curiosity.
-                </p>
-                <p className="text-sm text-slate-400 leading-relaxed">
-                  Our dedicated faculty, modern digital infrastructure, safe residential hostel facilities, and CBSE curriculum 
-                  ensure that every student emerges confident and prepared for the future. We warmly invite parents to visit 
-                  our campus and become part of our institution.
-                </p>
-                <div className="pt-2">
-                  <SafeImage
-                    src={school.principal_signature_url}
-                    alt="Signature"
-                    fallbackSrc="/assets/branding/principal-signature.svg"
-                    className="h-10 object-contain brightness-200"
+              <div className="lg:col-span-5">
+                <div className="rounded-2xl overflow-hidden border-2 border-slate-100 shadow-md">
+                  <img
+                    src={wingData[activeWing].image}
+                    alt={wingData[activeWing].title}
+                    className="w-full h-64 sm:h-80 object-cover"
                   />
                 </div>
               </div>
+            </motion.div>
+          </AnimatePresence>
 
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* 8 & 9. ACADEMIC INFORMATION & CLASSES (PLAY TO CLASS 10TH) */}
-      <section id="academics" className="py-20 bg-slate-900/40 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      {/* 6. SMART CAMPUS BENTO GRID */}
+      <section id="campus" className="py-16 sm:py-24 bg-white border-y border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest font-mono">
-              Academic Excellence
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white font-serif">
-              Curriculum & Classes Offered
-            </h2>
-            <div className="w-20 h-1 bg-amber-500 mx-auto rounded-full" />
-            <p className="text-slate-300 text-sm sm:text-base">
-              Comprehensive CBSE pattern education designed for systematic intellectual growth from Play Group to Class 10th.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-pink-500/40 transition">
-              <div className="px-3 py-1 bg-pink-500/10 text-pink-400 border border-pink-500/20 text-xs font-bold rounded-lg w-fit">
-                Early Childhood
-              </div>
-              <h3 className="text-lg font-bold text-white font-serif">Pre-Primary Wing</h3>
-              <p className="text-xs text-amber-300 font-semibold">Play Group, Nursery, LKG, UKG</p>
-              <ul className="text-xs text-slate-400 space-y-2">
-                <li>• Activity-based joyful learning</li>
-                <li>• Phonics & language development</li>
-                <li>• Motor skills & creative play</li>
-                <li>• Caring and attentive teachers</li>
-              </ul>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-blue-500/40 transition">
-              <div className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold rounded-lg w-fit">
-                Foundational
-              </div>
-              <h3 className="text-lg font-bold text-white font-serif">Primary Wing</h3>
-              <p className="text-xs text-amber-300 font-semibold">Class 1 to Class 5</p>
-              <ul className="text-xs text-slate-400 space-y-2">
-                <li>• Strong English & Hindi foundations</li>
-                <li>• Mathematics & Mental Reasoning</li>
-                <li>• Environmental Studies (EVS)</li>
-                <li>• Computer Literacy & General Science</li>
-              </ul>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-indigo-500/40 transition">
-              <div className="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold rounded-lg w-fit">
-                Preparatory
-              </div>
-              <h3 className="text-lg font-bold text-white font-serif">Middle Wing</h3>
-              <p className="text-xs text-amber-300 font-semibold">Class 6 to Class 8</p>
-              <ul className="text-xs text-slate-400 space-y-2">
-                <li>• Specialized Science (Phy/Chem/Bio)</li>
-                <li>• Social Sciences & History</li>
-                <li>• Third Language (Sanskrit / Urdu)</li>
-                <li>• Coding & Information Technology</li>
-              </ul>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 hover:border-amber-500/40 transition">
-              <div className="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold rounded-lg w-fit">
-                Board Excellence
-              </div>
-              <h3 className="text-lg font-bold text-white font-serif">Secondary Wing</h3>
-              <p className="text-xs text-amber-300 font-semibold">Class 9 & Class 10 (CBSE)</p>
-              <ul className="text-xs text-slate-400 space-y-2">
-                <li>• Intensive CBSE Board syllabus preparation</li>
-                <li>• Dedicated Science Practical Labs</li>
-                <li>• Periodic Assessments & Mock Exams</li>
-                <li>• Doubt clearing & exam counseling</li>
-              </ul>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 10. SCHOOL FACILITIES */}
-      <section id="facilities" className="py-20 bg-slate-950 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest font-mono">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <span className="text-indigo-600 font-extrabold text-xs tracking-wider uppercase bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
               World-Class Infrastructure
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white font-serif">
-              Campus Facilities
+            <h2 className="text-3xl sm:text-4xl font-black text-[#0B192C] mt-2 font-display">
+              Smart Campus & 21st-Century Facilities
             </h2>
-            <div className="w-20 h-1 bg-amber-500 mx-auto rounded-full" />
-            <p className="text-slate-300 text-sm sm:text-base">
-              Modern facilities designed to provide a secure, stimulating, and technologically advanced learning environment.
+            <p className="text-base text-[#334155] mt-3">
+              State-of-the-art labs, digitally equipped smart rooms, modern athletic arenas, and peaceful residential wings designed for holistic excellence.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Bento Grid Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex gap-4 items-start hover:border-slate-700 transition">
-              <div className="p-3 bg-blue-600/10 text-blue-400 rounded-2xl border border-blue-500/20 shrink-0">
-                <BookOpen className="w-6 h-6" />
-              </div>
+            {/* Card 1: Computer & AI Lab (Large 2 Col) */}
+            <div className="md:col-span-2 bg-gradient-to-br from-sapphire-900 to-[#0B1B3C] text-white p-7 rounded-3xl shadow-soft-hover border border-sapphire-800 flex flex-col justify-between relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all" />
               <div>
-                <h3 className="text-base font-bold text-white font-serif">Smart Classrooms</h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Interactive digital learning tools, visual teaching aids, and spacious seating.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex gap-4 items-start hover:border-slate-700 transition">
-              <div className="p-3 bg-emerald-600/10 text-emerald-400 rounded-2xl border border-emerald-500/20 shrink-0">
-                <Cpu className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white font-serif">Computer & AI Lab</h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Modern computer systems with coding, digital tools, and practical curriculum.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex gap-4 items-start hover:border-slate-700 transition">
-              <div className="p-3 bg-purple-600/10 text-purple-400 rounded-2xl border border-purple-500/20 shrink-0">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white font-serif">Science Practical Labs</h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Physics, Chemistry, and Biology apparatus for hands-on experiments.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex gap-4 items-start hover:border-slate-700 transition">
-              <div className="p-3 bg-amber-600/10 text-amber-400 rounded-2xl border border-amber-500/20 shrink-0">
-                <Trophy className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white font-serif">Sports & Athletics Grounds</h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Cricket, football, volleyball, badminton, and indoor games for fitness.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex gap-4 items-start hover:border-slate-700 transition">
-              <div className="p-3 bg-rose-600/10 text-rose-400 rounded-2xl border border-rose-500/20 shrink-0">
-                <Building2 className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white font-serif">Residential Hostels</h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Safe, hygienic, and supervised boarding hostel for boys and girls with nutritious meals.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex gap-4 items-start hover:border-slate-700 transition">
-              <div className="p-3 bg-teal-600/10 text-teal-400 rounded-2xl border border-teal-500/20 shrink-0">
-                <Shield className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white font-serif">CCTV & Safe Transport</h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  24/7 CCTV campus surveillance, fire safety, and reliable bus transport network.
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 11. ADMISSION INFORMATION & APPLICATION BANNER */}
-      <section id="admissions" className="py-20 bg-slate-900/60 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-blue-900/30 via-slate-900 to-amber-900/20 border-2 border-amber-500/30 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              
-              <div className="lg:col-span-8 space-y-4">
-                <span className="px-3 py-1 rounded-full bg-amber-500 text-slate-950 text-xs font-black uppercase tracking-wider">
-                  Admissions Open 2026 - 2027
+                <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-400 mb-4">
+                  <Laptop className="w-6 h-6" />
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-bold text-xs border border-indigo-500/30">
+                  STEM & Coding
                 </span>
-                <h2 className="text-3xl sm:text-4xl font-black text-white font-serif">
-                  Enroll Your Child at Don Bosco Academy
-                </h2>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  Admissions are now open for <strong>Play Group, Nursery, LKG, UKG, and Classes 1 to 10</strong>.
-                  Limited seats are available for both Day Scholars and Residential Hostel boarders. 
-                  Submit an inquiry online or visit our school office in Raipur Bazar.
-                </p>
-                <div className="flex flex-wrap gap-4 pt-2 text-xs font-semibold text-slate-300">
-                  <span>✔ Transparent Merit Process</span>
-                  <span>✔ Concession for Meritorious Students</span>
-                  <span>✔ Seamless Online Registration</span>
-                </div>
-              </div>
-
-              <div className="lg:col-span-4 flex flex-col gap-3">
-                <button
-                  onClick={() => setIsAdmissionModalOpen(true)}
-                  className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-xl shadow-amber-500/30 text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer"
-                >
-                  <Send className="w-4 h-4" /> Fill Online Admission Form
-                </button>
-                <a
-                  href={`tel:${school.phone}`}
-                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-center text-xs font-bold text-white rounded-2xl transition"
-                >
-                  Call Admission Desk: {school.phone}
-                </a>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 12. SCHOOL ACTIVITIES */}
-      <section id="activities" className="py-20 bg-slate-950 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest font-mono">
-              Beyond Academics
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white font-serif">
-              Co-Curricular Activities & Events
-            </h2>
-            <div className="w-20 h-1 bg-amber-500 mx-auto rounded-full" />
-            <p className="text-slate-300 text-sm sm:text-base">
-              Sports tournaments, science exhibitions, cultural drama, and debate competitions.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3 hover:border-slate-700 transition">
-              <div className="h-36 rounded-2xl bg-gradient-to-tr from-amber-600 to-yellow-500 flex items-center justify-center text-white">
-                <Trophy className="w-12 h-12" />
-              </div>
-              <h3 className="text-base font-bold text-white font-serif">Annual Sports Meet</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Track and field events, inter-house championships, and sports leagues.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3 hover:border-slate-700 transition">
-              <div className="h-36 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white">
-                <Sparkles className="w-12 h-12" />
-              </div>
-              <h3 className="text-base font-bold text-white font-serif">Science Exhibition</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Student-built science models, robotics, and environmental presentations.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3 hover:border-slate-700 transition">
-              <div className="h-36 rounded-2xl bg-gradient-to-tr from-rose-600 to-pink-500 flex items-center justify-center text-white">
-                <Users className="w-12 h-12" />
-              </div>
-              <h3 className="text-base font-bold text-white font-serif">Cultural Celebrations</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Music, dance, annual function drama, and national festivals.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3 hover:border-slate-700 transition">
-              <div className="h-36 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white">
-                <BookOpen className="w-12 h-12" />
-              </div>
-              <h3 className="text-base font-bold text-white font-serif">Debate & Quiz Club</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Speech, general knowledge Olympiads, and essay contests.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 13. ANNOUNCEMENTS & LIVE NOTICES BOARD */}
-      <section id="notices" className="py-20 bg-slate-900/50 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-6">
-            <div>
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest font-mono">
-                Official Updates
-              </span>
-              <h2 className="text-3xl font-black text-white font-serif mt-1">
-                Notice Board & Circulars
-              </h2>
-            </div>
-            <span className="text-xs text-slate-400">Showing active notices for parents and students</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {notices.map((n) => (
-              <div
-                key={n.id}
-                className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3 relative hover:border-amber-500/30 transition shadow-lg"
-              >
-                {n.is_pinned && (
-                  <span className="absolute top-4 right-4 px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold rounded uppercase">
-                    Important
-                  </span>
-                )}
-                <div className="text-[11px] text-slate-500 font-mono flex items-center gap-1.5">
-                  <Calendar className="w-3 h-3 text-slate-400" />
-                  {n.publish_date}
-                </div>
-                <h3 className="text-base font-bold text-white font-serif">{n.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{n.content}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 14 & 15. CONTACT INFORMATION & SOCIAL LINKS */}
-      <section id="contact" className="py-20 bg-slate-950 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest font-mono">
-              Get in Touch
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white font-serif">
-              Contact Don Bosco Academy
-            </h2>
-            <div className="w-20 h-1 bg-amber-500 mx-auto rounded-full" />
-            <p className="text-slate-300 text-sm sm:text-base">
-              Visit our administrative office or contact our admission and inquiries desk.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Contact Details Card */}
-            <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl">
-              <div>
-                <h3 className="text-xl font-bold text-white font-serif uppercase tracking-wide">
-                  DON BOSCO ACADEMY
+                <h3 className="text-2xl font-black text-white mt-3 font-display">
+                  Computer & AI Technology Center
                 </h3>
-                <p className="text-xs text-amber-400 font-mono mt-1">ESTABLISHED 1997 • CBSE PATTERN</p>
+                <p className="text-sm text-slate-300 mt-2 leading-relaxed max-w-md">
+                  High-speed networked computer systems equipped with coding compilers, robotics kits, and digital literacy tools preparing students for the AI revolution.
+                </p>
               </div>
-
-              <div className="space-y-4 text-sm">
-                <div className="flex items-start gap-3 text-slate-300">
-                  <MapPin className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-white block">Campus Address:</strong>
-                    Raipur Bazar, Nanpur, Sitamarhi,<br />
-                    Sitamarhi, Bihar, India — 843326
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 text-slate-300">
-                  <Mail className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-white block">Official Email:</strong>
-                    <a href={`mailto:${school.email}`} className="text-blue-400 hover:underline">
-                      {school.email}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 text-slate-300">
-                  <Phone className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-white block">Helpline / Phone:</strong>
-                    <a href={`tel:${school.phone}`} className="text-blue-400 hover:underline">
-                      {school.phone}
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-4 border-t border-slate-800 flex flex-col gap-3">
-                <a
-                  href={`mailto:${school.email}?subject=Inquiry regarding Don Bosco Academy`}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md shadow-blue-600/20"
-                >
-                  <Mail className="w-4 h-4" /> Send Email to School
-                </a>
-
-                <a
-                  href={`tel:${school.phone}`}
-                  className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition"
-                >
-                  <Phone className="w-4 h-4 text-emerald-400" /> Call Campus Office
-                </a>
-
-                {school.facebook_url && (
-                  <a
-                    href={school.facebook_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-3 bg-blue-900/60 hover:bg-blue-900 text-blue-200 border border-blue-700/50 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition"
-                  >
-                    <Facebook className="w-4 h-4 text-blue-400 fill-current" /> Visit Official Facebook Page
-                  </a>
-                )}
+              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-semibold text-slate-300">
+                <span>1:1 Student Computer Ratio</span>
+                <span className="text-amber-400 font-bold">100% Broadband Connected</span>
               </div>
             </div>
 
-            {/* Location & Map Section */}
-            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-lg font-bold text-white font-serif">Location & Connectivity</h3>
+            {/* Card 2: Smart Classrooms */}
+            <div className="bg-[#F8FAFC] p-6 rounded-3xl shadow-soft-card border border-slate-200 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 mb-4">
+                  <Cpu className="w-5 h-5" />
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  DON BOSCO ACADEMY is located at <strong>Raipur Bazar, Nanpur</strong> in the Sitamarhi district of Bihar (PIN: 843326). 
-                  The school is well connected with major district roads and operates transport routes across neighboring areas.
+                <h4 className="text-lg font-bold text-slate-900 font-display">Interactive Smart Panels</h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Touch-enabled interactive flat panels with 3D audio-visual lessons making abstract concepts easy to understand.
                 </p>
+              </div>
+              <span className="text-xs font-bold text-indigo-700 mt-4 flex items-center gap-1">
+                Visual Pedagogic Modules <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
 
-                <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800/80 space-y-3">
-                  <div className="flex items-center justify-between text-xs border-b border-slate-800 pb-2">
-                    <span className="text-slate-400">Campus Location:</span>
-                    <span className="font-semibold text-white">Raipur Bazar, Nanpur, Sitamarhi</span>
+            {/* Card 3: Science Labs */}
+            <div className="bg-[#F8FAFC] p-6 rounded-3xl shadow-soft-card border border-slate-200 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mb-4">
+                  <Microscope className="w-5 h-5" />
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 font-display">Composite Science Lab</h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Full apparatus for Physics, Chemistry, and Biology experiments fostering an empirical scientific temperament.
+                </p>
+              </div>
+              <span className="text-xs font-bold text-emerald-700 mt-4 flex items-center gap-1">
+                Hands-on Experiments <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+
+            {/* Card 4: Library */}
+            <div className="bg-[#F8FAFC] p-6 rounded-3xl shadow-soft-card border border-slate-200 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-4">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 font-display">Enriched Central Library</h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  5,000+ volumes, encyclopedia series, CBSE reference guides, journals, and a quiet reading haven for book lovers.
+                </p>
+              </div>
+              <span className="text-xs font-bold text-amber-700 mt-4 flex items-center gap-1">
+                Digital & Print Catalogs <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+
+            {/* Card 5: Sports & Physical Education */}
+            <div className="bg-[#F8FAFC] p-6 rounded-3xl shadow-soft-card border border-slate-200 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="w-11 h-11 rounded-2xl bg-coral-50 border border-coral-200 flex items-center justify-center text-coral-600 mb-4">
+                  <Trophy className="w-5 h-5" />
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 font-display">Sports Arena & Karate</h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Football field, cricket pitch, badminton, table tennis, and martial arts self-defense training for all students.
+                </p>
+              </div>
+              <span className="text-xs font-bold text-coral-700 mt-4 flex items-center gap-1">
+                Physical Fitness Focus <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+
+            {/* Card 6: Residential Hostel & Transport (2 Col) */}
+            <div className="md:col-span-2 bg-gradient-to-r from-slate-900 to-sapphire-950 text-white p-7 rounded-3xl shadow-soft-hover border border-slate-800 flex flex-col justify-between relative overflow-hidden group">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-emerald-400">
+                    <Home className="w-5 h-5" />
                   </div>
-                  <div className="flex items-center justify-between text-xs border-b border-slate-800 pb-2">
-                    <span className="text-slate-400">Postal PIN:</span>
-                    <span className="font-mono text-amber-400 font-bold">843326</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">School Type:</span>
-                    <span className="font-semibold text-blue-300">Residential Cum Day School (Play to 10th)</span>
+                  <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-400">
+                    <Bus className="w-5 h-5" />
                   </div>
                 </div>
+                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-xs border border-emerald-500/30">
+                  Care & Safety First
+                </span>
+                <h3 className="text-2xl font-black text-white mt-3 font-display">
+                  Residential Hostel & Safe Bus Transit
+                </h3>
+                <p className="text-sm text-slate-300 mt-2 leading-relaxed max-w-lg">
+                  Clean, nutritious dining, 24/7 warden supervision, secure premises, and GPS-equipped school buses connecting Nanpur, Raipur Bazar, Sitamarhi, and adjoining zones.
+                </p>
               </div>
-
-              <div className="pt-6">
-                <a
-                  href="https://maps.google.com/?q=Raipur+Bazar+Nanpur+Sitamarhi"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition"
-                >
-                  <MapPin className="w-4 h-4 text-rose-400" /> Open in Google Maps <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-semibold text-slate-300">
+                <span>Separate Boys & Girls Quarters</span>
+                <span className="text-emerald-400 font-bold">24x7 Security & CCTV</span>
               </div>
             </div>
 
@@ -860,107 +772,387 @@ export const PublicSchoolPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 16. FOOTER */}
-      <footer className="bg-slate-950 border-t border-slate-800/80 py-12 text-slate-400 text-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      {/* 7. PRINCIPAL'S DESK & LEADERSHIP ADDRESS */}
+      <section id="principal" className="py-16 sm:py-24 bg-gradient-to-b from-slate-50 to-white relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-soft-card grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Principal Photo & Credential Pillar */}
+            <div className="lg:col-span-4 text-center lg:text-left space-y-4">
+              <div className="relative inline-block mx-auto lg:mx-0">
+                <img
+                  src="/assets/branding/don-bosco-logo.png"
+                  alt="Principal Md. Shami Ahmad"
+                  className="w-48 h-48 sm:w-56 sm:h-56 rounded-3xl object-contain bg-slate-50 border-4 border-sapphire-800/20 p-2 shadow-lg mx-auto"
+                />
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[#0F2756] text-white px-4 py-1 rounded-full text-xs font-extrabold shadow-md whitespace-nowrap">
+                  Principal &amp; Head of Institution
+                </div>
+              </div>
+              <div className="pt-3">
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-display">Md. Shami Ahmad</h3>
+                <p className="text-xs font-bold text-coral-600 uppercase tracking-wider">Don Bosco Academy Leadership</p>
+                <div className="flex items-center justify-center lg:justify-start gap-1.5 text-xs text-slate-500 mt-1">
+                  <Award className="w-4 h-4 text-amber-500" />
+                  <span>28+ Years of Academic Administration</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Principal's Message & Verified Signature */}
+            <div className="lg:col-span-8 space-y-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sapphire-50 text-sapphire-900 text-xs font-bold border border-sapphire-200">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>Message from the Principal's Desk</span>
+              </div>
+
+              <blockquote className="text-base sm:text-lg text-slate-700 italic leading-relaxed font-serif border-l-4 border-sapphire-700 pl-4">
+                "At Don Bosco Academy, we firmly believe that true education goes beyond textbooks—it is the holistic cultivation of intellect, character, morality, and compassionate leadership. Since 1997, we have dedicated ourselves to providing rural and semi-urban learners of Sitamarhi with quality education on par with national standards."
+              </blockquote>
+
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Our blended CBSE methodology fuses rigor in core sciences and mathematics with hands-on computer innovation, creative arts, and sportsmanship. We welcome parents and students into our Don Bosco family to achieve stellar milestones together.
+              </p>
+
+              {/* Digital Verification & Stamp/Signature Block */}
+              <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-6">
+                <div>
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Official Endorsement</div>
+                  <div className="text-sm font-extrabold text-slate-900">DON BOSCO ACADEMY, SITAMARHI</div>
+                </div>
+
+                <div className="flex items-center gap-6">
+                  {/* Official Stamp */}
+                  <div className="text-center">
+                    <img
+                      src="/assets/branding/don-bosco-stamp.svg"
+                      alt="Official Seal"
+                      className="h-12 w-auto object-contain opacity-90 mx-auto"
+                    />
+                    <div className="text-[10px] font-bold text-slate-500 uppercase mt-1">Institutional Seal</div>
+                  </div>
+
+                  {/* Principal Signature */}
+                  <div className="text-center">
+                    <img
+                      src="/assets/branding/principal-signature.svg"
+                      alt="Principal Signature"
+                      className="h-10 w-auto object-contain mx-auto"
+                    />
+                    <div className="border-t border-slate-400 w-24 mx-auto my-0.5"></div>
+                    <div className="text-[10px] font-bold text-slate-700 uppercase">Authorized Signatory</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* 8. LIVE NOTICE BOARD & ANNOUNCEMENTS */}
+      <section id="notices" className="py-16 sm:py-24 bg-[#F8FAFC]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+            <div>
+              <span className="text-coral-600 font-extrabold text-xs tracking-wider uppercase bg-coral-50 px-3 py-1 rounded-full border border-coral-200">
+                School Circulars
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#0B192C] mt-2 font-display">
+                Notice Board &amp; Academic News
+              </h2>
+              <p className="text-sm text-slate-600 mt-1">
+                Stay updated with the latest exam schedules, admission circulars, holidays, and events.
+              </p>
+            </div>
+
+            {/* Filter Tabs & Search */}
+            <div className="flex flex-wrap items-center gap-2">
+              {(['all', 'ACADEMIC', 'EXAM', 'ADMISSION', 'HOLIDAY'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === tab
+                      ? 'bg-[#0F2756] text-white shadow-sm'
+                      : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  {tab === 'all' ? 'All Notices' : tab}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notices Grid */}
+          {filteredNotices.length === 0 ? (
+            <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-500">
+              <Bell className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+              <p className="font-semibold text-base">No notices found in this category.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredNotices.slice(0, 6).map((notice) => (
+                <div
+                  key={notice.id}
+                  onClick={() => setSelectedNotice(notice)}
+                  className="cursor-pointer bg-white p-6 rounded-3xl border border-slate-200 shadow-soft-card hover:shadow-soft-hover hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${
+                        notice.category === 'EXAM'
+                          ? 'bg-amber-100 text-amber-800'
+                          : notice.category === 'ADMISSION'
+                          ? 'bg-coral-100 text-coral-800'
+                          : notice.category === 'HOLIDAY'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-indigo-100 text-indigo-800'
+                      }`}>
+                        {notice.category || 'General'}
+                      </span>
+                      <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {new Date(notice.publish_date || notice.created_at).toLocaleDateString('en-GB')}
+                      </span>
+                    </div>
+
+                    <h4 className="text-base font-bold text-slate-900 hover:text-indigo-600 transition-colors line-clamp-2 font-display">
+                      {notice.title}
+                    </h4>
+
+                    <p className="text-xs text-slate-600 mt-2.5 line-clamp-3 leading-relaxed">
+                      {notice.content}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
+                    <span>Read Full Circular</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+        </div>
+      </section>
+
+      {/* 9. CONTACT & ADMISSION ENQUIRY SECTION */}
+      <section id="contact" className="py-16 sm:py-24 bg-white border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="bg-gradient-to-br from-sapphire-900 via-[#0F2756] to-slate-950 text-white rounded-3xl p-8 sm:p-14 shadow-2xl border border-sapphire-800 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-coral-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              
+              {/* Contact Info Column */}
+              <div className="lg:col-span-6 space-y-6">
+                <span className="px-3 py-1 rounded-full bg-coral-500/20 text-coral-300 font-extrabold text-xs border border-coral-500/30">
+                  Connect with Don Bosco Academy
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-black text-white font-display">
+                  Admissions Open for Session 2026-2027
+                </h2>
+                <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                  Join a tradition of academic distinction, moral integrity, and technological innovation. Visit our campus or submit an inquiry to schedule an interaction.
+                </p>
+
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-400 shrink-0">
+                      <MapPin className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-400 font-medium">Campus Location</div>
+                      <div className="text-sm font-bold text-white">{school.address}, {school.city}, Sitamarhi (843326)</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-400 shrink-0">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-400 font-medium">Official Inquiries</div>
+                      <div className="text-sm font-bold text-white">{school.email}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-400 shrink-0">
+                      <Phone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-400 font-medium">Helpdesk Hotline</div>
+                      <div className="text-sm font-bold text-white">{school.phone}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Instant Call-to-Action Card */}
+              <div className="lg:col-span-6 bg-white text-slate-900 p-8 rounded-3xl shadow-xl border border-slate-100 space-y-5">
+                <div className="flex items-center gap-2 text-coral-600 font-bold text-xs uppercase tracking-wider">
+                  <Sparkles className="w-4 h-4" /> Quick Admission Desk
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 font-display">Schedule a Campus Visit</h3>
+                <p className="text-xs text-slate-600">
+                  Fill in your details and our admission officer will get in touch with you within 24 hours with syllabus, fee details, and entrance guidelines.
+                </p>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => setIsAdmissionModalOpen(true)}
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-coral-500 to-[#EB3C16] text-white font-extrabold text-sm sm:text-base shadow-lg shadow-coral-500/30 hover:shadow-coral-glow hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Open Online Admission Form</span>
+                  </button>
+                </div>
+
+                <div className="text-center">
+                  <Link
+                    to="/login"
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition"
+                  >
+                    Already a student or staff? Go to Portal Login →
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* 10. COMPREHENSIVE FOOTER */}
+      <footer className="bg-[#0B192C] text-slate-400 text-xs py-12 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-slate-800">
+            
+            {/* Brand Col */}
             <div className="space-y-3 md:col-span-2">
               <div className="flex items-center gap-3">
                 <img
                   src="/assets/branding/don-bosco-logo.png"
-                  alt="Logo"
-                  className="w-12 h-12 object-contain rounded-xl bg-white p-0.5 border border-amber-500/30"
+                  alt={school.name}
+                  className="w-12 h-12 rounded-xl object-contain bg-white p-1"
                 />
-                <span className="font-black text-white text-base tracking-wide font-serif">
-                  DON BOSCO ACADEMY
-                </span>
+                <div>
+                  <div className="text-base font-black text-white font-display uppercase tracking-tight">
+                    {school.name}
+                  </div>
+                  <div className="text-[11px] text-amber-400 font-bold">
+                    {school.tagline || 'KNOWLEDGE IS POWER'} • ESTD 1997
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-slate-400 max-w-md leading-relaxed">
-                Raipur Bazar, Nanpur, Sitamarhi, Bihar (843326). Established in 1997. 
-                Residential Cum Day School operating on the CBSE curriculum from Play to Class 10th.
-              </p>
-              <p className="text-xs text-amber-400 font-mono font-bold">
-                Motto: KNOWLEDGE IS POWER
+              <p className="text-slate-400 text-xs leading-relaxed max-w-md">
+                A premier CBSE pattern Residential Cum Day School in Raipur Bazar, Nanpur, Sitamarhi, Bihar (843326). Fostering scholastic achievement, moral character, and lifelong leadership.
               </p>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="font-bold text-white uppercase tracking-wider text-xs font-mono">Quick Navigation</h4>
-              <ul className="space-y-1.5 text-xs text-slate-400">
-                <li><a href="#about" className="hover:text-white transition">About School</a></li>
-                <li><a href="#academics" className="hover:text-white transition">Classes & Syllabus</a></li>
-                <li><a href="#facilities" className="hover:text-white transition">Hostel & Labs</a></li>
+            {/* Quick Links */}
+            <div>
+              <div className="text-sm font-bold text-white mb-3 font-display uppercase tracking-wider">
+                Quick Navigation
+              </div>
+              <ul className="space-y-2 text-xs">
+                <li><a href="#about" className="hover:text-white transition">About Don Bosco</a></li>
+                <li><a href="#academics" className="hover:text-white transition">Curriculum & Wings</a></li>
+                <li><a href="#campus" className="hover:text-white transition">Campus Infrastructure</a></li>
+                <li><a href="#principal" className="hover:text-white transition">Principal's Address</a></li>
                 <li><a href="#notices" className="hover:text-white transition">Notice Board</a></li>
-                <li><Link to="/verify" className="hover:text-amber-400 transition text-amber-300 font-semibold">Verify Documents</Link></li>
+                <li><Link to="/verify" className="hover:text-white transition text-amber-400 font-semibold">Verify Documents</Link></li>
               </ul>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="font-bold text-white uppercase tracking-wider text-xs font-mono">Administration</h4>
-              <ul className="space-y-1.5 text-xs text-slate-400">
-                <li><Link to="/login" className="hover:text-white transition">Principal & Faculty Login</Link></li>
+            {/* Portals & Login */}
+            <div>
+              <div className="text-sm font-bold text-white mb-3 font-display uppercase tracking-wider">
+                System Portals
+              </div>
+              <ul className="space-y-2 text-xs">
+                <li><Link to="/login" className="hover:text-white transition">Principal & Admin ERP</Link></li>
+                <li><Link to="/login" className="hover:text-white transition">Teacher Portal</Link></li>
                 <li><Link to="/login" className="hover:text-white transition">Student & Parent Portal</Link></li>
-                <li><a href={`mailto:${school.email}`} className="hover:text-white transition">{school.email}</a></li>
-                <li><span className="text-slate-500">Phone: {school.phone}</span></li>
+                <li><Link to="/verify" className="hover:text-white transition">CBSE Marksheet QR Verify</Link></li>
+                <li><Link to="/verify" className="hover:text-white transition">Certificate Authentication</Link></li>
               </ul>
             </div>
+
           </div>
 
-          <div className="pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-            <p>© 1997 - {new Date().getFullYear()} DON BOSCO ACADEMY. All Rights Reserved.</p>
-            <p className="flex items-center gap-2">
-              <span>Raipur Bazar, Nanpur, Sitamarhi (Bihar) - 843326</span>
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+            <div>
+              © {new Date().getFullYear()} <strong>{school.name}</strong>, Sitamarhi. All rights reserved.
+            </div>
+            <div className="flex items-center gap-4">
+              <span>Affiliated to CBSE Pattern</span>
               <span>•</span>
-              <span className="text-amber-500 font-semibold">Single-School Management System</span>
-            </p>
+              <span>ESTD: 1997</span>
+              <span>•</span>
+              <Link to="/login" className="text-indigo-400 hover:underline">ERP Login</Link>
+            </div>
           </div>
 
         </div>
       </footer>
 
-      {/* ONLINE ADMISSION APPLICATION MODAL */}
+      {/* ADMISSION INQUIRY MODAL */}
       <Modal
         isOpen={isAdmissionModalOpen}
         onClose={() => setIsAdmissionModalOpen(false)}
-        title="Online Admission Application (2026-2027)"
+        title="Online Admission Inquiry (2026-2027)"
+        size="lg"
       >
         {admissionSuccess ? (
-          <div className="py-8 text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto text-emerald-400">
+          <div className="text-center py-8 space-y-3">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold text-white font-serif">Application Submitted!</h3>
-            <p className="text-sm text-slate-300 max-w-md mx-auto">
-              Thank you for applying to <strong>DON BOSCO ACADEMY</strong>. The school admission office in Raipur Bazar will review your inquiry and contact you shortly.
+            <h3 className="text-xl font-bold text-slate-900 font-display">Inquiry Registered Successfully!</h3>
+            <p className="text-sm text-slate-600 max-w-md mx-auto">
+              Thank you for applying to Don Bosco Academy. Our admissions coordinator will contact you shortly on the provided phone number.
             </p>
           </div>
         ) : (
-          <form onSubmit={handleAdmissionSubmit} className="space-y-4 text-xs">
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 font-medium">
-              ★ Don Bosco Academy, Raipur Bazar • Admissions open for Play to Class 10th
+          <form onSubmit={handleAdmissionSubmit} className="space-y-4">
+            <div className="p-3 bg-sapphire-50 border border-sapphire-200 rounded-xl text-xs text-sapphire-900 font-semibold flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-coral-500 shrink-0" />
+              <span>Applying for Academic Session 2026-2027 (Classes Play to 10th)</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Student Full Name *</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Student's Full Name *</label>
                 <input
                   type="text"
                   required
+                  placeholder="e.g. Aman Singh"
+                  className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 focus:ring-2 focus:ring-sapphire-500 focus:outline-none"
                   value={admissionForm.student_name}
                   onChange={(e) => setAdmissionForm({ ...admissionForm, student_name: e.target.value })}
-                  placeholder="e.g. Aman Kumar Singh"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Applying For Class *</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Applying For Class *</label>
                 <select
                   required
+                  className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 focus:ring-2 focus:ring-sapphire-500 focus:outline-none"
                   value={admissionForm.applying_class_id}
                   onChange={(e) => setAdmissionForm({ ...admissionForm, applying_class_id: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 >
                   {classes.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -969,87 +1161,126 @@ export const PublicSchoolPage: React.FC = () => {
                   ))}
                 </select>
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Date of Birth *</label>
-                <input
-                  type="date"
-                  required
-                  value={admissionForm.dob}
-                  onChange={(e) => setAdmissionForm({ ...admissionForm, dob: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Gender *</label>
-                <select
-                  value={admissionForm.gender}
-                  onChange={(e) => setAdmissionForm({ ...admissionForm, gender: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Parent / Guardian Name *</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Parent / Guardian Name *</label>
                 <input
                   type="text"
                   required
+                  placeholder="e.g. Rajesh Singh"
+                  className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 focus:ring-2 focus:ring-sapphire-500 focus:outline-none"
                   value={admissionForm.parent_name}
                   onChange={(e) => setAdmissionForm({ ...admissionForm, parent_name: e.target.value })}
-                  placeholder="e.g. Ramesh Singh"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Parent Phone Number *</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Contact Phone Number *</label>
                 <input
                   type="tel"
                   required
+                  placeholder="e.g. 9876543210"
+                  className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 focus:ring-2 focus:ring-sapphire-500 focus:outline-none"
                   value={admissionForm.parent_phone}
                   onChange={(e) => setAdmissionForm({ ...admissionForm, parent_phone: e.target.value })}
-                  placeholder="e.g. +91 98765 43210"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="e.g. parent@gmail.com"
+                  className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 focus:ring-2 focus:ring-sapphire-500 focus:outline-none"
+                  value={admissionForm.parent_email}
+                  onChange={(e) => setAdmissionForm({ ...admissionForm, parent_email: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Date of Birth</label>
+                <input
+                  type="date"
+                  className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 focus:ring-2 focus:ring-sapphire-500 focus:outline-none"
+                  value={admissionForm.dob}
+                  onChange={(e) => setAdmissionForm({ ...admissionForm, dob: e.target.value })}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Residential Address *</label>
-              <textarea
-                rows={2}
-                required
+              <label className="block text-xs font-bold text-slate-700 mb-1">Residential Address</label>
+              <input
+                type="text"
+                placeholder="Village / Town, Post Office, District"
+                className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 focus:ring-2 focus:ring-sapphire-500 focus:outline-none"
                 value={admissionForm.address}
                 onChange={(e) => setAdmissionForm({ ...admissionForm, address: e.target.value })}
-                placeholder="Village / Town, Raipur Bazar, Sitamarhi"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
             </div>
 
-            <div className="pt-2 flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => setIsAdmissionModalOpen(false)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={admissionSubmitting}
-                className="px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl shadow-lg transition disabled:opacity-50 cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-coral-500 hover:bg-coral-600 text-white font-extrabold text-xs shadow-md shadow-coral-500/20 hover:shadow-coral-glow transition flex items-center gap-1.5"
               >
-                {admissionSubmitting ? 'Submitting...' : 'Submit Application'}
+                {admissionSubmitting ? (
+                  <span>Submitting...</span>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Submit Inquiry</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
         )}
       </Modal>
+
+      {/* NOTICE DETAILS MODAL */}
+      {selectedNotice && (
+        <Modal
+          isOpen={!!selectedNotice}
+          onClose={() => setSelectedNotice(null)}
+          title={selectedNotice.title}
+          size="md"
+        >
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
+              <span className="px-2.5 py-0.5 rounded-full bg-sapphire-50 text-sapphire-800 font-bold uppercase text-[11px]">
+                {selectedNotice.category || 'General'}
+              </span>
+              <span>Published: {new Date(selectedNotice.publish_date || selectedNotice.created_at).toLocaleDateString('en-GB')}</span>
+            </div>
+
+            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+              {selectedNotice.content}
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setSelectedNotice(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
     </div>
   );

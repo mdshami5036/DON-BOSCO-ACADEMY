@@ -3,10 +3,25 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    @apply antialiased bg-slate-50 text-slate-900;
+    @apply antialiased bg-[#F8FAFC] text-[#334155];
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
+    color: #0B192C;
+  }
+}
+
+.font-display {
+  font-family: 'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
+}
+
+.font-heading {
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 /* Print Specific Optimizations */
