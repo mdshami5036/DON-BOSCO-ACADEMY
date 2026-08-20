@@ -350,19 +350,8 @@ export const PublicSchoolPage: React.FC = () => {
             <a href="#contact" className="hover:text-indigo-600 transition-colors whitespace-nowrap">Contact</a>
           </nav>
 
-          {/* Right Action: Admission Button + Mobile Toggle */}
+          {/* Right Action: Mobile Toggle */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <button
-              onClick={() => setIsAdmissionModalOpen(true)}
-              className="relative group overflow-hidden px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-coral-500 via-coral-600 to-[#EB3C16] text-white font-extrabold text-xs sm:text-sm tracking-wide shadow-md shadow-coral-500/30 hover:shadow-coral-glow hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
-                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 animate-bounce shrink-0" />
-                <span className="whitespace-nowrap">Admission 2026-27</span>
-              </span>
-              <span className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            </button>
-
             {/* Mobile Hamburger Toggle Button */}
             <button
               onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
