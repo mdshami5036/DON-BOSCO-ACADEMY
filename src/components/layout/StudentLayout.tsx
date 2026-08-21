@@ -32,10 +32,10 @@ export const StudentLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+    <div className="h-screen max-h-screen overflow-hidden bg-[#F8FAFC] flex flex-col font-sans">
       <AppNavbar />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0 relative">
         <aside className="w-64 bg-white border-r border-slate-200/90 flex-shrink-0 flex flex-col p-4 shadow-xs">
           <div className="p-3.5 bg-coral-50 rounded-2xl border border-coral-200 mb-4">
             <div className="flex items-center gap-1.5 text-coral-700 font-extrabold text-xs uppercase tracking-wider">

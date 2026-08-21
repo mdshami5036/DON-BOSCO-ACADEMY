@@ -46,10 +46,10 @@ export const SuperAdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
+    <div className="h-screen max-h-screen overflow-hidden bg-slate-900 text-slate-100 flex flex-col">
       <AppNavbar />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0 relative">
         {/* Super Admin Dark High-Security Sidebar */}
         <aside className="w-64 bg-slate-950 border-r border-slate-800 flex-shrink-0 flex flex-col p-4">
           <div className="flex items-center gap-2.5 px-2 py-3 mb-4 border-b border-slate-800">
@@ -62,7 +62,7 @@ export const SuperAdminLayout: React.FC = () => {
             </div>
           </div>
 
-          <nav className="space-y-1 flex-1">
+          <nav className="space-y-1 flex-1 overflow-y-auto overscroll-contain pr-1">
             {navItems.map((item, idx) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
@@ -94,7 +94,7 @@ export const SuperAdminLayout: React.FC = () => {
           </div>
         </aside>
 
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-slate-900/90 text-slate-100">
+        <main className="flex-1 h-full overflow-y-auto overscroll-contain p-6 lg:p-8 bg-slate-900/90 text-slate-100">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

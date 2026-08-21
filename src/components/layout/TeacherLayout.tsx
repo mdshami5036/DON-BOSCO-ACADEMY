@@ -27,10 +27,10 @@ export const TeacherLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+    <div className="h-screen max-h-screen overflow-hidden bg-[#F8FAFC] flex flex-col font-sans">
       <AppNavbar />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0 relative">
         <aside className="w-64 bg-white border-r border-slate-200/90 flex-shrink-0 flex flex-col p-4 shadow-xs">
           <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 mb-4">
             <div className="flex items-center gap-1.5 text-emerald-800 font-extrabold text-xs uppercase tracking-wider">
@@ -40,7 +40,7 @@ export const TeacherLayout: React.FC = () => {
             <p className="text-[10px] text-slate-500 font-medium">Class 10th Teacher • Don Bosco</p>
           </div>
 
-          <nav className="space-y-1 flex-1">
+          <nav className="space-y-1 flex-1 overflow-y-auto overscroll-contain pr-1">
             {navItems.map((item, idx) => {
               const Icon = item.icon;
               return (

@@ -111,10 +111,10 @@ export const SchoolAdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+    <div className="h-screen max-h-screen overflow-hidden bg-[#F8FAFC] flex flex-col font-sans select-text">
       <AppNavbar />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0 relative">
         {/* Mobile Sidebar Toggle Floating Button */}
         <div className="lg:hidden fixed bottom-5 right-5 z-40">
           <button
@@ -149,7 +149,7 @@ export const SchoolAdminLayout: React.FC = () => {
           </div>
 
           {/* Navigation Menu Links */}
-          <nav className="flex-1 overflow-y-auto p-3 space-y-6">
+          <nav className="flex-1 overflow-y-auto overscroll-contain p-3 space-y-6">
             {navSections.map((section, idx) => (
               <div key={idx} className="space-y-1">
                 <div className="px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
@@ -212,7 +212,7 @@ export const SchoolAdminLayout: React.FC = () => {
         </aside>
 
         {/* Main Content Pane */}
-        <main className="flex-1 overflow-y-auto bg-[#F8FAFC] p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 h-full overflow-y-auto overscroll-contain bg-[#F8FAFC] p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
