@@ -56,10 +56,42 @@ export const ExamFormReceiptPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800 flex flex-col font-sans">
-      {/* ========================================================================= */}
-      {/* EXACT FIXED A4 PORTRAIT PRINT & PDF STYLES (210mm x 297mm) */}
-      {/* ========================================================================= */}
-      <style>{'        @page {          size: 210mm 297mm;          margin: 0mm;        }        @media print {          html, body {            width: 210mm !important;            height: 297mm !important;            margin: 0 !important;            padding: 0 !important;            background: #ffffff !important;            -webkit-print-color-adjust: exact !important;            print-color-adjust: exact !important;            font-size: 12px !important;          }          .no-print {            display: none !important;          }          .a4-receipt-canvas {            width: 210mm !important;            min-width: 210mm !important;            max-width: 210mm !important;            height: 297mm !important;            min-height: 297mm !important;            max-height: 297mm !important;            margin: 0 auto !important;            padding: 12mm 14mm 10mm 14mm !important;            box-shadow: none !important;            border: none !important;            page-break-after: avoid !important;            page-break-inside: avoid !important;            overflow: hidden !important;            position: relative !important;          }        }      '}</style>
+      {/* PRINT-SPECIFIC CSS INJECTION */}
+      <style>{`
+        @page {
+          size: A4 portrait;
+          margin: 0mm;
+        }
+        @media print {
+          html, body {
+            width: 210mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .a4-receipt-canvas {
+            width: 210mm !important;
+            min-width: 210mm !important;
+            max-width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            margin: 0 auto !important;
+            padding: 12mm 14mm 10mm 14mm !important;
+            box-shadow: none !important;
+            border: none !important;
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
+            overflow: hidden !important;
+          }
+        }
+      `}</style>
 
       {/* TOP PREVIEW ACTION BAR (WEB ONLY) */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs no-print">
@@ -81,7 +113,7 @@ export const ExamFormReceiptPage: React.FC = () => {
               className="px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-extrabold text-xs shadow-sm hover:bg-emerald-800 transition flex items-center gap-1.5 cursor-pointer"
             >
               <Download className="w-4 h-4" />
-              <span>⬇ Download PDF (Fixed A4)</span>
+              <span>⬇ Download PDF</span>
             </button>
           </div>
         </div>
@@ -124,7 +156,8 @@ export const ExamFormReceiptPage: React.FC = () => {
             <img
               src="/assets/branding/don-bosco-logo.png"
               alt="Watermark"
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-88 h-88 opacity-[0.035] pointer-events-none object-contain select-none"
+              style={{ width: '220px', height: '220px' }}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.035] pointer-events-none object-contain select-none"
             />
 
             <div className="space-y-3.5 relative z-10">
@@ -137,7 +170,8 @@ export const ExamFormReceiptPage: React.FC = () => {
                   <img
                     src="/assets/branding/don-bosco-logo.png"
                     alt="Don Bosco Academy Crest"
-                    className="w-15 h-15 object-contain rounded-xl border border-slate-200 p-0.5"
+                    style={{ width: '56px', height: '56px', minWidth: '56px', maxWidth: '56px' }}
+                    className="object-contain rounded-xl border border-slate-200 p-0.5 shrink-0 bg-white"
                   />
                   <div>
                     <h1 className="text-xl sm:text-2xl font-black font-display text-sapphire-950 uppercase tracking-tight leading-none">
@@ -219,11 +253,15 @@ export const ExamFormReceiptPage: React.FC = () => {
                 </div>
                 <div className="flex gap-3.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 items-center">
                   {/* LEFT: Fixed Passport Photo */}
-                  <div className="w-22 h-26 shrink-0 rounded-lg border-2 border-sapphire-900 overflow-hidden bg-white p-0.5 shadow-2xs">
+                  <div
+                    style={{ width: '82px', height: '100px', minWidth: '82px', maxWidth: '82px' }}
+                    className="shrink-0 rounded-lg border-2 border-sapphire-900 overflow-hidden bg-white p-0.5 shadow-2xs"
+                  >
                     <img
                       src={app.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
                       alt={app.student_name}
-                      className="w-full h-full object-cover rounded"
+                      style={{ width: '100%', height: '100%' }}
+                      className="object-cover rounded"
                     />
                   </div>
 
@@ -319,7 +357,8 @@ export const ExamFormReceiptPage: React.FC = () => {
                     <img
                       src="/assets/branding/don-bosco-stamp.svg"
                       alt="Institutional Seal"
-                      className="w-14 h-14 object-contain mx-auto opacity-95"
+                      style={{ width: '56px', height: '56px', minWidth: '56px', maxWidth: '56px' }}
+                      className="object-contain mx-auto opacity-95"
                     />
                   </div>
                   <div className="text-[8.5px] font-black uppercase tracking-wider text-sapphire-950 block">
@@ -336,7 +375,8 @@ export const ExamFormReceiptPage: React.FC = () => {
                     <img
                       src="/assets/branding/principal-signature.svg"
                       alt="Principal Signature"
-                      className="h-8 object-contain mx-auto sm:ml-auto"
+                      style={{ height: '36px', maxWidth: '140px' }}
+                      className="object-contain mx-auto sm:ml-auto"
                     />
                   </div>
                   <div className="border-t-2 border-slate-400 pt-1">
