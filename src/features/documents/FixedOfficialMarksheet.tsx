@@ -149,86 +149,86 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 6. EXAMINATION INFORMATION CARD (172mm) */}
+          {/* 6. EXAMINATION INFORMATION CARD (172mm - Transparent See-Through) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-[#0F2756]/40 bg-white/85 shadow-2xs mt-1.5"
+            className="w-full rounded border border-[#0F2756]/50 bg-transparent mt-1.5"
             style={{ padding: '3px 8px' }}
           >
             <div className="grid grid-cols-6 gap-2 text-center items-center">
-              <div className="border-r border-slate-300 pr-1">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Academic Session</span>
-                <strong className="block text-[#0F2756] font-bold" style={{ fontSize: '8pt' }}>{data.academic_session}</strong>
+              <div className="border-r border-[#0F2756]/30 pr-1">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Academic Session</span>
+                <strong className="block text-[#0F2756] font-extrabold" style={{ fontSize: '8pt' }}>{data.academic_session}</strong>
               </div>
-              <div className="border-r border-slate-300 pr-1">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Examination</span>
-                <strong className="block text-slate-900 font-bold truncate" style={{ fontSize: '8pt' }}>{data.exam_name}</strong>
+              <div className="border-r border-[#0F2756]/30 pr-1">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Examination</span>
+                <strong className="block text-slate-900 font-extrabold truncate" style={{ fontSize: '8pt' }}>{data.exam_name}</strong>
               </div>
-              <div className="border-r border-slate-300 pr-1">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Class</span>
-                <strong className="block text-slate-900 font-bold" style={{ fontSize: '8pt' }}>{data.class_name}</strong>
+              <div className="border-r border-[#0F2756]/30 pr-1">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Class</span>
+                <strong className="block text-slate-900 font-extrabold" style={{ fontSize: '8pt' }}>{data.class_name}</strong>
               </div>
-              <div className="border-r border-slate-300 pr-1">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Section</span>
-                <strong className="block text-slate-900 font-bold" style={{ fontSize: '8pt' }}>{data.section_name}</strong>
+              <div className="border-r border-[#0F2756]/30 pr-1">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Section</span>
+                <strong className="block text-slate-900 font-extrabold" style={{ fontSize: '8pt' }}>{data.section_name}</strong>
               </div>
-              <div className="border-r border-slate-300 pr-1">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Marksheet No.</span>
+              <div className="border-r border-[#0F2756]/30 pr-1">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Marksheet No.</span>
                 <strong className="block font-mono text-[#0F2756] font-bold truncate" style={{ fontSize: '7.5pt' }}>{data.marksheet_no}</strong>
               </div>
               <div>
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Issue Date</span>
-                <strong className="block font-mono text-slate-800 font-bold" style={{ fontSize: '7.5pt' }}>{formatDDMMYYYY(data.issue_date)}</strong>
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Issue Date</span>
+                <strong className="block font-mono text-slate-900 font-bold" style={{ fontSize: '7.5pt' }}>{formatDDMMYYYY(data.issue_date)}</strong>
               </div>
             </div>
           </div>
 
           {/* ========================================================================= */}
-          {/* 7. STUDENT INFORMATION CARD (172mm x ~33mm) */}
+          {/* 7. STUDENT INFORMATION CARD (172mm x ~33mm - Transparent See-Through) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-[#0F2756]/40 bg-white/85 p-2 shadow-2xs mt-1.5 flex gap-3 items-center"
+            className="w-full rounded border border-[#0F2756]/50 bg-transparent p-2 mt-1.5 flex gap-3 items-center"
             style={{ height: '33mm', minHeight: '33mm', maxHeight: '33mm' }}
           >
             {/* Left & Middle Info Columns */}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-slate-800 flex-1 leading-tight" style={{ fontSize: '7.5pt' }}>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-slate-900 flex-1 leading-tight" style={{ fontSize: '7.5pt' }}>
               <div className="flex">
-                <span className="text-slate-500 font-medium w-[24mm] shrink-0">Student Name:</span>
+                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Student Name:</span>
                 <strong className="text-[#0F2756] uppercase font-black truncate">{data.student_name}</strong>
               </div>
               <div className="flex">
-                <span className="text-slate-500 font-medium w-[24mm] shrink-0">Roll Number:</span>
-                <strong className="font-mono text-slate-900 font-bold">{data.roll_no}</strong>
+                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Roll Number:</span>
+                <strong className="font-mono text-slate-950 font-black">{data.roll_no}</strong>
               </div>
               <div className="flex">
-                <span className="text-slate-500 font-medium w-[24mm] shrink-0">Father's Name:</span>
-                <span className="font-semibold text-slate-800 truncate">{data.father_name || '—'}</span>
+                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Father's Name:</span>
+                <span className="font-bold text-slate-900 truncate">{data.father_name || '—'}</span>
               </div>
               <div className="flex">
-                <span className="text-slate-500 font-medium w-[24mm] shrink-0">Date of Birth:</span>
-                <span className="font-mono font-semibold text-slate-800">{formatDDMMYYYY(data.dob)}</span>
+                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Date of Birth:</span>
+                <span className="font-mono font-bold text-slate-900">{formatDDMMYYYY(data.dob)}</span>
               </div>
               <div className="flex">
-                <span className="text-slate-500 font-medium w-[24mm] shrink-0">Mother's Name:</span>
-                <span className="font-semibold text-slate-800 truncate">{data.mother_name || '—'}</span>
+                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Mother's Name:</span>
+                <span className="font-bold text-slate-900 truncate">{data.mother_name || '—'}</span>
               </div>
               <div className="flex">
-                <span className="text-slate-500 font-medium w-[24mm] shrink-0">Gender:</span>
-                <span className="font-semibold text-slate-800">{data.gender}</span>
+                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Gender:</span>
+                <span className="font-bold text-slate-900">{data.gender}</span>
               </div>
               <div className="flex">
-                <span className="text-slate-500 font-medium w-[24mm] shrink-0">Admission No:</span>
-                <strong className="font-mono text-[#0F2756] font-bold">{data.admission_no}</strong>
+                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Admission No:</span>
+                <strong className="font-mono text-[#0F2756] font-black">{data.admission_no}</strong>
               </div>
               <div className="flex">
-                <span className="text-slate-500 font-medium w-[24mm] shrink-0">Reg. Number:</span>
-                <span className="font-mono font-semibold text-slate-700">{data.registration_no || 'DBA/' + data.admission_no}</span>
+                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Reg. Number:</span>
+                <span className="font-mono font-bold text-slate-800">{data.registration_no || 'DBA/' + data.admission_no}</span>
               </div>
             </div>
 
             {/* Right: Student Passport Photo */}
             <div
-              className="w-[28mm] h-[31mm] shrink-0 rounded border border-slate-400 bg-slate-50 p-0.5 overflow-hidden flex items-center justify-center text-center"
+              className="w-[28mm] h-[31mm] shrink-0 rounded border-2 border-[#0F2756]/60 bg-white/60 p-0.5 overflow-hidden flex items-center justify-center text-center shadow-2xs"
               style={{ width: '28mm', height: '31mm' }}
             >
               {data.photo_url ? (
@@ -238,7 +238,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
                   className="w-full h-full object-cover rounded"
                 />
               ) : (
-                <div className="text-slate-400 font-bold tracking-wider" style={{ fontSize: '6.5pt' }}>
+                <div className="text-slate-500 font-bold tracking-wider" style={{ fontSize: '6.5pt' }}>
                   STUDENT<br />PHOTO
                 </div>
               )}
@@ -246,10 +246,10 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 8. MARKS TABLE (172mm) */}
+          {/* 8. MARKS TABLE (172mm - Transparent See-Through) */}
           {/* ========================================================================= */}
-          <div className="w-full border border-[#0F2756]/50 rounded overflow-hidden bg-white/90 shadow-2xs mt-1.5">
-            <table className="w-full border-collapse text-slate-900" style={{ fontSize: '7.5pt' }}>
+          <div className="w-full border border-[#0F2756]/60 rounded overflow-hidden bg-transparent mt-1.5">
+            <table className="w-full border-collapse text-slate-950" style={{ fontSize: '7.5pt' }}>
               <thead>
                 <tr className="bg-[#0F2756] text-white font-bold uppercase text-center" style={{ height: '7.5mm' }}>
                   <th style={{ width: '10mm', padding: '2px' }} className="border-r border-white/20">Sl.</th>
@@ -262,23 +262,23 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
                   <th style={{ width: '20mm', padding: '2px' }}>Grade</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-transparent">
                 {data.subjects.map((sub, idx) => (
                   <tr
                     key={idx}
-                    className={'border-b border-slate-200 text-center ' + (idx % 2 === 1 ? 'bg-slate-50/70' : 'bg-white/80')}
+                    className="border-b border-[#0F2756]/20 text-center bg-transparent"
                     style={{ height: '6.8mm' }}
                   >
-                    <td className="font-mono text-slate-500 border-r border-slate-200">{idx + 1}</td>
-                    <td className="text-left font-bold text-slate-900 px-2 border-r border-slate-200 truncate">{sub.subject_name}</td>
-                    <td className="font-mono text-slate-700 border-r border-slate-200">{sub.full_marks}</td>
-                    <td className="font-mono text-slate-700 border-r border-slate-200">{sub.pass_marks}</td>
-                    <td className="font-mono font-semibold text-slate-900 border-r border-slate-200">{sub.theory_marks}</td>
-                    <td className="font-mono text-slate-700 border-r border-slate-200">
+                    <td className="font-mono text-slate-600 border-r border-[#0F2756]/20 font-bold">{idx + 1}</td>
+                    <td className="text-left font-extrabold text-slate-950 px-2 border-r border-[#0F2756]/20 truncate">{sub.subject_name}</td>
+                    <td className="font-mono text-slate-800 border-r border-[#0F2756]/20 font-bold">{sub.full_marks}</td>
+                    <td className="font-mono text-slate-800 border-r border-[#0F2756]/20 font-bold">{sub.pass_marks}</td>
+                    <td className="font-mono font-bold text-slate-950 border-r border-[#0F2756]/20">{sub.theory_marks}</td>
+                    <td className="font-mono text-slate-800 border-r border-[#0F2756]/20 font-bold">
                       {sub.practical_marks !== null && sub.practical_marks !== undefined ? sub.practical_marks : '—'}
                     </td>
-                    <td className="font-mono font-black text-[#0F2756] border-r border-slate-200">{sub.total_marks}</td>
-                    <td className="font-bold text-slate-900">{sub.grade}</td>
+                    <td className="font-mono font-black text-[#0F2756] border-r border-[#0F2756]/20">{sub.total_marks}</td>
+                    <td className="font-black text-slate-950">{sub.grade}</td>
                   </tr>
                 ))}
               </tbody>
@@ -286,37 +286,37 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 11. RESULT SUMMARY CARD (172mm x ~17mm) */}
+          {/* 11. RESULT SUMMARY CARD (172mm x ~16mm - Transparent See-Through) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border-2 border-[#0F2756] bg-[#0F2756]/5 p-1.5 mt-1.5 shadow-2xs"
+            className="w-full rounded border-2 border-[#0F2756] bg-transparent p-1.5 mt-1.5"
             style={{ height: '16mm', minHeight: '16mm' }}
           >
             <div className="grid grid-cols-6 gap-2 text-center items-center h-full">
-              <div className="border-r border-slate-300">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Total Full Marks</span>
-                <strong className="block font-mono text-slate-900 font-bold" style={{ fontSize: '9pt' }}>{data.total_full_marks}</strong>
+              <div className="border-r border-[#0F2756]/30">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Total Full Marks</span>
+                <strong className="block font-mono text-slate-950 font-black" style={{ fontSize: '9pt' }}>{data.total_full_marks}</strong>
               </div>
-              <div className="border-r border-slate-300">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Marks Obtained</span>
+              <div className="border-r border-[#0F2756]/30">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Marks Obtained</span>
                 <strong className="block font-mono text-[#0F2756] font-black" style={{ fontSize: '10pt' }}>{data.total_marks_obtained}</strong>
               </div>
-              <div className="border-r border-slate-300">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Percentage</span>
-                <strong className="block font-mono text-emerald-800 font-black" style={{ fontSize: '10pt' }}>{data.percentage.toFixed(2)}%</strong>
+              <div className="border-r border-[#0F2756]/30">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Percentage</span>
+                <strong className="block font-mono text-emerald-900 font-black" style={{ fontSize: '10pt' }}>{data.percentage.toFixed(2)}%</strong>
               </div>
-              <div className="border-r border-slate-300">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Overall Grade</span>
+              <div className="border-r border-[#0F2756]/30">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Overall Grade</span>
                 <strong className="block text-[#0F2756] font-black" style={{ fontSize: '10pt' }}>{data.overall_grade}</strong>
               </div>
-              <div className="border-r border-slate-300">
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Division</span>
-                <strong className="block text-slate-900 font-bold" style={{ fontSize: '8pt' }}>{data.division}</strong>
+              <div className="border-r border-[#0F2756]/30">
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Division</span>
+                <strong className="block text-slate-950 font-black" style={{ fontSize: '8pt' }}>{data.division}</strong>
               </div>
               <div>
-                <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Final Result</span>
+                <span className="block text-slate-600 uppercase font-bold" style={{ fontSize: '6.5pt' }}>Final Result</span>
                 <span
-                  className={'inline-block px-2 py-0.5 font-black uppercase rounded ' + (data.result === 'PASS' ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900')}
+                  className={'inline-block px-2.5 py-0.5 font-black uppercase rounded border ' + (data.result === 'PASS' ? 'bg-emerald-100/90 text-emerald-950 border-emerald-400' : 'bg-rose-100/90 text-rose-950 border-rose-400')}
                   style={{ fontSize: '8.5pt' }}
                 >
                   {data.result}
@@ -326,27 +326,27 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 12. ADDITIONAL SUMMARY CARD (172mm) */}
+          {/* 12. ADDITIONAL SUMMARY CARD (172mm - Transparent See-Through) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-slate-300 bg-white/85 px-3 py-1 mt-1.5 flex items-center justify-between text-slate-800"
+            className="w-full rounded border border-[#0F2756]/40 bg-transparent px-3 py-1 mt-1.5 flex items-center justify-between text-slate-900"
             style={{ fontSize: '6.5pt' }}
           >
             <div>
-              <span className="text-slate-500 font-semibold uppercase">Attendance:</span>{' '}
-              <strong className="font-mono text-slate-900">{data.attendance || '214 / 225 Days'}</strong>
+              <span className="text-slate-600 font-bold uppercase">Attendance:</span>{' '}
+              <strong className="font-mono text-slate-950 font-black">{data.attendance || '214 / 225 Days'}</strong>
             </div>
             <div>
-              <span className="text-slate-500 font-semibold uppercase">Class Rank:</span>{' '}
-              <strong className="text-[#0F2756]">{data.class_rank || '1st Position'}</strong>
+              <span className="text-slate-600 font-bold uppercase">Class Rank:</span>{' '}
+              <strong className="text-[#0F2756] font-black">{data.class_rank || '1st Position'}</strong>
             </div>
             <div className="truncate max-w-[70mm]">
-              <span className="text-slate-500 font-semibold uppercase">Remarks:</span>{' '}
-              <span className="italic font-medium text-slate-700">{data.remarks || 'Outstanding academic performance and discipline.'}</span>
+              <span className="text-slate-600 font-bold uppercase">Remarks:</span>{' '}
+              <span className="italic font-bold text-slate-800">{data.remarks || 'Outstanding academic performance and discipline.'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-semibold uppercase">Status:</span>{' '}
-              <strong className="text-emerald-700">OFFICIALLY ISSUED</strong>
+              <span className="text-slate-600 font-bold uppercase">Status:</span>{' '}
+              <strong className="text-emerald-800 font-black">OFFICIALLY ISSUED</strong>
             </div>
           </div>
 
