@@ -319,48 +319,49 @@ export const ExamFormReceiptPage: React.FC = () => {
               </div>
 
               {/* ========================================================================= */}
-              {/* G. QR CODE / RECEIPT VERIFICATION & H. SIGNATURES */}
+              {/* G. SIGNATURES & OFFICIAL INSTITUTIONAL SEAL (NO QR CODE) */}
               {/* ========================================================================= */}
-              <div className="pt-2 border-t-2 border-slate-300 grid grid-cols-3 gap-4 items-end text-xs">
-                {/* Left: Candidate Signature space */}
-                <div className="text-center space-y-12">
-                  <div className="h-10"></div>
-                  <div className="border-t border-slate-400 pt-1 text-[10px] font-bold text-slate-700">
-                    Candidate's Signature
+              <div className="pt-4 border-t-2 border-slate-300 grid grid-cols-3 gap-6 items-end text-xs">
+                {/* Left: Candidate Signature */}
+                <div className="text-center space-y-3">
+                  <div className="h-10 flex items-end justify-center">
+                    <span className="text-[10px] font-mono text-slate-400 italic">Verified Submission</span>
+                  </div>
+                  <div className="border-t-2 border-slate-400 pt-1">
+                    <div className="font-bold text-slate-900 text-xs">{app.student_name}</div>
+                    <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">Candidate's Signature</div>
                   </div>
                 </div>
 
                 {/* Center: Institutional Seal */}
-                <div className="text-center space-y-1">
-                  <img
-                    src="/assets/branding/don-bosco-seal.png"
-                    alt="School Seal"
-                    className="w-16 h-16 object-contain mx-auto opacity-95"
-                  />
-                  <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-600">
+                <div className="text-center space-y-1.5">
+                  <div className="inline-block p-1 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+                    <img
+                      src="/assets/branding/don-bosco-stamp.svg"
+                      alt="Institutional Seal"
+                      className="w-18 h-18 object-contain mx-auto opacity-95"
+                    />
+                  </div>
+                  <div className="text-[9px] font-black uppercase tracking-wider text-sapphire-950 block">
                     Institutional Seal
+                  </div>
+                  <div className="text-[8px] font-semibold text-slate-400 -mt-1 block">
+                    Don Bosco Academy
                   </div>
                 </div>
 
-                {/* Right: Principal Signature & QR code */}
-                <div className="text-right space-y-2">
-                  <div className="flex items-center justify-end gap-2">
-                    <div>
-                      <span className="text-[8px] font-black uppercase text-emerald-700 block">SCAN TO VIEW RECEIPT</span>
-                      <code className="text-[8px] font-mono text-slate-500 block">{app.application_no}</code>
-                    </div>
-                    <div className="p-1 bg-white border border-slate-300 rounded shadow-2xs inline-block">
-                      <QrCode className="w-9 h-9 text-slate-900" />
-                    </div>
-                  </div>
-                  <div>
+                {/* Right: Principal & Authorized Signatory */}
+                <div className="text-center sm:text-right space-y-1">
+                  <div className="h-12 flex items-end justify-center sm:justify-end">
                     <img
-                      src="/assets/branding/principal-signature.png"
-                      alt="Signature"
-                      className="h-8 ml-auto object-contain"
+                      src="/assets/branding/principal-signature.svg"
+                      alt="Principal Signature"
+                      className="h-10 object-contain mx-auto sm:ml-auto"
                     />
-                    <div className="font-bold text-slate-900 text-[11px] leading-tight">Md. Shami Ahmad</div>
-                    <div className="text-[9px] text-slate-500 font-semibold">Principal & Authorized Signatory</div>
+                  </div>
+                  <div className="border-t-2 border-slate-400 pt-1">
+                    <div className="font-extrabold text-slate-900 text-xs">Md. Shami Ahmad</div>
+                    <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">Principal &amp; Authorized Signatory</div>
                   </div>
                 </div>
               </div>

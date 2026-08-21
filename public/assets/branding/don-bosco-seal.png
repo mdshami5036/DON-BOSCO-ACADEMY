@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <path id="stampArcTop" d="M 45,150 A 105,105 0 0,1 255,150" fill="none" />
+    <path id="stampArcBottom" d="M 255,150 A 105,105 0 0,1 45,150" fill="none" />
+  </defs>
+  <circle cx="150" cy="150" r="140" fill="none" stroke="#1E3A8A" stroke-width="4" stroke-dasharray="6,4"/>
+  <circle cx="150" cy="150" r="132" fill="none" stroke="#1E3A8A" stroke-width="2"/>
+  <circle cx="150" cy="150" r="88" fill="none" stroke="#1E3A8A" stroke-width="2"/>
+  
+  <text font-family="'Times New Roman', serif" font-size="18" font-weight="bold" fill="#1E3A8A" letter-spacing="2.5">
+    <textPath href="#stampArcTop" startOffset="50%" text-anchor="middle">
+      DON BOSCO ACADEMY
+    </textPath>
+  </text>
+  <text font-family="'Times New Roman', serif" font-size="15" font-weight="bold" fill="#1E3A8A" letter-spacing="2">
+    <textPath href="#stampArcBottom" startOffset="50%" text-anchor="middle">
+      ★ RAIPUR BAZAR, SITAMARHI ★
+    </textPath>
+  </text>
+
+  <g transform="translate(150, 150) scale(0.65)">
+    <path d="M0,-50 L12,-15 L48,-15 L18,8 L30,44 L0,22 L-30,44 L-18,8 L-48,-15 L-12,-15 Z" fill="none" stroke="#1E3A8A" stroke-width="3"/>
+    <text x="0" y="5" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1E3A8A" text-anchor="middle">SEAL</text>
+    <text x="0" y="-65" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1E3A8A" text-anchor="middle">ESTD 1997</text>
+    <text x="0" y="75" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1E3A8A" text-anchor="middle">OFFICIAL</text>
+  </g>
+</svg>
