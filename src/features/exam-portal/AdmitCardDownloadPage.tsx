@@ -2,9 +2,25 @@ import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../../services/db';
-import { PublishableExamLink, Student, School } from '../../types/database';
+import { PublishableExamLink, Student, School, ExamApplication } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
-import { FileBadge, Search, Printer, Download, CheckCircle2, Calendar, Clock, MapPin, ShieldCheck, AlertTriangle, Lock, Sparkles } from 'lucide-react';
+import {
+  FileBadge,
+  Search,
+  Printer,
+  Download,
+  CheckCircle2,
+  Calendar,
+  Clock,
+  MapPin,
+  ShieldCheck,
+  AlertTriangle,
+  Lock,
+  Sparkles,
+  ArrowLeft,
+  FileX,
+  Send,
+} from 'lucide-react';
 
 export const AdmitCardDownloadPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -19,6 +35,7 @@ export const AdmitCardDownloadPage: React.FC = () => {
   const [rollQuery, setRollQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [foundStudent, setFoundStudent] = useState<any | null>(null);
+  const [notSubmittedError, setNotSubmittedError] = useState<{ studentName?: string; identifier: string } | null>(null);
 
   const classOptions = [
     'Class 10', 'Class 9', 'Class 8', 'Class 7', 'Class 6',
@@ -67,50 +84,77 @@ export const AdmitCardDownloadPage: React.FC = () => {
     }
 
     setIsSearching(true);
+    setNotSubmittedError(null);
+    setFoundStudent(null);
+
     try {
       const query = searchMode === 'ADMISSION_NO' ? admissionQuery.trim() : rollQuery.trim();
-      const stu = await db.lookupStudentForExamForm(searchMode, query, classQuery);
-      if (stu) {
-        // Fetch verified application if available
-        let appData: any = null;
-        if (link) {
-          appData = await db.checkStudentAlreadySubmitted(link.id, stu.admission_number || stu.id);
-        }
-        if (!appData) {
-          const allApps = await db.getExamApplications();
-          appData = allApps.find(a => a.admission_number === stu.admission_number || a.student_id === stu.id || a.roll_number === stu.roll_number);
-        }
+      
+      // 1. Check if application was actually submitted for this exam
+      const allApps = await db.getExamApplications();
+      let appData: ExamApplication | null = null;
 
-        setFoundStudent({
-          ...stu,
-          first_name: appData?.student_name ? appData.student_name.split(' ')[0] : stu.first_name,
-          last_name: appData?.student_name ? appData.student_name.split(' ').slice(1).join(' ') : stu.last_name,
-          father_name: appData?.father_name || stu.father_name || 'Rajesh Singh',
-          mother_name: appData?.mother_name || stu.mother_name || 'Sunita Devi',
-          photo_url: appData?.photo_url || stu.photo_url,
-          roll_number: appData?.roll_number || stu.roll_number || '1001',
-          admission_number: appData?.admission_number || stu.admission_number || 'DBA-2026-001',
-          class_name: appData?.class_name || stu.class_name || 'Class 10',
-          section_name: appData?.section_name || stu.section_name || 'A',
-          admit_card_no: appData?.admit_card_no || ('DBA/ADMIT/2026/' + (stu.roll_number || '1001')),
-          exam_center: link?.exam_center || 'Don Bosco Academy Main Examination Hall, Sitamarhi',
-          timetable: [
-            { subject: 'Mathematics', date: '02/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
-            { subject: 'Science & Physics Lab', date: '05/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
-            { subject: 'Social Science', date: '08/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
-            { subject: 'English Language', date: '11/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
-            { subject: 'Hindi Literature', date: '14/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
-            { subject: 'Computer Applications & AI', date: '17/03/2026', time: '10:00 AM - 12:30 PM', room: 'Lab 2' },
-          ],
-        });
-        success('Official Admit Card loaded successfully!');
-      } else {
-        toastError(
-          searchMode === 'ADMISSION_NO'
-            ? 'No student found with Admission No: ' + admissionQuery
-            : 'No student found in ' + classQuery + ' with Roll No: ' + rollQuery
-        );
+      if (link) {
+        appData = await db.checkStudentAlreadySubmitted(link.id, query);
       }
+      
+      if (!appData) {
+        appData = allApps.find(
+          (a) =>
+            (link ? a.link_id === link.id : true) &&
+            (a.admission_number.toLowerCase() === query.toLowerCase() ||
+              a.roll_number.toLowerCase() === query.toLowerCase() ||
+              (a.application_no && a.application_no.toLowerCase() === query.toLowerCase()))
+        ) || null;
+      }
+
+      // STRICT VALIDATION: If student did NOT submit the exam form, block admit card download
+      if (!appData) {
+        const stu = await db.lookupStudentForExamForm(searchMode, query, classQuery);
+        setNotSubmittedError({
+          studentName: stu ? `${stu.first_name} ${stu.last_name}` : undefined,
+          identifier: query,
+        });
+        toastError('Aapka is exam ke liye Examination Form jama nahi mila hai. Admit Card keval unhi students ka download hoga jinhone pariksha form submit kiya hai.');
+        return;
+      }
+
+      // 2. Compile Official Admit Card from stored exam application + timetable
+      const defaultTimetable = [
+        { subject: 'Mathematics', date: '02/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+        { subject: 'Science & Physics Lab', date: '05/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+        { subject: 'Social Science', date: '08/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+        { subject: 'English Language', date: '11/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+        { subject: 'Hindi Literature', date: '14/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+        { subject: 'Computer Applications & AI', date: '17/03/2026', time: '10:00 AM - 12:30 PM', room: 'Lab 2' },
+      ];
+
+      const timetableToUse = link?.timetable && link.timetable.length > 0
+        ? link.timetable.map((t) => ({
+            subject: t.subject,
+            date: formatDDMMYYYY(t.date),
+            time: t.time,
+            room: t.room || 'Hall 1',
+          }))
+        : defaultTimetable;
+
+      setFoundStudent({
+        first_name: appData.student_name.split(' ')[0],
+        last_name: appData.student_name.split(' ').slice(1).join(' '),
+        father_name: appData.father_name || 'Rajesh Singh',
+        mother_name: appData.mother_name || 'Sunita Devi',
+        photo_url: appData.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+        roll_number: appData.roll_number || '1001',
+        admission_number: appData.admission_number || 'DBA-2026-001',
+        class_name: appData.class_name || 'Class 10',
+        section_name: appData.section_name || 'A',
+        application_no: appData.application_no,
+        admit_card_no: appData.admit_card_no || ('DBA/ADMIT/2026/' + appData.roll_number),
+        exam_center: link?.exam_center || 'Don Bosco Academy Main Examination Hall, Sitamarhi',
+        timetable: timetableToUse,
+      });
+
+      success('Official Examination Admit Card loaded successfully!');
     } finally {
       setIsSearching(false);
     }
@@ -128,7 +172,7 @@ export const AdmitCardDownloadPage: React.FC = () => {
             <img src="/assets/branding/don-bosco-logo.png" alt="Logo" className="w-10 h-10 rounded-xl object-contain bg-white border border-sapphire-700/20 p-0.5" />
             <div>
               <span className="font-display font-black text-sm uppercase text-sapphire-900 block">DON BOSCO ACADEMY</span>
-              <span className="text-[10px] text-coral-600 font-bold -mt-0.5 block">Official Admit Card & Hall Ticket Gateway</span>
+              <span className="text-[10px] text-coral-600 font-bold -mt-0.5 block">Official Admit Card &amp; Hall Ticket Gateway</span>
             </div>
           </Link>
           <div className="flex items-center gap-3">
@@ -149,9 +193,9 @@ export const AdmitCardDownloadPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight mt-2 text-white">{link?.title || 'Admit Card & Hall Ticket Portal'}</h1>
           <p className="text-xs sm:text-sm text-slate-300 mt-1">{link?.description || 'Download and print verified CBSE Examination Hall Tickets & Admit Cards.'}</p>
           <div className="flex flex-wrap items-center gap-4 mt-4 pt-3 border-t border-white/10 text-xs text-slate-300">
-            <div>Exam: <strong className="text-amber-300">{link?.exam_name}</strong></div>
+            <div>Exam: <strong className="text-amber-300">{link?.exam_name || 'CBSE Annual Examination 2026'}</strong></div>
             <div>•</div>
-            <div>Status: <strong className={isIssued ? 'text-emerald-400 font-bold' : 'text-amber-300 font-bold'}>{isIssued ? '✓ Released & Available for Download' : '🔒 Pending Admin Approval'}</strong></div>
+            <div>Status: <strong className={isIssued ? 'text-emerald-400 font-bold' : 'text-amber-300 font-bold'}>{isIssued ? '✓ Released & Available for Download' : '🔒 Pending Admin Release'}</strong></div>
           </div>
         </div>
 
@@ -165,7 +209,7 @@ export const AdmitCardDownloadPage: React.FC = () => {
                 The official admit cards for <strong>{link?.exam_name}</strong> have not yet been approved and released by the Don Bosco Academy administration.
               </p>
               <p className="text-xs text-amber-700 font-semibold">
-                👉 Admin / Principal dwara admit card approve & release karne ke baad aap apna Roll No ya Admission No daal kar admit card download kar payenge.
+                👉 Admin / Principal dwara admit card approve &amp; release karne ke baad aap apna Roll No ya Admission No daal kar admit card download kar payenge.
               </p>
               <div className="pt-2">
                 <Link to="/exam-portal" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-900 text-white text-xs font-bold">← Return to Portals Hub</Link>
@@ -179,19 +223,19 @@ export const AdmitCardDownloadPage: React.FC = () => {
               <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
                   <FileBadge className="w-5 h-5 text-indigo-600" />
-                  <h2 className="text-base font-black text-slate-900 font-display">Find & Download Your Examination Admit Card</h2>
+                  <h2 className="text-base font-black text-slate-900 font-display">Find &amp; Download Your Examination Admit Card</h2>
                 </div>
                 <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
                   <button
                     type="button"
-                    onClick={() => setSearchMode('ADMISSION_NO')}
+                    onClick={() => { setSearchMode('ADMISSION_NO'); setNotSubmittedError(null); }}
                     className={'px-3 py-1.5 rounded-lg transition cursor-pointer ' + (searchMode === 'ADMISSION_NO' ? 'bg-white text-sapphire-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800')}
                   >
                     🆔 By Admission No (Direct)
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSearchMode('ROLL_NO')}
+                    onClick={() => { setSearchMode('ROLL_NO'); setNotSubmittedError(null); }}
                     className={'px-3 py-1.5 rounded-lg transition cursor-pointer ' + (searchMode === 'ROLL_NO' ? 'bg-white text-sapphire-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800')}
                   >
                     📋 By Roll No (Select Class)
@@ -258,6 +302,47 @@ export const AdmitCardDownloadPage: React.FC = () => {
               </form>
             </div>
 
+            {/* NOT SUBMITTED EXAM FORM REJECTION BANNER */}
+            {notSubmittedError && (
+              <div className="p-6 rounded-3xl bg-rose-50 border-2 border-rose-300 shadow-soft-card space-y-3 animate-in fade-in duration-200 print:hidden">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <FileX className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-black text-rose-950 font-display">
+                      ❌ Examination Form Not Submitted / परीक्षा फॉर्म नहीं भरा गया है!
+                    </h3>
+                    <p className="text-xs text-rose-800 mt-1">
+                      {notSubmittedError.studentName ? (
+                        <>Candidate <strong>{notSubmittedError.studentName}</strong> (Identifier: <strong>{notSubmittedError.identifier}</strong>)</>
+                      ) : (
+                        <>Student with Identifier <strong>{notSubmittedError.identifier}</strong></>
+                      )}{' '}
+                      ne is pariksha (<strong>{link?.exam_name || 'Annual Exam 2026'}</strong>) ke liye online examination form submit nahi kiya hai.
+                    </p>
+                    <div className="mt-2 p-3 rounded-xl bg-white border border-rose-200 text-xs text-slate-700 font-semibold">
+                      📢 Note: Admit Card keval unhi students ka prapt hoga jinhone pariksha form bhara hai. Yadi aapne form nahi bhara hai toh kripya pehle exam form bharein.
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        to={`/exam-portal/form/${slug}`}
+                        className="px-4 py-2 rounded-xl bg-coral-600 text-white font-extrabold text-xs shadow-sm hover:bg-coral-700 transition flex items-center gap-1.5"
+                      >
+                        <Send className="w-3.5 h-3.5" /><span>📝 Fill Examination Form Now</span>
+                      </Link>
+                      <Link
+                        to="/exam-portal"
+                        className="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition"
+                      >
+                        Back to Portals Hub
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* OFFICIAL ADMIT CARD RENDER */}
             {foundStudent && (
               <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl p-6 sm:p-8 space-y-6 text-slate-900 print:border-none print:shadow-none print:p-0">
@@ -286,12 +371,14 @@ export const AdmitCardDownloadPage: React.FC = () => {
                     <div><span className="text-slate-400 block">Admission No:</span><strong className="text-sm text-sapphire-900 font-mono font-bold">{foundStudent.admission_number}</strong></div>
                     <div><span className="text-slate-400 block">Father's Name:</span><strong className="text-slate-800">{foundStudent.father_name}</strong></div>
                     <div><span className="text-slate-400 block">Mother's Name:</span><strong className="text-slate-800">{foundStudent.mother_name}</strong></div>
-                    <div><span className="text-slate-400 block">Class & Section:</span><strong className="text-slate-800">{foundStudent.class_name || 'Class 10'} (Section {foundStudent.section_name || 'A'})</strong></div>
+                    <div><span className="text-slate-400 block">Class &amp; Section:</span><strong className="text-slate-800">{foundStudent.class_name || 'Class 10'} (Section {foundStudent.section_name || 'A'})</strong></div>
                     <div><span className="text-slate-400 block">Roll Number:</span><strong className="text-slate-800 font-mono">{foundStudent.roll_number}</strong></div>
+                    <div><span className="text-slate-400 block">Form Application No:</span><strong className="text-indigo-700 font-mono">{foundStudent.application_no}</strong></div>
+                    <div><span className="text-slate-400 block">Admit Card No:</span><strong className="text-sapphire-900 font-mono font-bold">{foundStudent.admit_card_no}</strong></div>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">Exam Schedule & Timetable</div>
+                  <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">Exam Schedule &amp; Timetable</div>
                   <div className="overflow-x-auto rounded-xl border border-slate-200">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
@@ -299,6 +386,7 @@ export const AdmitCardDownloadPage: React.FC = () => {
                           <th className="p-2.5">Subject</th>
                           <th className="p-2.5">Date</th>
                           <th className="p-2.5">Timing</th>
+                          <th className="p-2.5 text-center">Room</th>
                           <th className="p-2.5 text-center">Sign of Invigilator</th>
                         </tr>
                       </thead>
@@ -306,8 +394,9 @@ export const AdmitCardDownloadPage: React.FC = () => {
                         {foundStudent.timetable.map((t: any, idx: number) => (
                           <tr key={idx} className="hover:bg-slate-50">
                             <td className="p-2.5 font-bold text-slate-800">{t.subject}</td>
-                            <td className="p-2.5 font-mono text-slate-600">{t.date}</td>
+                            <td className="p-2.5 font-mono text-slate-600 font-bold">{t.date}</td>
                             <td className="p-2.5 font-mono text-slate-600">{t.time}</td>
+                            <td className="p-2.5 font-bold text-center text-slate-700">{t.room || 'Hall 1'}</td>
                             <td className="p-2.5 text-center"><div className="w-24 h-6 border-b border-slate-300 mx-auto"></div></td>
                           </tr>
                         ))}
@@ -328,7 +417,7 @@ export const AdmitCardDownloadPage: React.FC = () => {
                   <div className="text-center sm:text-right">
                     <img src="/assets/branding/principal-signature.png" alt="Signature" className="h-10 mx-auto sm:ml-auto object-contain" />
                     <div className="font-bold text-slate-900 mt-1">Md. Shami Ahmad</div>
-                    <div className="text-[10px] text-slate-500 font-semibold">Principal & Head of Institution</div>
+                    <div className="text-[10px] text-slate-500 font-semibold">Principal &amp; Head of Institution</div>
                   </div>
                 </div>
               </div>

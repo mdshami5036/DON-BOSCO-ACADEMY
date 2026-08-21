@@ -2,39 +2,92 @@ import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { db } from '../../services/db';
 import { useAuth } from '../auth/AuthContext';
-import { PublishableExamLink, ExamLinkType } from '../../types/database';
+import { PublishableExamLink, ExamLinkType, ClassRoom } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
-import { Link as LinkIcon, Plus, QrCode, Calendar, Clock, CheckCircle2, AlertTriangle, Lock, ExternalLink, Users, FileBadge, FileSpreadsheet, Trash2, Edit2, Sparkles, Share2, Copy, Award, ShieldCheck, Check } from 'lucide-react';
+import {
+  Link as LinkIcon,
+  Plus,
+  QrCode,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  Lock,
+  ExternalLink,
+  Users,
+  FileBadge,
+  FileSpreadsheet,
+  Trash2,
+  Edit2,
+  Sparkles,
+  Share2,
+  Copy,
+  Award,
+  ShieldCheck,
+  Check,
+  CalendarCheck,
+  FileCheck,
+} from 'lucide-react';
 import { Modal } from '../../components/common/UI';
+
+const DEFAULT_TIMETABLE = [
+  { subject: 'English Language & Literature', date: '2026-03-02', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+  { subject: 'Mathematics (Standard)', date: '2026-03-05', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+  { subject: 'Science & Physics Lab', date: '2026-03-08', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+  { subject: 'Social Science', date: '2026-03-11', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+  { subject: 'Hindi Course-A', date: '2026-03-14', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+  { subject: 'Computer Applications & AI', date: '2026-03-17', time: '10:00 AM - 12:30 PM', room: 'Lab 2' },
+];
 
 export const ExamLinksManagementPage: React.FC = () => {
   const { currentSchool } = useAuth();
   const { success, error: toastError } = useToast();
   const [links, setLinks] = useState<PublishableExamLink[]>([]);
+  const [classes, setClasses] = useState<ClassRoom[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Create / Edit Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Modal 1: Create / Publish Examination Form
+  const [isExamFormModalOpen, setIsExamFormModalOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<PublishableExamLink | null>(null);
   const [form, setForm] = useState({
     title: '',
     slug: '',
-    link_type: 'ADMIT_CARD_FORM' as ExamLinkType,
     academic_year: '2025-2026',
     exam_name: '',
+    target_class: 'Class 10',
     description: '',
     expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    exam_center: 'Don Bosco Academy Examination Hall, Sitamarhi',
+    exam_center: 'Don Bosco Academy Main Examination Hall, Sitamarhi',
     is_active: true,
   });
 
-  // Published Link Live Dialog
+  // Modal 2: Issue Admit Cards with Timetable Scheduler
+  const [isAdmitSchedulerOpen, setIsAdmitSchedulerOpen] = useState(false);
+  const [selectedSourceExamId, setSelectedSourceExamId] = useState('');
+  const [admitTimetable, setAdmitTimetable] = useState<Array<{
+    subject: string;
+    date: string;
+    time: string;
+    room: string;
+  }>>(DEFAULT_TIMETABLE);
+
+  // Modal 3: Published URL Pop-up
   const [publishedDialog, setPublishedDialog] = useState<{ isOpen: boolean; url: string; title: string } | null>(null);
 
-  const loadLinks = async () => {
+  const loadData = async () => {
     try {
-      const list = await db.getExamLinks(currentSchool?.id || 'sch-don-bosco');
-      setLinks(list);
+      const [lList, cList, aList] = await Promise.all([
+        db.getExamLinks(currentSchool?.id || 'sch-don-bosco'),
+        db.getClasses(currentSchool?.id || 'sch-don-bosco'),
+        db.getExamApplications(),
+      ]);
+      setLinks(lList);
+      setClasses(cList);
+      setApplications(aList);
+      if (lList.length > 0 && !selectedSourceExamId) {
+        setSelectedSourceExamId(lList[0].id);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -43,43 +96,46 @@ export const ExamLinksManagementPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadLinks();
+    loadData();
   }, [currentSchool]);
 
-  const handleOpenCreate = () => {
+  // Open Create Exam Form
+  const handleOpenCreateForm = () => {
     setEditingLink(null);
     setForm({
       title: '',
       slug: '',
-      link_type: 'ADMIT_CARD_FORM',
       academic_year: '2025-2026',
       exam_name: '',
-      description: '',
+      target_class: 'Class 10',
+      description: 'Fill candidate examination particulars for upcoming board examination.',
       expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      exam_center: 'Don Bosco Academy Examination Hall, Sitamarhi',
+      exam_center: 'Don Bosco Academy Main Examination Hall, Sitamarhi',
       is_active: true,
     });
-    setIsModalOpen(true);
+    setIsExamFormModalOpen(true);
   };
 
+  // Open Edit Link
   const handleOpenEdit = (link: PublishableExamLink) => {
     setEditingLink(link);
     const expDate = link.expiry_date ? link.expiry_date.split('T')[0] : new Date().toISOString().split('T')[0];
     setForm({
       title: link.title || '',
       slug: link.slug || '',
-      link_type: link.link_type,
       academic_year: link.academic_year || '2025-2026',
       exam_name: link.exam_name || '',
+      target_class: link.target_classes?.[0] || 'Class 10',
       description: link.description || '',
       expiry_date: expDate,
-      exam_center: link.exam_center || 'Don Bosco Academy Examination Hall, Sitamarhi',
+      exam_center: link.exam_center || 'Don Bosco Academy Main Examination Hall, Sitamarhi',
       is_active: link.is_active !== undefined ? link.is_active : true,
     });
-    setIsModalOpen(true);
+    setIsExamFormModalOpen(true);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  // Save Examination Form
+  const handleSaveExamForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title || !form.exam_name) {
       toastError('Title and Exam Name are required.');
@@ -93,269 +149,531 @@ export const ExamLinksManagementPage: React.FC = () => {
         await db.updateExamLink(editingLink.id, {
           title: form.title,
           slug,
-          link_type: form.link_type,
           academic_year: form.academic_year,
           exam_name: form.exam_name,
           description: form.description,
           expiry_date: expiryIso,
           exam_center: form.exam_center,
+          target_classes: [form.target_class],
           is_active: form.is_active,
         });
-        success('Examination Portal Link updated successfully!');
+        success('Examination Form Link updated successfully!');
       } else {
-        const created = await db.createExamLink({
+        await db.createExamLink({
           school_id: currentSchool?.id || 'sch-don-bosco',
           title: form.title,
           slug,
-          link_type: form.link_type,
+          link_type: 'ADMIT_CARD_FORM',
           academic_year: form.academic_year,
           exam_name: form.exam_name,
           description: form.description,
           expiry_date: expiryIso,
           exam_center: form.exam_center,
+          target_classes: [form.target_class],
           is_active: form.is_active,
         });
-        let urlPath = '/exam-portal/form/' + slug;
-        if (form.link_type === 'ADMIT_CARD_DOWNLOAD') urlPath = '/exam-portal/admit-card/' + slug;
-        if (form.link_type === 'RESULT_PORTAL') urlPath = '/exam-portal/results/' + slug;
-        if (form.link_type === 'CERTIFICATE_RECORDS') urlPath = '/exam-portal/certificate/' + slug;
+        const urlPath = '/exam-portal/form/' + slug;
         setPublishedDialog({
           isOpen: true,
           url: window.location.origin + urlPath,
           title: form.title,
         });
-        success('New Examination Portal Link posted live to ERP Portal!');
+        success('New Examination Form posted live to ERP Portal!');
       }
-      setIsModalOpen(false);
-      loadLinks();
+      setIsExamFormModalOpen(false);
+      loadData();
     } catch (err: any) {
-      toastError(err.message || 'Error saving link');
+      toastError(err.message || 'Error saving examination form');
     }
   };
 
-  const handleIssueAdmitCards = async (link: PublishableExamLink) => {
+  // Open Issue Admit Cards Scheduler
+  const handleOpenAdmitScheduler = (linkId?: string) => {
+    const targetId = linkId || selectedSourceExamId || (links[0]?.id || '');
+    setSelectedSourceExamId(targetId);
+
+    const matchedLink = links.find((l) => l.id === targetId);
+    if (matchedLink && matchedLink.target_classes && matchedLink.target_classes.length > 0) {
+      const clsName = matchedLink.target_classes[0];
+      const matchedClass = classes.find((c) => c.name === clsName);
+      if (matchedClass && matchedClass.assigned_subjects && matchedClass.assigned_subjects.length > 0) {
+        setAdmitTimetable(
+          matchedClass.assigned_subjects.map((sub, i) => ({
+            subject: sub.subject_name,
+            date: `2026-03-${String(2 + i * 3).padStart(2, '0')}`,
+            time: '10:00 AM - 01:00 PM',
+            room: 'Hall 1',
+          }))
+        );
+      } else {
+        setAdmitTimetable(DEFAULT_TIMETABLE);
+      }
+    } else {
+      setAdmitTimetable(DEFAULT_TIMETABLE);
+    }
+    setIsAdmitSchedulerOpen(true);
+  };
+
+  // Handle Changing Source Exam in Scheduler
+  const handleSourceExamChange = (examId: string) => {
+    setSelectedSourceExamId(examId);
+    const matchedLink = links.find((l) => l.id === examId);
+    if (matchedLink && matchedLink.target_classes && matchedLink.target_classes.length > 0) {
+      const clsName = matchedLink.target_classes[0];
+      const matchedClass = classes.find((c) => c.name === clsName);
+      if (matchedClass && matchedClass.assigned_subjects && matchedClass.assigned_subjects.length > 0) {
+        setAdmitTimetable(
+          matchedClass.assigned_subjects.map((sub, i) => ({
+            subject: sub.subject_name,
+            date: `2026-03-${String(2 + i * 3).padStart(2, '0')}`,
+            time: '10:00 AM - 01:00 PM',
+            room: 'Hall 1',
+          }))
+        );
+      }
+    }
+  };
+
+  // Confirm Release of Admit Cards
+  const handleConfirmIssueAdmitCards = async () => {
+    if (!selectedSourceExamId) {
+      toastError('Please select the examination for which admit cards are being issued.');
+      return;
+    }
+
     try {
-      const res = await db.issueAdmitCardsBulk(link.id);
-      success('1-Click Batch: ' + res.count + ' Admit Cards Approved & Issued for this exam session!');
-      const url = window.location.origin + '/exam-portal/admit-card/' + link.slug;
+      const res = await db.issueAdmitCardsBulk(selectedSourceExamId, admitTimetable);
+      const sourceLink = links.find((l) => l.id === selectedSourceExamId);
+      const url = window.location.origin + '/exam-portal/admit-card/' + (sourceLink?.slug || 'admit-card-download-2026');
+
       setPublishedDialog({
         isOpen: true,
         url,
-        title: link.title + ' (Admit Cards Released)',
+        title: (sourceLink?.exam_name || 'Examination') + ' (Official Admit Cards Released)',
       });
-      loadLinks();
-    } catch (err: any) {
-      toastError(err.message || 'Error approving admit cards');
-    }
-  };
 
-  const handlePublishResults = async (link: PublishableExamLink) => {
-    try {
-      const res = await db.publishExamResultsBulk(link.id);
-      success('1-Click Batch: ' + res.count + ' Marksheets published live & auto-synced to /verify portal!');
-      const url = window.location.origin + '/exam-portal/results/' + link.slug;
-      setPublishedDialog({
-        isOpen: true,
-        url,
-        title: link.title + ' (Marksheets Published)',
-      });
-      loadLinks();
+      success(`Admit Cards successfully approved & released for ${res.count} form-submitted students!`);
+      setIsAdmitSchedulerOpen(false);
+      loadData();
     } catch (err: any) {
-      toastError(err.message || 'Error publishing results');
-    }
-  };
-
-  const handleIssueCertificates = async (link: PublishableExamLink) => {
-    try {
-      const res = await db.issueCertificatesBulk(link.id);
-      success('1-Click Batch: ' + res.count + ' Certificates issued with dynamic numbers & auto-synced to /verify portal!');
-      const url = window.location.origin + '/exam-portal/certificate/' + link.slug;
-      setPublishedDialog({
-        isOpen: true,
-        url,
-        title: link.title + ' (Certificates Issued)',
-      });
-      loadLinks();
-    } catch (err: any) {
-      toastError(err.message || 'Error issuing certificates');
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this published examination portal link?')) {
-      await db.deleteExamLink(id);
-      success('Portal link deleted.');
-      loadLinks();
+      toastError(err.message || 'Error releasing admit cards');
     }
   };
 
   const handleCopyLink = (link: PublishableExamLink) => {
     let path = '/exam-portal/form/' + link.slug;
-    if (link.link_type === 'CERTIFICATE_RECORDS') path = '/exam-portal/certificate/' + link.slug;
-    if (link.link_type === 'RESULT_PORTAL') path = '/exam-portal/results/' + link.slug;
     if (link.link_type === 'ADMIT_CARD_DOWNLOAD') path = '/exam-portal/admit-card/' + link.slug;
+    if (link.link_type === 'RESULT_PORTAL') path = '/exam-portal/results/' + link.slug;
+    if (link.link_type === 'CERTIFICATE_RECORDS') path = '/exam-portal/certificate/' + link.slug;
     const url = window.location.origin + path;
     navigator.clipboard.writeText(url);
     success('Portal URL copied to clipboard: ' + url);
   };
 
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this published portal link?')) {
+      await db.deleteExamLink(id);
+      success('Portal link deleted.');
+      loadData();
+    }
+  };
+
+  // Count submissions for an exam
+  const getSubmissionsCount = (linkId: string) => {
+    return applications.filter((a) => a.link_id === linkId).length;
+  };
+
+  const selectedLinkObj = links.find((l) => l.id === selectedSourceExamId);
+  const selectedExamSubmissionsCount = selectedSourceExamId ? getSubmissionsCount(selectedSourceExamId) : 0;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#0B192C] font-display">Exam & Admit Card Portal Publisher</h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">Publish official links to the ERP portal, manage admin issuance locks, approve admit cards, and sync verified credentials.</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0B192C] font-display">Exam &amp; Admit Card Portal Publisher</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Publish online examination forms, manage student submissions, set subject timetables, and release official admit cards.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <a href="/exam-portal" target="_blank" className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition flex items-center gap-1.5 shadow-2xs">
-            <ExternalLink className="w-4 h-4 text-indigo-600" /><span>View Public ERP Portal</span>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href="/exam-portal"
+            target="_blank"
+            className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition flex items-center gap-1.5 shadow-2xs"
+          >
+            <ExternalLink className="w-4 h-4 text-indigo-600" />
+            <span>Public ERP Portal</span>
           </a>
-          <button onClick={handleOpenCreate} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-coral-500 to-[#EB3C16] text-white font-extrabold text-xs shadow-md shadow-coral-500/20 hover:shadow-coral-glow transition flex items-center gap-1.5 cursor-pointer">
-            <Plus className="w-4 h-4" /><span>Publish New Portal Link</span>
+
+          <button
+            onClick={() => handleOpenAdmitScheduler()}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sapphire-900 to-indigo-800 text-white font-extrabold text-xs shadow-md hover:shadow-indigo-glow transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <CalendarCheck className="w-4 h-4 text-amber-300" />
+            <span>🎟️ Issue &amp; Schedule Admit Cards</span>
+          </button>
+
+          <button
+            onClick={handleOpenCreateForm}
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-coral-500 via-coral-600 to-[#EB3C16] text-white font-extrabold text-xs shadow-md shadow-coral-500/20 hover:shadow-coral-glow transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Publish Examination Form</span>
           </button>
         </div>
       </div>
 
+      {/* Published Links Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {links.map((link) => {
           const isExpired = new Date(link.expiry_date).getTime() < Date.now();
           const daysLeft = Math.max(0, Math.ceil((new Date(link.expiry_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+          const subCount = getSubmissionsCount(link.id);
+
           return (
-            <div key={link.id} className={'bg-white rounded-3xl border p-6 shadow-soft-card space-y-4 flex flex-col justify-between ' + (isExpired ? 'border-rose-200 bg-slate-50/50' : 'border-slate-200')}>
+            <div
+              key={link.id}
+              className={'bg-white rounded-3xl border p-6 shadow-soft-card space-y-4 flex flex-col justify-between ' + (isExpired ? 'border-rose-200 bg-slate-50/50' : 'border-slate-200')}
+            >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider bg-sapphire-50 text-sapphire-900 border border-sapphire-200">{link.academic_year} • {link.link_type.replace(/_/g, ' ')}</span>
+                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider bg-sapphire-50 text-sapphire-900 border border-sapphire-200">
+                    {link.academic_year} • {link.target_classes?.[0] || 'All Classes'}
+                  </span>
                   {isExpired ? (
-                    <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1"><Lock className="w-3 h-3" /> EXPIRED</span>
+                    <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> FORM CLOSED
+                    </span>
                   ) : (
-                    <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><Clock className="w-3 h-3 text-emerald-600" /> {daysLeft} Days Remaining</span>
+                    <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-emerald-600" /> {daysLeft} Days for Form Submission
+                    </span>
                   )}
                 </div>
-                <div><h3 className="text-lg font-black text-slate-900 font-display">{link.title}</h3><p className="text-xs text-slate-500 mt-0.5">{link.description || 'Public exam portal link.'}</p></div>
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1.5">
-                  <div className="flex justify-between"><span className="text-slate-400">Exam:</span><strong>{link.exam_name}</strong></div>
-                  <div className="flex justify-between"><span className="text-slate-400">Deadline (dd/mm/yyyy):</span><span className="font-mono font-bold text-slate-700">{formatDDMMYYYY(link.expiry_date)}</span></div>
-                  <div className="flex justify-between items-center pt-1 border-t border-slate-200/60">
-                    <span className="text-slate-400">Issuance Lock Status:</span>
-                    {link.link_type === 'CERTIFICATE_RECORDS' && (
-                      <span className={'px-2 py-0.5 rounded-md font-bold text-[10px] ' + (link.certificates_issued ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
-                        {link.certificates_issued ? '✓ Officially Issued & Verified' : '🔒 Locked (Unissued)'}
-                      </span>
-                    )}
-                    {link.link_type === 'RESULT_PORTAL' && (
-                      <span className={'px-2 py-0.5 rounded-md font-bold text-[10px] ' + (link.results_published ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
-                        {link.results_published ? '✓ Published & Verified' : '🔒 Locked (Unpublished)'}
-                      </span>
-                    )}
-                    {link.link_type === 'ADMIT_CARD_DOWNLOAD' && (
-                      <span className={'px-2 py-0.5 rounded-md font-bold text-[10px] ' + (link.admit_cards_issued ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
-                        {link.admit_cards_issued ? '✓ Admit Cards Live' : '🔒 Locked (Pending Admin Release)'}
-                      </span>
-                    )}
-                    {link.link_type === 'ADMIT_CARD_FORM' && (
-                      <span className={'px-2 py-0.5 rounded-md font-bold text-[10px] ' + (link.admit_cards_issued ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800')}>
-                        {link.admit_cards_issued ? '✓ Admit Cards Released' : `${link.applications_count || 0} Submissions`}
-                      </span>
-                    )}
+
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 font-display">{link.title}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">{link.description}</p>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Exam:</span>
+                    <strong className="text-slate-900 font-bold">{link.exam_name}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Form Deadline:</span>
+                    <span className="font-mono font-bold text-slate-700">{formatDDMMYYYY(link.expiry_date)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-200/70">
+                    <span className="text-slate-500 font-bold">Students Submitted:</span>
+                    <span className="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-900 font-black text-xs font-mono">
+                      ✓ {subCount} Form Submissions
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 font-bold">Admit Card Status:</span>
+                    <span className={'px-2 py-0.5 rounded-md font-bold text-[10px] ' + (link.admit_cards_issued ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
+                      {link.admit_cards_issued ? '✓ Admit Cards Released' : '🔒 Locked (Pending Timetable & Approval)'}
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <button onClick={() => handleOpenEdit(link)} className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Edit Link">
+                  <button
+                    onClick={() => handleOpenEdit(link)}
+                    className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    title="Edit Exam Form"
+                  >
                     <Edit2 className="w-3.5 h-3.5" /><span>Edit</span>
                   </button>
-                  <button onClick={() => handleCopyLink(link)} className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Copy Link URL">
+                  <button
+                    onClick={() => handleCopyLink(link)}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    title="Copy Form URL"
+                  >
                     <Copy className="w-3.5 h-3.5" /><span>Copy URL</span>
                   </button>
-                  <button onClick={() => handleDelete(link.id)} className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs transition cursor-pointer" title="Delete Link">
+                  <button
+                    onClick={() => handleDelete(link.id)}
+                    className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs transition cursor-pointer"
+                    title="Delete Link"
+                  >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                {(link.link_type === 'ADMIT_CARD_FORM' || link.link_type === 'ADMIT_CARD_DOWNLOAD') && (
-                  <button onClick={() => handleIssueAdmitCards(link)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-sapphire-900 to-indigo-700 text-white font-extrabold text-xs shadow-sm hover:shadow-indigo-glow transition flex items-center gap-1.5 cursor-pointer">
-                    <FileBadge className="w-4 h-4 text-amber-300" /><span>{link.admit_cards_issued ? 'Re-Approve & Post Admit Cards' : '1-Click Approve & Post Admit Cards'}</span>
-                  </button>
-                )}
-                {link.link_type === 'RESULT_PORTAL' && (
-                  <button onClick={() => handlePublishResults(link)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 text-white font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
-                    <FileSpreadsheet className="w-4 h-4" /><span>{link.results_published ? 'Re-Publish Marksheets' : '1-Click Publish Marksheets (Sync /verify)'}</span>
-                  </button>
-                )}
-                {link.link_type === 'CERTIFICATE_RECORDS' && (
-                  <button onClick={() => handleIssueCertificates(link)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 text-white font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
-                    <Award className="w-4 h-4 text-amber-200" /><span>{link.certificates_issued ? 'Re-Issue Certificates' : '1-Click Issue Certificates (Sync /verify)'}</span>
-                  </button>
-                )}
+                <button
+                  onClick={() => handleOpenAdmitScheduler(link.id)}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-sapphire-900 to-indigo-800 text-white font-extrabold text-xs shadow-sm hover:shadow-indigo-glow transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <CalendarCheck className="w-4 h-4 text-amber-300" />
+                  <span>{link.admit_cards_issued ? 'Update Timetable & Re-Issue' : 'Set Timetable & Release Admit Cards'}</span>
+                </button>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Create / Edit Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingLink ? 'Edit Examination Portal Link' : 'Publish New Examination Portal Link'} size="lg">
-        <form onSubmit={handleSave} className="space-y-4 text-xs">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Portal Title *</label>
-            <input type="text" required placeholder="e.g. CBSE Class X Annual Board Exam 2026 - Admit Card Portal" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
+      {/* Modal 1: Publish Examination Form */}
+      <Modal
+        isOpen={isExamFormModalOpen}
+        onClose={() => setIsExamFormModalOpen(false)}
+        title={editingLink ? 'Edit Examination Form' : '📝 Publish New Examination Form'}
+        size="lg"
+      >
+        <form onSubmit={handleSaveExamForm} className="space-y-4 text-xs">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-950">
+            <p className="text-xs font-semibold">
+              Publishing this form allows students to fill candidate particulars on the public ERP portal. Only students who submit this form will be eligible to receive their Admit Card when issued.
+            </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+          <div>
+            <label className="block font-bold text-slate-700 mb-1">Form / Portal Title *</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. CBSE Class X Annual Board Examination 2026 - Registration Form"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Link Function / Type</label>
-              <select value={form.link_type} onChange={(e) => setForm({ ...form, link_type: e.target.value as any })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-bold">
-                <option value="ADMIT_CARD_FORM">📝 Examination / Admit Card Form</option>
-                <option value="ADMIT_CARD_DOWNLOAD">🎟️ Admit Card Download Portal</option>
-                <option value="RESULT_PORTAL">📊 Marksheets & Scorecard Portal</option>
-                <option value="CERTIFICATE_RECORDS">📜 Certificate Records & Download Portal</option>
+              <label className="block font-bold text-slate-700 mb-1">Examination Name *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. CBSE Class X Board Exam 2026"
+                value={form.exam_name}
+                onChange={(e) => setForm({ ...form, exam_name: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Target Class</label>
+              <select
+                value={form.target_class}
+                onChange={(e) => setForm({ ...form, target_class: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-slate-50"
+              >
+                {classes.map((c) => (
+                  <option key={c.id} value={c.name}>{c.name}</option>
+                ))}
               </select>
             </div>
             <div>
               <label className="block font-bold text-slate-700 mb-1">Academic Session</label>
-              <select value={form.academic_year} onChange={(e) => setForm({ ...form, academic_year: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900">
-                <option value="2025-2026">2025-2026</option>
-                <option value="2026-2027">2026-2027</option>
+              <select
+                value={form.academic_year}
+                onChange={(e) => setForm({ ...form, academic_year: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-bold bg-slate-50"
+              >
+                <option value="2025-2026">2025–2026</option>
+                <option value="2026-2027">2026–2027</option>
               </select>
             </div>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Exam Name *</label>
-              <input type="text" required placeholder="e.g. CBSE Class X Annual Board Exam 2026" value={form.exam_name} onChange={(e) => setForm({ ...form, exam_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
-            </div>
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">Expiry / Deadline Date *</label>
-              <input type="date" required value={form.expiry_date} onChange={(e) => setForm({ ...form, expiry_date: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">Custom URL Slug</label>
-              <input type="text" placeholder="e.g. annual-admit-card-2026" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-mono" />
+              <label className="block font-bold text-slate-700 mb-1">Form Submission Deadline *</label>
+              <input
+                type="date"
+                required
+                value={form.expiry_date}
+                onChange={(e) => setForm({ ...form, expiry_date: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-bold font-mono"
+              />
             </div>
             <div>
               <label className="block font-bold text-slate-700 mb-1">Examination Center</label>
-              <input type="text" placeholder="e.g. Don Bosco Academy Exam Hall" value={form.exam_center} onChange={(e) => setForm({ ...form, exam_center: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
+              <input
+                type="text"
+                value={form.exam_center}
+                onChange={(e) => setForm({ ...form, exam_center: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900"
+              />
             </div>
           </div>
+
           <div>
             <label className="block font-bold text-slate-700 mb-1">Instructions / Description</label>
-            <textarea rows={2} placeholder="Candidate instructions for this portal..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900" />
+            <textarea
+              rows={2}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900"
+            />
           </div>
-          <div className="flex items-center gap-2 pt-1">
-            <input type="checkbox" id="is_active_check" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="w-4 h-4 rounded text-indigo-600" />
-            <label htmlFor="is_active_check" className="font-bold text-slate-700 text-xs cursor-pointer">Active Portal Link (Uncheck to temporarily disable)</label>
-          </div>
+
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 font-bold text-slate-600 text-xs">Cancel</button>
-            <button type="submit" className="px-5 py-2 rounded-xl bg-sapphire-900 text-white font-bold text-xs">{editingLink ? 'Save Changes' : 'Publish Link Live to ERP Portal'}</button>
+            <button type="button" onClick={() => setIsExamFormModalOpen(false)} className="px-4 py-2 font-bold text-slate-600 text-xs">
+              Cancel
+            </button>
+            <button type="submit" className="px-5 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-sm">
+              {editingLink ? 'Save Changes' : 'Publish Examination Form Live'}
+            </button>
           </div>
         </form>
       </Modal>
 
-      {/* Published URL Pop-up */}
+      {/* Modal 2: Issue Admit Cards with Timetable Scheduler */}
+      <Modal
+        isOpen={isAdmitSchedulerOpen}
+        onClose={() => setIsAdmitSchedulerOpen(false)}
+        title="🎟️ Issue Admit Cards &amp; Schedule Timetable"
+        size="lg"
+      >
+        <div className="space-y-4 text-xs">
+          <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-2xl text-indigo-950 space-y-1">
+            <div className="font-bold flex items-center gap-1.5 text-indigo-900">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>Connected Admit Card Release Flow</span>
+            </div>
+            <p className="text-[11px] text-indigo-800">
+              Select an active examination below. The system will load its subjects, allow you to set the date &amp; time for each subject, and release Admit Cards <strong>strictly to students who submitted the form</strong>.
+            </p>
+          </div>
+
+          {/* 1. Select Existing Examination Form */}
+          <div>
+            <label className="block font-bold text-slate-800 mb-1">1. Select Published Examination Form *</label>
+            <select
+              value={selectedSourceExamId}
+              onChange={(e) => handleSourceExamChange(e.target.value)}
+              className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-900 bg-slate-50"
+            >
+              {links.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.exam_name} ({l.academic_year}) • {l.target_classes?.[0] || 'Class 10'}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 2. Form Submissions Verification Strip */}
+          <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-bold text-emerald-800 uppercase block">Eligible Form Submissions:</span>
+              <strong className="text-sm font-black text-emerald-950">
+                {selectedExamSubmissionsCount} Students Submitted Form
+              </strong>
+            </div>
+            <span className="px-2.5 py-1 rounded-xl bg-emerald-600 text-white font-bold text-[10px]">
+              Ready for Admit Card Release
+            </span>
+          </div>
+
+          {/* 3. Subject-wise Timetable Scheduler */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-800">2. Set Examination Schedule &amp; Timetable for Subjects *</label>
+              <button
+                type="button"
+                onClick={() => {
+                  setAdmitTimetable([
+                    ...admitTimetable,
+                    { subject: 'Additional Paper', date: '2026-03-20', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },
+                  ]);
+                }}
+                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
+              >
+                + Add Subject Paper
+              </button>
+            </div>
+
+            <div className="max-h-60 overflow-y-auto rounded-2xl border border-slate-200 p-2 space-y-2 bg-slate-50">
+              {admitTimetable.map((item, idx) => (
+                <div key={idx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-white p-2.5 rounded-xl border border-slate-200 items-center">
+                  <div className="sm:col-span-4">
+                    <input
+                      type="text"
+                      value={item.subject}
+                      onChange={(e) => {
+                        const updated = [...admitTimetable];
+                        updated[idx].subject = e.target.value;
+                        setAdmitTimetable(updated);
+                      }}
+                      className="w-full p-1.5 rounded-lg border border-slate-200 font-bold text-xs text-slate-900"
+                      placeholder="Subject Name"
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <input
+                      type="date"
+                      value={item.date}
+                      onChange={(e) => {
+                        const updated = [...admitTimetable];
+                        updated[idx].date = e.target.value;
+                        setAdmitTimetable(updated);
+                      }}
+                      className="w-full p-1.5 rounded-lg border border-slate-200 font-mono font-bold text-xs text-slate-800"
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <input
+                      type="text"
+                      value={item.time}
+                      onChange={(e) => {
+                        const updated = [...admitTimetable];
+                        updated[idx].time = e.target.value;
+                        setAdmitTimetable(updated);
+                      }}
+                      className="w-full p-1.5 rounded-lg border border-slate-200 font-mono text-xs text-slate-800"
+                      placeholder="e.g. 10:00 AM - 01:00 PM"
+                    />
+                  </div>
+                  <div className="sm:col-span-2 flex items-center gap-1">
+                    <input
+                      type="text"
+                      value={item.room}
+                      onChange={(e) => {
+                        const updated = [...admitTimetable];
+                        updated[idx].room = e.target.value;
+                        setAdmitTimetable(updated);
+                      }}
+                      className="w-full p-1.5 rounded-lg border border-slate-200 text-xs text-center font-bold text-slate-800"
+                      placeholder="Hall 1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setAdmitTimetable(admitTimetable.filter((_, i) => i !== idx))}
+                      className="p-1 text-rose-500 hover:text-rose-700"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+            <button type="button" onClick={() => setIsAdmitSchedulerOpen(false)} className="px-4 py-2 font-bold text-slate-600 text-xs">
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmIssueAdmitCards}
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sapphire-900 to-indigo-800 text-white font-extrabold text-xs shadow-md hover:shadow-indigo-glow flex items-center gap-1.5 cursor-pointer"
+            >
+              <Check className="w-4 h-4 text-amber-300" />
+              <span>Publish &amp; Release Official Admit Cards ({selectedExamSubmissionsCount} Students)</span>
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal 3: Published URL Pop-up */}
       {publishedDialog && (
         <Modal isOpen={publishedDialog.isOpen} onClose={() => setPublishedDialog(null)} title="🎉 Portal Link Published Live to ERP!" size="md">
           <div className="space-y-4 text-xs">
@@ -365,7 +683,7 @@ export const ExamLinksManagementPage: React.FC = () => {
                 <span>{publishedDialog.title}</span>
               </div>
               <p className="text-xs text-emerald-800">
-                Yeh link safaltapoorvak <strong>ERP / Exam Portal</strong> par live post kar diya gaya hai. Students ab is link se apna Admit Card / Result / Certificate check kar sakte hain.
+                Yeh link safaltapoorvak <strong>ERP / Exam Portal</strong> par live post kar diya gaya hai. Students ab is link se apna Admit Card / Form access kar sakte hain.
               </p>
             </div>
             <div>

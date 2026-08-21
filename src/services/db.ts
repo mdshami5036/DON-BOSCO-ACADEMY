@@ -2085,19 +2085,27 @@ export const db = {
     return matched || null;
   },
 
-  async issueAdmitCardsBulk(linkId: string): Promise<{ count: number }> {
+    async issueAdmitCardsBulk(linkId: string, customTimetable?: any[]): Promise<{ count: number }> {
+    const link = (store as any).examLinks.find((l: any) => l.id === linkId);
     const apps = (store as any).examApplications.filter((a: any) => a.link_id === linkId);
+    
+    if (link) {
+      link.admit_cards_issued = true;
+      if (customTimetable && customTimetable.length > 0) {
+        link.timetable = customTimetable;
+      }
+    }
+
     apps.forEach((a: any, idx: number) => {
       a.status = 'ADMIT_CARD_ISSUED';
       a.admit_card_no = 'DBA/ADMIT/2026/' + (a.roll_number || (1000 + idx));
     });
 
-    await this.updateExamLink(linkId, { admit_cards_issued: true });
     store.persist();
     return { count: apps.length };
   },
 
-    async issueCertificatesBulk(linkId: string): Promise<{ count: number }> {
+  async issueCertificatesBulk(linkId: string): Promise<{ count: number }> {
     const link = (store as any).examLinks.find((l: any) => l.id === linkId);
     const students = store.students;
     const now = new Date().toISOString();

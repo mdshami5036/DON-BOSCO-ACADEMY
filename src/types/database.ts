@@ -526,6 +526,13 @@ export interface PublishableExamLink {
   certificates_issued?: boolean;
   exam_center?: string;
   instructions?: string[];
+  timetable?: Array<{
+    subject: string;
+    date: string;
+    time: string;
+    room?: string;
+  }>;
+  source_form_link_id?: string;
   created_at: string;
   applications_count?: number;
 }
