@@ -248,37 +248,37 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* ========================================================================= */}
           {/* 8. MARKS TABLE (172mm - Transparent See-Through) */}
           {/* ========================================================================= */}
-          <div className="w-full border border-[#0F2756]/60 rounded overflow-hidden bg-transparent mt-1.5">
-            <table className="w-full border-collapse text-slate-950" style={{ fontSize: '7.5pt' }}>
+          <div className="w-full border-2 border-[#0F2756]/70 rounded overflow-hidden bg-transparent mt-1.5">
+            <table className="w-full border-collapse text-slate-950">
               <thead>
-                <tr className="bg-[#0F2756] text-white font-bold uppercase text-center" style={{ height: '7.5mm' }}>
-                  <th style={{ width: '10mm', padding: '2px' }} className="border-r border-white/20">Sl.</th>
-                  <th style={{ width: '42mm', padding: '2px 6px' }} className="text-left border-r border-white/20">Subject Name</th>
-                  <th style={{ width: '20mm', padding: '2px' }} className="border-r border-white/20">Full Marks</th>
-                  <th style={{ width: '20mm', padding: '2px' }} className="border-r border-white/20">Pass Marks</th>
-                  <th style={{ width: '20mm', padding: '2px' }} className="border-r border-white/20">Theory</th>
-                  <th style={{ width: '20mm', padding: '2px' }} className="border-r border-white/20">Practical</th>
-                  <th style={{ width: '22mm', padding: '2px' }} className="border-r border-white/20">Total</th>
-                  <th style={{ width: '20mm', padding: '2px' }}>Grade</th>
+                <tr className="bg-[#0F2756] text-white font-black uppercase text-center" style={{ height: '8.5mm', fontSize: '10.5pt' }}>
+                  <th style={{ width: '10mm', padding: '3px' }} className="border-r border-white/20">Sl.</th>
+                  <th style={{ width: '44mm', padding: '3px 8px' }} className="text-left border-r border-white/20">Subject Name</th>
+                  <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Full Marks</th>
+                  <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Pass Marks</th>
+                  <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Theory</th>
+                  <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Practical</th>
+                  <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Total</th>
+                  <th style={{ width: '20mm', padding: '3px' }}>Grade</th>
                 </tr>
               </thead>
-              <tbody className="bg-transparent">
+              <tbody className="bg-transparent" style={{ fontSize: '10pt' }}>
                 {data.subjects.map((sub, idx) => (
                   <tr
                     key={idx}
-                    className="border-b border-[#0F2756]/20 text-center bg-transparent"
-                    style={{ height: '6.8mm' }}
+                    className="border-b border-[#0F2756]/30 text-center bg-transparent"
+                    style={{ height: '7.8mm' }}
                   >
-                    <td className="font-mono text-slate-600 border-r border-[#0F2756]/20 font-bold">{idx + 1}</td>
-                    <td className="text-left font-extrabold text-slate-950 px-2 border-r border-[#0F2756]/20 truncate">{sub.subject_name}</td>
-                    <td className="font-mono text-slate-800 border-r border-[#0F2756]/20 font-bold">{sub.full_marks}</td>
-                    <td className="font-mono text-slate-800 border-r border-[#0F2756]/20 font-bold">{sub.pass_marks}</td>
-                    <td className="font-mono font-bold text-slate-950 border-r border-[#0F2756]/20">{sub.theory_marks}</td>
-                    <td className="font-mono text-slate-800 border-r border-[#0F2756]/20 font-bold">
+                    <td className="font-mono text-slate-700 border-r border-[#0F2756]/30 font-black">{idx + 1}</td>
+                    <td className="text-left font-black text-slate-950 px-2.5 border-r border-[#0F2756]/30 truncate" style={{ fontSize: '10.5pt' }}>{sub.subject_name}</td>
+                    <td className="font-mono text-slate-900 border-r border-[#0F2756]/30 font-bold" style={{ fontSize: '10.5pt' }}>{sub.full_marks}</td>
+                    <td className="font-mono text-slate-900 border-r border-[#0F2756]/30 font-bold" style={{ fontSize: '10.5pt' }}>{sub.pass_marks}</td>
+                    <td className="font-mono font-black text-slate-950 border-r border-[#0F2756]/30" style={{ fontSize: '10.5pt' }}>{sub.theory_marks}</td>
+                    <td className="font-mono text-slate-900 border-r border-[#0F2756]/30 font-bold" style={{ fontSize: '10.5pt' }}>
                       {sub.practical_marks !== null && sub.practical_marks !== undefined ? sub.practical_marks : '—'}
                     </td>
-                    <td className="font-mono font-black text-[#0F2756] border-r border-[#0F2756]/20">{sub.total_marks}</td>
-                    <td className="font-black text-slate-950">{sub.grade}</td>
+                    <td className="font-mono font-black text-[#0F2756] border-r border-[#0F2756]/30" style={{ fontSize: '11pt' }}>{sub.total_marks}</td>
+                    <td className="font-black text-slate-950" style={{ fontSize: '11pt' }}>{sub.grade}</td>
                   </tr>
                 ))}
               </tbody>
