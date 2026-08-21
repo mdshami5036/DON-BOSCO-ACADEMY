@@ -1,7 +1,7 @@
 import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
 import { generateQrCodeDataUri } from '../../lib/qr-generator';
-import { QrCode } from 'lucide-react';
+import { QrCode, Globe } from 'lucide-react';
 
 export interface MarksheetSubjectRow {
   subject_name: string;
@@ -83,7 +83,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           height: '297mm',
           minHeight: '297mm',
           maxHeight: '297mm',
-          padding: '20mm 18mm 25mm 18mm', // Safe margins (Left/Right: 18mm, Top: 20mm, Bottom: 25mm to clear bottom ornament)
+          padding: '20mm 18mm 23mm 18mm', // Safe margins (Left/Right: 18mm, Top: 20mm, Bottom: 23mm to clear bottom ornament)
           fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           WebkitPrintColorAdjust: 'exact',
           printColorAdjust: 'exact',
@@ -156,7 +156,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* Exam Info Labels: 7.5–8 pt | Exam Info Values: 8.5–9 pt */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-[#0F2756]/60 bg-transparent mt-1"
+            className="w-full rounded border border-[#0F2756]/60 bg-transparent mt-0.5"
             style={{ padding: '4px 8px' }}
           >
             <div className="grid grid-cols-6 gap-2 text-center items-center">
@@ -192,7 +192,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* Student Labels: 8 pt | Student Values: 8.5–9 pt */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-[#0F2756]/60 bg-transparent p-2 mt-1 flex gap-4 items-center"
+            className="w-full rounded border border-[#0F2756]/60 bg-transparent p-2 mt-0.5 flex gap-4 items-center"
             style={{ height: '34mm', minHeight: '34mm', maxHeight: '34mm' }}
           >
             {/* Left & Middle Info Columns */}
@@ -254,10 +254,10 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* 8. MARKS TABLE (172mm - Transparent See-Through) */}
           {/* Table Header: 7.5–8 pt | Table Data: 8–8.5 pt */}
           {/* ========================================================================= */}
-          <div className="w-full border-2 border-[#0F2756]/70 rounded overflow-hidden bg-transparent mt-1">
+          <div className="w-full border-2 border-[#0F2756]/70 rounded overflow-hidden bg-transparent mt-0.5">
             <table className="w-full border-collapse text-slate-950">
               <thead>
-                <tr className="bg-[#0F2756] text-white font-black uppercase text-center" style={{ height: '8mm', fontSize: '8pt' }}>
+                <tr className="bg-[#0F2756] text-white font-black uppercase text-center" style={{ height: '7.8mm', fontSize: '8pt' }}>
                   <th style={{ width: '10mm', padding: '3px' }} className="border-r border-white/20">Sl.</th>
                   <th style={{ width: '44mm', padding: '3px 8px' }} className="text-left border-r border-white/20">Subject Name</th>
                   <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Full Marks</th>
@@ -273,7 +273,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
                   <tr
                     key={idx}
                     className="border-b border-[#0F2756]/30 text-center bg-transparent"
-                    style={{ height: '7.2mm' }}
+                    style={{ height: '6.8mm' }}
                   >
                     <td className="font-mono text-slate-700 border-r border-[#0F2756]/30 font-black">{idx + 1}</td>
                     <td className="text-left font-black text-slate-950 px-2.5 border-r border-[#0F2756]/30 truncate" style={{ fontSize: '8.5pt' }}>{sub.subject_name}</td>
@@ -296,8 +296,8 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* Section Heading / Labels: 8–9.5 pt | Total / Percentage Values: 10–11 pt | Result PASS/FAIL: 10–11 pt bold */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border-2 border-[#0F2756] bg-transparent p-1.5 mt-1"
-            style={{ height: '16mm', minHeight: '16mm' }}
+            className="w-full rounded border-2 border-[#0F2756] bg-transparent p-1.5 mt-0.5"
+            style={{ height: '15mm', minHeight: '15mm' }}
           >
             <div className="grid grid-cols-6 gap-2 text-center items-center h-full">
               <div className="border-r border-[#0F2756]/30">
@@ -334,10 +334,9 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
 
           {/* ========================================================================= */}
           {/* 12. ADDITIONAL SUMMARY CARD (172mm - Transparent See-Through) */}
-          {/* Section Heading: 9.5–10 pt | Labels: 8 pt | Values: 8.5–9 pt */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-[#0F2756]/40 bg-transparent px-3 py-1 mt-1 flex items-center justify-between text-slate-900"
+            className="w-full rounded border border-[#0F2756]/40 bg-transparent px-3 py-1 mt-0.5 flex items-center justify-between text-slate-900"
           >
             <div>
               <span className="text-slate-700 font-black uppercase" style={{ fontSize: '8pt' }}>Attendance:</span>{' '}
@@ -358,12 +357,44 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 13. OFFICIAL SIGNATURES & INSTITUTIONAL SEAL ROW */}
+          {/* 13. DIGITAL QR VERIFICATION BLOCK (Placed ABOVE Signatures, As Per Reference) */}
+          {/* Verification Text: 7–7.5 pt */}
+          {/* ========================================================================= */}
+          <div className="w-full pt-1.5 flex items-center gap-3 px-1">
+            {/* Left: Square QR Code */}
+            <div className="w-[18mm] h-[18mm] bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center shadow-2xs">
+              {qrDataUri ? (
+                <img src={qrDataUri} alt="QR Code" className="w-full h-full object-contain" />
+              ) : (
+                <QrCode className="w-full h-full text-slate-900" />
+              )}
+            </div>
+
+            {/* Right: Structured Verification Text Block */}
+            <div className="text-slate-800 leading-snug space-y-0.5" style={{ fontSize: '7.5pt' }}>
+              <p className="text-slate-700 font-semibold leading-tight" style={{ fontSize: '7.5pt' }}>
+                This marksheet is digitally generated and can be verified online by scanning the QR code.
+              </p>
+              <div className="grid grid-cols-[38mm_auto] gap-x-2 font-mono font-bold text-slate-900" style={{ fontSize: '7.5pt' }}>
+                <span className="text-slate-600 font-bold uppercase">VERIFICATION ID</span>
+                <span>: {data.verification_id}</span>
+                <span className="text-slate-600 font-bold uppercase">MARKSHEET SERIAL NO.</span>
+                <span>: {data.marksheet_no}</span>
+              </div>
+              <div className="pt-0.5 flex items-center gap-1 text-blue-900 font-black" style={{ fontSize: '7.5pt' }}>
+                <Globe className="w-3.5 h-3.5 text-blue-800 shrink-0" />
+                <span>{origin ? origin.replace(/^https?:\/\//, '') : 'don-bosco-academy.vercel.app'}/verify</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================================================= */}
+          {/* 14. SIGNATURES & OFFICIAL STAMP ROW (Placed BELOW QR Block, As Per Reference) */}
           {/* Signature Labels: 7.5–8 pt */}
           {/* ========================================================================= */}
-          <div className="w-full pt-2 mt-1 flex items-end justify-between gap-6 px-2">
-            {/* Left: Class Teacher Signature */}
-            <div className="w-[36mm] text-center">
+          <div className="w-full pt-1.5 flex items-end justify-between gap-6 px-3">
+            {/* 1. Class Teacher Signature */}
+            <div className="w-[38mm] text-center">
               <div className="h-[9mm] flex items-end justify-center">
                 <span className="text-[7pt] font-mono text-slate-400 italic">Signature Verified</span>
               </div>
@@ -372,21 +403,20 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
               </div>
             </div>
 
-            {/* Center: Institutional Seal */}
-            <div className="text-center space-y-0.5">
-              <div className="p-0.5 bg-white rounded-xl border border-slate-200 shadow-2xs inline-block">
+            {/* 2. Official Institutional Seal / Stamp (Center) */}
+            <div className="text-center">
+              <div className="p-0.5 bg-white rounded-full border border-slate-200 shadow-2xs inline-block">
                 <img
                   src="/assets/branding/don-bosco-stamp.svg"
                   alt="Institutional Seal"
-                  style={{ width: '44px', height: '44px' }}
-                  className="w-[13mm] h-[13mm] mx-auto object-contain opacity-95"
+                  style={{ width: '48px', height: '48px' }}
+                  className="w-[14mm] h-[14mm] mx-auto object-contain opacity-95"
                 />
               </div>
-              <span className="block text-[7.5pt] font-black text-slate-700 uppercase tracking-wider">Institutional Seal</span>
             </div>
 
-            {/* Right: Principal & Authorized Signatory */}
-            <div className="w-[40mm] text-center">
+            {/* 3. Principal / Headmaster Signature (Right) */}
+            <div className="w-[42mm] text-center">
               <div className="h-[9mm] flex items-end justify-center">
                 <img
                   src="/assets/branding/principal-signature.svg"
@@ -396,7 +426,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
                 />
               </div>
               <div className="border-t-2 border-slate-600 pt-0.5 text-slate-900 font-extrabold uppercase leading-none" style={{ fontSize: '8pt' }}>
-                Principal
+                Principal / Headmaster
               </div>
               <div className="text-slate-600 font-semibold leading-none mt-0.5" style={{ fontSize: '7pt' }}>
                 Md. Shami Ahmad
@@ -405,38 +435,11 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 14. BOTTOM DIGITAL QR VERIFICATION BAR & 15. FOOTER */}
-          {/* Verification Text: 7–7.5 pt | Footer: 6.5–7 pt */}
+          {/* 15. FOOTER */}
+          {/* Footer: 6.5–7 pt */}
           {/* ========================================================================= */}
-          <div className="w-full pt-1.5 mt-auto border-t border-slate-300/80 flex items-center justify-between gap-4 px-2">
-            {/* Left: QR Code with Encoded Verify URL */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-[17mm] h-[17mm] bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center shadow-2xs">
-                {qrDataUri ? (
-                  <img src={qrDataUri} alt="QR Code" className="w-full h-full object-contain" />
-                ) : (
-                  <QrCode className="w-full h-full text-slate-900" />
-                )}
-              </div>
-              <div className="text-slate-700 leading-tight space-y-0.5" style={{ fontSize: '7.5pt' }}>
-                {/* Verification Text: 7–7.5 pt */}
-                <span className="font-bold text-[#0F2756] block uppercase tracking-wider" style={{ fontSize: '7.5pt' }}>
-                  SECURE DIGITAL QR VERIFICATION
-                </span>
-                <span className="font-mono text-slate-800 font-bold block" style={{ fontSize: '7.5pt' }}>
-                  ID: {data.verification_id}
-                </span>
-                <span className="text-slate-500 block" style={{ fontSize: '7pt' }}>
-                  Scan QR code using camera to verify authentic marksheet
-                </span>
-              </div>
-            </div>
-
-            {/* Right: Computer Generated Footer Note (Footer: 6.5–7 pt) */}
-            <div className="text-right text-slate-500 font-medium leading-tight" style={{ fontSize: '7pt' }}>
-              <div>This is a computer-generated official academic marksheet.</div>
-              <div className="text-slate-600 font-semibold">Don Bosco Academy &bull; Estd. 1997</div>
-            </div>
+          <div className="text-center text-slate-500 font-medium pt-0.5 mt-auto" style={{ fontSize: '7pt' }}>
+            This is a computer generated marksheet. No signature is required. &bull; Don Bosco Academy &bull; Estd. 1997
           </div>
         </div>
       </div>
