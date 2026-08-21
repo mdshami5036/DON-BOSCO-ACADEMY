@@ -96,60 +96,55 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           className="absolute inset-0 w-full h-full object-fill pointer-events-none z-0 select-none"
         />
 
+        {/* Central School Logo Watermark */}
+        <img
+          src="/assets/branding/don-bosco-logo.png"
+          alt="School Logo Watermark"
+          style={{ width: '80mm', height: '80mm' }}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.065] pointer-events-none object-contain select-none z-0"
+        />
+
         {/* Content Container (Constrained strictly to 174mm safe width) */}
         <div
           className="relative z-10 flex flex-col justify-start gap-2 h-full"
           style={{ width: '174mm', maxWidth: '174mm', margin: '0 auto' }}
         >
           {/* ========================================================================= */}
-          {/* 5. HEADER SECTION */}
+          {/* 5. HEADER SECTION (Fully Centered Without Top-Left Logo) */}
           {/* ========================================================================= */}
-          <div className="text-center relative pt-0.5">
-            {/* School Logo (Left: 6mm offset, 24mm x 24mm) */}
-            <div className="absolute left-[6mm] top-[1mm] w-[24mm] h-[24mm] flex items-center justify-center">
-              <img
-                src="/assets/branding/don-bosco-logo.png"
-                alt="School Crest"
-                style={{ width: '24mm', height: '24mm' }}
-                className="w-full h-full object-contain drop-shadow-2xs bg-white rounded-xl"
-              />
-            </div>
+          <div className="text-center relative pt-0.5 w-full">
+            <h1
+              className="font-bold tracking-tight uppercase text-[#0F2756]"
+              style={{
+                fontFamily: 'Georgia, "Times New Roman", Garamond, serif',
+                fontSize: '21pt',
+                lineHeight: '1.1',
+                letterSpacing: '0.8px',
+              }}
+            >
+              {data.school_name || 'DON BOSCO ACADEMY'}
+            </h1>
 
-            {/* School Title & Affiliation Details (Centered) */}
-            <div className="pl-[26mm] pr-[6mm]">
-              <h1
-                className="font-bold tracking-tight uppercase text-[#0F2756]"
+            <p className="text-slate-700 font-semibold mt-1" style={{ fontSize: '8.5pt', lineHeight: '1.2' }}>
+              {data.school_address || 'Raipur Bazar, Nanpur, Sitamarhi (Bihar) - 843326'}
+            </p>
+
+            <p className="text-slate-600 font-medium mt-0.5" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>
+              {data.affiliation_text || 'Affiliated to CBSE, New Delhi • School Code: 65001 • UDISE Code: 100204001'}
+            </p>
+
+            {/* Main Title Badge */}
+            <div className="mt-2 inline-block">
+              <span
+                className="font-bold tracking-wider uppercase text-[#0F2756] border-y-2 border-[#0F2756] px-6 py-0.5 inline-block"
                 style={{
                   fontFamily: 'Georgia, "Times New Roman", Garamond, serif',
-                  fontSize: '20.5pt',
-                  lineHeight: '1.1',
-                  letterSpacing: '0.6px',
+                  fontSize: '13pt',
+                  letterSpacing: '1.5px',
                 }}
               >
-                {data.school_name || 'DON BOSCO ACADEMY'}
-              </h1>
-
-              <p className="text-slate-700 font-semibold mt-1" style={{ fontSize: '8.5pt', lineHeight: '1.2' }}>
-                {data.school_address || 'Raipur Bazar, Nanpur, Sitamarhi (Bihar) - 843326'}
-              </p>
-
-              <p className="text-slate-600 font-medium mt-0.5" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>
-                {data.affiliation_text || 'Affiliated to CBSE, New Delhi • School Code: 65001 • UDISE Code: 100204001'}
-              </p>
-
-              {/* Main Title Badge */}
-              <div className="mt-2 inline-block">
-                <span
-                  className="font-bold tracking-wider uppercase text-[#0F2756] border-y-2 border-[#0F2756] px-6 py-0.5 inline-block"
-                  style={{
-                    fontFamily: 'Georgia, "Times New Roman", Garamond, serif',
-                    fontSize: '12.5pt',
-                    letterSpacing: '1.5px',
-                  }}
-                >
-                  {data.marksheet_title || 'ANNUAL EXAMINATION MARKSHEET'}
-                </span>
-              </div>
+                {data.marksheet_title || 'ANNUAL EXAMINATION MARKSHEET'}
+              </span>
             </div>
           </div>
 
