@@ -30,12 +30,12 @@ import {
 import { Modal } from '../../components/common/UI';
 
 const DEFAULT_SUBJECTS = [
-  { subject_name: 'English Language & Literature', full_marks: 100, pass_marks: 33, theory_marks: 78, practical_marks: 18 },
-  { subject_name: 'Mathematics (Standard)', full_marks: 100, pass_marks: 33, theory_marks: 82, practical_marks: 18 },
-  { subject_name: 'Science (Physics, Chem, Bio)', full_marks: 100, pass_marks: 33, theory_marks: 75, practical_marks: 19 },
-  { subject_name: 'Social Science', full_marks: 100, pass_marks: 33, theory_marks: 88, practical_marks: null },
-  { subject_name: 'Hindi Course-A', full_marks: 100, pass_marks: 33, theory_marks: 85, practical_marks: null },
-  { subject_name: 'Computer Applications & AI', full_marks: 100, pass_marks: 33, theory_marks: 48, practical_marks: 48 },
+  { subject_name: 'English Language & Literature (184)', full_marks: 100, pass_marks: 33, theory_marks: 80, practical_marks: null },
+  { subject_name: 'Mathematics (Standard / Basic) (041)', full_marks: 100, pass_marks: 33, theory_marks: 80, practical_marks: null },
+  { subject_name: 'Science (Physics, Chem, Bio) (086)', full_marks: 100, pass_marks: 33, theory_marks: 80, practical_marks: 18 },
+  { subject_name: 'Social Science (087)', full_marks: 100, pass_marks: 33, theory_marks: 80, practical_marks: null },
+  { subject_name: 'Hindi Course-A (002)', full_marks: 100, pass_marks: 33, theory_marks: 80, practical_marks: null },
+  { subject_name: 'Computer Applications & AI (165/417)', full_marks: 100, pass_marks: 33, theory_marks: 80, practical_marks: null },
 ];
 
 function calculateGrade(percentage: number): string {

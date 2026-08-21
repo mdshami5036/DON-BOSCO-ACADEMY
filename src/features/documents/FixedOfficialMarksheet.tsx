@@ -275,18 +275,18 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
                   <tr
                     key={idx}
                     className="border-b border-[#0F2756]/30 text-center bg-transparent"
-                    style={{ height: '6.8mm' }}
+                    style={{ height: '6.6mm', lineHeight: '1' }}
                   >
-                    <td className="font-mono text-slate-700 border-r border-[#0F2756]/30 font-black">{idx + 1}</td>
-                    <td className="text-left font-black text-slate-950 px-2.5 border-r border-[#0F2756]/30 truncate" style={{ fontSize: '8.5pt' }}>{sub.subject_name}</td>
-                    <td className="font-mono text-slate-900 border-r border-[#0F2756]/30 font-bold" style={{ fontSize: '8.5pt' }}>{sub.full_marks}</td>
-                    <td className="font-mono text-slate-900 border-r border-[#0F2756]/30 font-bold" style={{ fontSize: '8.5pt' }}>{sub.pass_marks}</td>
-                    <td className="font-mono font-black text-slate-950 border-r border-[#0F2756]/30" style={{ fontSize: '8.5pt' }}>{sub.theory_marks}</td>
-                    <td className="font-mono text-slate-900 border-r border-[#0F2756]/30 font-bold" style={{ fontSize: '8.5pt' }}>
+                    <td className="font-mono text-slate-700 border-r border-[#0F2756]/30 font-black py-0.5" style={{ lineHeight: '1' }}>{idx + 1}</td>
+                    <td className="text-left font-black text-slate-950 px-2 border-r border-[#0F2756]/30 truncate py-0.5" style={{ fontSize: '8.5pt', lineHeight: '1' }}>{sub.subject_name}</td>
+                    <td className="font-mono text-slate-900 border-r border-[#0F2756]/30 font-bold py-0.5" style={{ fontSize: '8.5pt', lineHeight: '1' }}>{sub.full_marks}</td>
+                    <td className="font-mono text-slate-900 border-r border-[#0F2756]/30 font-bold py-0.5" style={{ fontSize: '8.5pt', lineHeight: '1' }}>{sub.pass_marks}</td>
+                    <td className="font-mono font-black text-slate-950 border-r border-[#0F2756]/30 py-0.5" style={{ fontSize: '8.5pt', lineHeight: '1' }}>{sub.theory_marks}</td>
+                    <td className="font-mono text-slate-900 border-r border-[#0F2756]/30 font-bold py-0.5" style={{ fontSize: '8.5pt', lineHeight: '1' }}>
                       {sub.practical_marks !== null && sub.practical_marks !== undefined ? sub.practical_marks : '—'}
                     </td>
-                    <td className="font-mono font-black text-[#0F2756] border-r border-[#0F2756]/30" style={{ fontSize: '8.5pt' }}>{sub.total_marks}</td>
-                    <td className="font-black text-slate-950" style={{ fontSize: '8.5pt' }}>{sub.grade}</td>
+                    <td className="font-mono font-black text-[#0F2756] border-r border-[#0F2756]/30 py-0.5" style={{ fontSize: '8.5pt', lineHeight: '1' }}>{sub.total_marks}</td>
+                    <td className="font-black text-slate-950 py-0.5" style={{ fontSize: '8.5pt', lineHeight: '1' }}>{sub.grade}</td>
                   </tr>
                 ))}
               </tbody>
