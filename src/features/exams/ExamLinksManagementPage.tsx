@@ -474,155 +474,177 @@ export const ExamLinksManagementPage: React.FC = () => {
         })}
       </div>
 
-      {/* Modal 1: Publish Examination Form */}
+            {/* Modal 1: Publish Examination Form (Premium Modern UI/UX) */}
       <Modal
         isOpen={isExamFormModalOpen}
         onClose={() => setIsExamFormModalOpen(false)}
-        title={editingLink ? 'Edit Examination Form' : '📝 Publish New Examination Form'}
+        title={editingLink ? '✏️ Edit Examination Form' : '📝 Publish New Examination Form'}
         size="lg"
       >
-        <form onSubmit={handleSaveExamForm} className="space-y-4 text-xs">
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-950">
-            <p className="text-xs font-semibold">
-              Publishing this form allows students to fill candidate particulars on the public ERP portal. Only students who submit this form will be eligible to receive their Admit Card when issued.
-            </p>
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Form / Portal Title *</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. CBSE Class X Annual Board Examination 2026 - Registration Form"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <form onSubmit={handleSaveExamForm} className="space-y-5 text-xs">
+          {/* Header Banner */}
+          <div className="p-4 bg-gradient-to-r from-sapphire-50 via-indigo-50 to-blue-50 border border-indigo-200/80 rounded-2xl text-indigo-950 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-sapphire-900 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+              <Sparkles className="w-4 h-4 text-amber-300" />
+            </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Examination Name *</label>
+              <h4 className="font-extrabold text-xs text-sapphire-900 font-display">Automated Public Examination Registration</h4>
+              <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                Publishing this form creates an instant live portal link on the ERP. Students in the selected classes can auto-fill scholar particulars and generate their verified submission receipts.
+              </p>
+            </div>
+          </div>
+
+          {/* STEP 1: Basic Information */}
+          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 space-y-3.5">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <span className="w-5 h-5 rounded-full bg-sapphire-900 text-white font-black text-[10px] flex items-center justify-center">1</span>
+              <h3 className="font-black text-slate-800 uppercase tracking-wider text-[11px]">Examination Particulars</h3>
+            </div>
+
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Public Form / Portal Title *</label>
               <input
                 type="text"
                 required
-                placeholder="e.g. CBSE Class X Board Exam 2026"
-                value={form.exam_name}
-                onChange={(e) => setForm({ ...form, exam_name: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900"
+                placeholder="e.g. Annual Examination 2026 - Online Admit Card Registration Form"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-900 focus:ring-2 focus:ring-sapphire-900/20 focus:border-sapphire-900 transition bg-white"
               />
             </div>
-                        <div className="sm:col-span-2 space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block font-bold text-slate-800">
-                  🎯 Target Scope &amp; Applicable Classes * ({form.target_classes.includes('ALL') ? 'All Classes Selected' : `${form.target_classes.length} Classes Selected`})
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, target_classes: ['ALL'] })}
-                    className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition ${form.target_classes.includes('ALL') ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300'}`}
-                  >
-                    🎯 Select All Classes (सभी कक्षाएं)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, target_classes: classes.map((c) => c.name) })}
-                    className="text-[11px] font-bold text-slate-500 hover:text-slate-700 underline"
-                  >
-                    Select Each
-                  </button>
-                </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Official Examination Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. CBSE Annual Board Examination 2026"
+                  value={form.exam_name}
+                  onChange={(e) => setForm({ ...form, exam_name: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-900 focus:ring-2 focus:ring-sapphire-900/20 focus:border-sapphire-900 transition bg-white"
+                />
               </div>
 
-              {/* Multi-Class Badge Grid */}
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex flex-wrap gap-2 max-h-36 overflow-y-auto">
-                <button
-                  type="button"
-                  onClick={() => handleToggleClass('ALL')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${form.target_classes.includes('ALL') ? 'bg-sapphire-900 text-white shadow-sm ring-2 ring-indigo-400' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'}`}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Academic Session *</label>
+                <select
+                  value={form.academic_year}
+                  onChange={(e) => setForm({ ...form, academic_year: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-900 bg-white"
                 >
-                  <span>🎯 All Classes (Play Group – 10th)</span>
-                </button>
-
-                {classes.map((c) => {
-                  const isSelected = form.target_classes.includes('ALL') || form.target_classes.includes(c.name);
-                  const isIndividuallySelected = form.target_classes.includes(c.name);
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => handleToggleClass(c.name)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${isSelected ? 'bg-indigo-50 text-indigo-900 border-2 border-indigo-500 font-black shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
-                    >
-                      <span className={`w-3.5 h-3.5 rounded-md flex items-center justify-center text-[10px] ${isSelected ? 'bg-indigo-600 text-white font-black' : 'border border-slate-300'}`}>
-                        {isSelected ? '✓' : ''}
-                      </span>
-                      <span>{c.name}</span>
-                    </button>
-                  );
-                })}
+                  <option value="2025-2026">2025–2026 (Current Session)</option>
+                  <option value="2026-2027">2026–2027 (Upcoming Session)</option>
+                </select>
               </div>
-
-              <div className="flex items-center justify-between text-[11px] text-slate-500">
-                <span>
-                  {form.target_classes.includes('ALL')
-                    ? '⚡ यह परीक्षा फॉर्म स्कूल के सभी क्लास के छात्रों के लिए खुला रहेगा।'
-                    : `⚡ केवल चुनी गई कक्षाएं (${form.target_classes.join(', ')}) ही यह फॉर्म भर सकेंगी।`}
-                </span>
-              </div>
-            </div>
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">Academic Session</label>
-              <select
-                value={form.academic_year}
-                onChange={(e) => setForm({ ...form, academic_year: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-bold bg-slate-50"
-              >
-                <option value="2025-2026">2025–2026</option>
-                <option value="2026-2027">2026–2027</option>
-              </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* STEP 2: Multi-Class Target Scope */}
+          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-sapphire-900 text-white font-black text-[10px] flex items-center justify-center">2</span>
+                <h3 className="font-black text-slate-800 uppercase tracking-wider text-[11px]">
+                  Target Scope &amp; Applicable Classes
+                </h3>
+              </div>
+              <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+                {form.target_classes.includes('ALL') ? 'All Classes (Play Group to 10th)' : `${form.target_classes.length} Classes Selected`}
+              </span>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, target_classes: ['ALL'] })}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${form.target_classes.includes('ALL') ? 'bg-sapphire-900 text-white shadow-sm ring-2 ring-indigo-400' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'}`}
+              >
+                <span>🎯 Select All Classes (सभी कक्षाएं)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, target_classes: classes.map((c) => c.name) })}
+                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 px-2 py-1"
+              >
+                + Select Each Individual Class
+              </button>
+            </div>
+
+            {/* Interactive Multi-Class Grid */}
+            <div className="p-3 bg-white rounded-2xl border border-slate-200 flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+              {classes.map((c) => {
+                const isSelected = form.target_classes.includes('ALL') || form.target_classes.includes(c.name);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => handleToggleClass(c.name)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${isSelected ? 'bg-indigo-50 text-indigo-900 border-2 border-indigo-500 font-black shadow-2xs' : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+                  >
+                    <span className={`w-4 h-4 rounded-md flex items-center justify-center text-[10px] font-black ${isSelected ? 'bg-indigo-600 text-white' : 'border border-slate-300 bg-white'}`}>
+                      {isSelected ? '✓' : ''}
+                    </span>
+                    <span>{c.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="text-[11px] text-slate-500 font-medium">
+              {form.target_classes.includes('ALL')
+                ? '✨ स्कूल के सभी कक्षाओं (Play Group से 10th) के छात्र इस फॉर्म को भर सकेंगे।'
+                : `✨ केवल चुनी गई कक्षाएं (${form.target_classes.join(', ')}) ही यह फॉर्म भर सकेंगी।`}
+            </p>
+          </div>
+
+          {/* STEP 3: Timeline & Instructions */}
+          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 space-y-3.5">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <span className="w-5 h-5 rounded-full bg-sapphire-900 text-white font-black text-[10px] flex items-center justify-center">3</span>
+              <h3 className="font-black text-slate-800 uppercase tracking-wider text-[11px]">Timeline &amp; Candidate Guidelines</h3>
+            </div>
+
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Form Submission Deadline *</label>
+              <label className="block font-bold text-slate-700 mb-1">Form Submission Deadline (Closing Date) *</label>
               <input
                 type="date"
                 required
                 value={form.expiry_date}
                 onChange={(e) => setForm({ ...form, expiry_date: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 font-bold font-mono"
+                className="w-full p-2.5 rounded-xl border border-slate-300 font-mono font-bold text-xs text-slate-900 bg-white focus:ring-2 focus:ring-sapphire-900/20"
               />
             </div>
+
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Examination Center</label>
-              <input
-                type="text"
-                value={form.exam_center}
-                onChange={(e) => setForm({ ...form, exam_center: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900"
+              <label className="block font-bold text-slate-700 mb-1">Candidate Instructions / Notice Text</label>
+              <textarea
+                rows={2}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Enter instructions for students filling the form (e.g. Verify scholar details and photograph carefully)."
+                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white focus:ring-2 focus:ring-sapphire-900/20"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Instructions / Description</label>
-            <textarea
-              rows={2}
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full p-2.5 rounded-xl border border-slate-300 text-xs text-slate-900"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-            <button type="button" onClick={() => setIsExamFormModalOpen(false)} className="px-4 py-2 font-bold text-slate-600 text-xs">
+          {/* Footer Action Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={() => setIsExamFormModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition text-xs cursor-pointer"
+            >
               Cancel
             </button>
-            <button type="submit" className="px-5 py-2.5 rounded-xl bg-sapphire-900 text-white font-extrabold text-xs shadow-sm">
-              {editingLink ? 'Save Changes' : 'Publish Examination Form Live'}
+            <button
+              type="submit"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sapphire-900 via-sapphire-800 to-indigo-800 hover:from-sapphire-950 hover:to-indigo-900 text-white font-extrabold text-xs shadow-md hover:shadow-indigo-glow transition flex items-center gap-2 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>{editingLink ? 'Save & Update Examination Form' : '🚀 Publish Examination Form Live'}</span>
             </button>
           </div>
         </form>
