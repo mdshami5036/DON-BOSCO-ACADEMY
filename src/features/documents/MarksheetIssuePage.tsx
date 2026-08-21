@@ -384,7 +384,7 @@ export const MarksheetIssuePage: React.FC = () => {
                 <input type="text" value={selectedExamName} onChange={(e) => setSelectedExamName(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900" />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-bold text-slate-700 mb-1">Class (Loads Class Subjects)</label>
                 <select value={selectedClass} onChange={(e) => handleClassChange(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 bg-slate-50">
                   {classes.map((c) => (
@@ -392,11 +392,6 @@ export const MarksheetIssuePage: React.FC = () => {
                   ))}
                   {classes.length === 0 && <option value="Class 10">Class 10</option>}
                 </select>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Section</label>
-                <input type="text" value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 text-center" />
               </div>
 
               <div>

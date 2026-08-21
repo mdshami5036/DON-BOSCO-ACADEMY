@@ -158,37 +158,33 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 6. EXAMINATION INFORMATION CARD (172mm - Transparent See-Through) */}
+          {/* 6. EXAMINATION INFORMATION CARD (172mm - Transparent See-Through, 5 Balanced Columns) */}
           {/* Exam Info Labels: 7.5–8 pt | Exam Info Values: 8.5–9 pt */}
           {/* ========================================================================= */}
           <div
             className="w-full rounded border border-[#0F2756]/60 bg-transparent mt-0.5"
             style={{ padding: '4px 8px' }}
           >
-            <div className="grid grid-cols-6 gap-2 text-center items-center">
+            <div className="grid grid-cols-5 gap-2 text-center items-center">
               <div className="border-r border-[#0F2756]/30 pr-1">
                 <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Academic Session</span>
-                <strong className="block text-[#0F2756] font-black" style={{ fontSize: '9pt' }}>{data.academic_session}</strong>
+                <strong className="block text-[#0F2756] font-black" style={{ fontSize: '9.5pt' }}>{data.academic_session}</strong>
               </div>
               <div className="border-r border-[#0F2756]/30 pr-1">
                 <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Examination</span>
-                <strong className="block text-slate-950 font-black truncate" style={{ fontSize: '9pt' }}>{data.exam_name}</strong>
+                <strong className="block text-slate-950 font-black truncate" style={{ fontSize: '9.5pt' }}>{data.exam_name}</strong>
               </div>
               <div className="border-r border-[#0F2756]/30 pr-1">
                 <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Class</span>
-                <strong className="block text-slate-950 font-black" style={{ fontSize: '9pt' }}>{data.class_name}</strong>
-              </div>
-              <div className="border-r border-[#0F2756]/30 pr-1">
-                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Section</span>
-                <strong className="block text-slate-950 font-black" style={{ fontSize: '9pt' }}>{data.section_name}</strong>
+                <strong className="block text-slate-950 font-black" style={{ fontSize: '9.5pt' }}>{data.class_name}</strong>
               </div>
               <div className="border-r border-[#0F2756]/30 pr-1">
                 <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Marksheet No.</span>
-                <strong className="block font-mono text-[#0F2756] font-black truncate" style={{ fontSize: '9pt' }}>{data.marksheet_no}</strong>
+                <strong className="block font-mono text-[#0F2756] font-black truncate" style={{ fontSize: '9.5pt' }}>{data.marksheet_no}</strong>
               </div>
               <div>
                 <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Issue Date</span>
-                <strong className="block font-mono text-slate-950 font-black" style={{ fontSize: '9pt' }}>{formatDDMMYYYY(data.issue_date)}</strong>
+                <strong className="block font-mono text-slate-950 font-black" style={{ fontSize: '9.5pt' }}>{formatDDMMYYYY(data.issue_date)}</strong>
               </div>
             </div>
           </div>
