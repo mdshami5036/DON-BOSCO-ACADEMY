@@ -17,6 +17,7 @@ import { DocumentVerificationPage } from './features/verification/DocumentVerifi
 // Dynamic ERP & Exam Portal Pages
 import { ExamPortalHubPage } from './features/exam-portal/ExamPortalHubPage';
 import { ExamFormFillPage } from './features/exam-portal/ExamFormFillPage';
+import { ExamFormReceiptPage } from './features/exam-portal/ExamFormReceiptPage';
 import { AdmitCardDownloadPage } from './features/exam-portal/AdmitCardDownloadPage';
 import { CertificateDownloadPage } from './features/exam-portal/CertificateDownloadPage';
 import { ExamResultsCheckPage } from './features/exam-portal/ExamResultsCheckPage';
@@ -101,6 +102,7 @@ export function App() {
             <Route path="/erp-portal" element={<Navigate to="/exam-portal" replace />} />
             <Route path="/portal" element={<Navigate to="/exam-portal" replace />} />
             <Route path="/exam-portal/form/:slug" element={<ExamFormFillPage />} />
+            <Route path="/exam-portal/receipt/:applicationNo" element={<ExamFormReceiptPage />} />
             <Route path="/exam-portal/admit-card/:slug" element={<AdmitCardDownloadPage />} />
             <Route path="/exam-portal/results/:slug" element={<ExamResultsCheckPage />} />
             <Route path="/exam-portal/certificate/:slug" element={<CertificateDownloadPage />} />

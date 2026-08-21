@@ -411,6 +411,13 @@ export interface AdmissionApplication {
   id: string;
   school_id: string;
   application_no: string;
+  receipt_no?: string;
+  exam_name?: string;
+  academic_year?: string;
+  subjects?: string[];
+  is_verified?: boolean;
+  verified_at?: string;
+  rejection_reason?: string;
   student_name: string;
   dob: string;
   gender: string;
@@ -533,6 +540,13 @@ export interface ExamApplication {
   address: string;
   photo_url?: string;
   application_no: string;
+  receipt_no?: string;
+  exam_name?: string;
+  academic_year?: string;
+  subjects?: string[];
+  is_verified?: boolean;
+  verified_at?: string;
+  rejection_reason?: string;
   status: 'SUBMITTED' | 'VERIFIED' | 'ADMIT_CARD_ISSUED' | 'REJECTED';
   admit_card_no?: string;
   submitted_at: string;

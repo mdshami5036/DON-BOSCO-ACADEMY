@@ -71,11 +71,28 @@ export const AdmitCardDownloadPage: React.FC = () => {
       const query = searchMode === 'ADMISSION_NO' ? admissionQuery.trim() : rollQuery.trim();
       const stu = await db.lookupStudentForExamForm(searchMode, query, classQuery);
       if (stu) {
+        // Fetch verified application if available
+        let appData: any = null;
+        if (link) {
+          appData = await db.checkStudentAlreadySubmitted(link.id, stu.admission_number || stu.id);
+        }
+        if (!appData) {
+          const allApps = await db.getExamApplications();
+          appData = allApps.find(a => a.admission_number === stu.admission_number || a.student_id === stu.id || a.roll_number === stu.roll_number);
+        }
+
         setFoundStudent({
           ...stu,
-          father_name: stu.father_name || 'Rajesh Singh',
-          mother_name: stu.mother_name || 'Sunita Devi',
-          admit_card_no: 'DBA/ADMIT/2026/' + (stu.roll_number || '1001'),
+          first_name: appData?.student_name ? appData.student_name.split(' ')[0] : stu.first_name,
+          last_name: appData?.student_name ? appData.student_name.split(' ').slice(1).join(' ') : stu.last_name,
+          father_name: appData?.father_name || stu.father_name || 'Rajesh Singh',
+          mother_name: appData?.mother_name || stu.mother_name || 'Sunita Devi',
+          photo_url: appData?.photo_url || stu.photo_url,
+          roll_number: appData?.roll_number || stu.roll_number || '1001',
+          admission_number: appData?.admission_number || stu.admission_number || 'DBA-2026-001',
+          class_name: appData?.class_name || stu.class_name || 'Class 10',
+          section_name: appData?.section_name || stu.section_name || 'A',
+          admit_card_no: appData?.admit_card_no || ('DBA/ADMIT/2026/' + (stu.roll_number || '1001')),
           exam_center: link?.exam_center || 'Don Bosco Academy Main Examination Hall, Sitamarhi',
           timetable: [
             { subject: 'Mathematics', date: '02/03/2026', time: '10:00 AM - 01:00 PM', room: 'Hall 1' },

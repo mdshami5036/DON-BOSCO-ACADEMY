@@ -1,6 +1,6 @@
 import { formatDDMMYYYY } from '../../lib/date-utils';
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { db } from '../../services/db';
 import { PublishableExamLink, Student, ExamApplication } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
@@ -9,6 +9,7 @@ import { FileText, Search, Send, CheckCircle2, User, Phone, MapPin, Calendar, Cl
 export const ExamFormFillPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { success, error: toastError } = useToast();
+  const navigate = useNavigate();
   const [link, setLink] = useState<PublishableExamLink | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -132,7 +133,7 @@ export const ExamFormFillPage: React.FC = () => {
       return;
     }
 
-    setIsSubmitting(true);
+        setIsSubmitting(true);
     try {
       const app = await db.submitExamApplication({
         link_id: link.id,
@@ -140,8 +141,10 @@ export const ExamFormFillPage: React.FC = () => {
         student_id: matchedStudent?.id,
         ...formData,
       });
-      setSubmissionReceipt(app);
-      success('Examination Registration Form submitted successfully!');
+      success('Examination Registration Form submitted successfully! Generating official receipt...');
+      setTimeout(() => {
+        navigate(`/exam-portal/receipt/${app.application_no}`);
+      }, 500);
     } catch (err: any) {
       toastError(err.message || 'Error submitting application');
     } finally {
@@ -323,10 +326,16 @@ export const ExamFormFillPage: React.FC = () => {
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Link
-                        to="/exam-portal"
-                        className="px-4 py-2 rounded-xl bg-emerald-900 text-white font-bold text-xs hover:bg-emerald-800 transition flex items-center gap-1.5"
+                        to={`/exam-portal/receipt/${alreadySubmittedApp.application_no}`}
+                        className="px-5 py-2.5 rounded-xl bg-emerald-900 text-white font-extrabold text-xs hover:bg-emerald-800 transition flex items-center gap-1.5 shadow-sm"
                       >
-                        <span>← Return to ERP / Exam Portals Hub</span>
+                        <span>📄 View / Print Official Submission Receipt (A4)</span>
+                      </Link>
+                      <Link
+                        to="/exam-portal"
+                        className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition"
+                      >
+                        Back to Portals
                       </Link>
                     </div>
                   </div>

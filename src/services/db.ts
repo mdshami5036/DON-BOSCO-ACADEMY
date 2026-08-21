@@ -185,8 +185,12 @@ const INITIAL_EXAM_APPLICATIONS: ExamApplication[] = [
     contact_phone: '+91 98765 43210',
     address: 'Raipur Bazar, Nanpur, Sitamarhi',
     photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-    application_no: 'DBA-EXAM-2026-9001',
-    status: 'VERIFIED',
+    application_no: 'DBA-EXAM-2026-0001',
+    receipt_no: 'DBA-REC-2026-0001',
+    exam_name: 'CBSE Annual Board Examination 2026',
+    academic_year: '2025-2026',
+    subjects: ['English Language', 'Mathematics (Standard)', 'Science & Technology', 'Social Science', 'Hindi Course-A', 'Computer Applications & AI'],
+    status: 'SUBMITTED',
     admit_card_no: 'DBA/ADMIT/2026/1001',
     submitted_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -196,7 +200,7 @@ const INITIAL_EXAM_APPLICATIONS: ExamApplication[] = [
     school_id: 'sch-don-bosco',
     student_id: 'stu-102',
     student_name: 'Priya Sharma',
-    father_name: 'Manoj Sharma',
+    father_name: 'Vikram Sharma',
     mother_name: 'Anita Sharma',
     dob: '2010-08-22',
     gender: 'Female',
@@ -205,10 +209,15 @@ const INITIAL_EXAM_APPLICATIONS: ExamApplication[] = [
     roll_number: '1002',
     admission_number: 'DBA-2026-002',
     contact_phone: '+91 98765 43211',
-    address: 'Nanpur, Sitamarhi',
+    address: 'Main Road, Nanpur, Sitamarhi',
     photo_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
-    application_no: 'DBA-EXAM-2026-9002',
-    status: 'SUBMITTED',
+    application_no: 'DBA-EXAM-2026-0002',
+    receipt_no: 'DBA-REC-2026-0002',
+    exam_name: 'CBSE Annual Board Examination 2026',
+    academic_year: '2025-2026',
+    subjects: ['English Language', 'Mathematics (Standard)', 'Science & Technology', 'Social Science', 'Hindi Course-A', 'Computer Applications & AI'],
+    status: 'VERIFIED',
+    admit_card_no: 'DBA/ADMIT/2026/1002',
     submitted_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
@@ -1879,8 +1888,28 @@ export const db = {
     });
   },
 
+    async getExamApplicationByNumber(appNoOrReceiptNo: string): Promise<ExamApplication | null> {
+    const q = appNoOrReceiptNo.trim().toLowerCase();
+    const apps = (store as any).examApplications as ExamApplication[];
+    const matched = apps.find(
+      (a) =>
+        a.application_no.toLowerCase() === q ||
+        (a.receipt_no && a.receipt_no.toLowerCase() === q) ||
+        a.admission_number.toLowerCase() === q ||
+        a.id.toLowerCase() === q
+    );
+    return matched || null;
+  },
+
   async submitExamApplication(payload: Partial<ExamApplication>): Promise<ExamApplication> {
-    const applicationNo = 'DBA-EXAM-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+    const apps = (store as any).examApplications as ExamApplication[];
+    const nextSeq = String(apps.length + 1).padStart(4, '0');
+    const applicationNo = 'DBA-EXAM-2026-' + nextSeq;
+    const receiptNo = 'DBA-REC-2026-' + nextSeq;
+    
+    // Find link details
+    const link = (store as any).examLinks.find((l: any) => l.id === payload.link_id);
+
     const newApp: ExamApplication = {
       id: 'app-' + Date.now(),
       link_id: payload.link_id || 'link-annual-2026',
@@ -1899,6 +1928,17 @@ export const db = {
       address: payload.address || '',
       photo_url: payload.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
       application_no: applicationNo,
+      receipt_no: receiptNo,
+      exam_name: link?.exam_name || 'CBSE Annual Board Examination 2026',
+      academic_year: link?.academic_year || '2025-2026',
+      subjects: payload.subjects || [
+        'English Language & Literature',
+        'Mathematics (Standard)',
+        'Science (Physics, Chem, Bio)',
+        'Social Science',
+        'Hindi Course-A',
+        'Computer Applications & AI'
+      ],
       status: 'SUBMITTED',
       submitted_at: new Date().toISOString(),
     };
@@ -1908,7 +1948,7 @@ export const db = {
     return newApp;
   },
 
-    async lookupStudentForExamForm(
+  async lookupStudentForExamForm(
     mode: 'ADMISSION_NO' | 'ROLL_NO',
     query: string,
     classFilter?: string
