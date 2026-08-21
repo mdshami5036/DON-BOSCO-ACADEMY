@@ -55,7 +55,7 @@ export const ExamLinksManagementPage: React.FC = () => {
     slug: '',
     academic_year: '2025-2026',
     exam_name: '',
-    target_class: 'ALL',
+    target_classes: ['ALL'] as string[],
     description: '',
     expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     exam_center: 'Don Bosco Academy Main Examination Hall, Sitamarhi',
@@ -101,6 +101,30 @@ export const ExamLinksManagementPage: React.FC = () => {
     loadData();
   }, [currentSchool]);
 
+  // Toggle single class or ALL in multi-class selection
+  const handleToggleClass = (className: string) => {
+    if (className === 'ALL') {
+      setForm((prev) => ({
+        ...prev,
+        target_classes: prev.target_classes.includes('ALL') ? [] : ['ALL'],
+      }));
+      return;
+    }
+
+    setForm((prev) => {
+      let current = prev.target_classes.filter((c) => c !== 'ALL');
+      if (current.includes(className)) {
+        current = current.filter((c) => c !== className);
+      } else {
+        current = [...current, className];
+      }
+      return {
+        ...prev,
+        target_classes: current.length === 0 ? ['ALL'] : current,
+      };
+    });
+  };
+
   // Open Create Exam Form
   const handleOpenCreateForm = () => {
     setEditingLink(null);
@@ -109,8 +133,8 @@ export const ExamLinksManagementPage: React.FC = () => {
       slug: '',
       academic_year: '2025-2026',
       exam_name: '',
-      target_class: 'ALL',
-      description: 'Fill candidate examination particulars for upcoming board examination.',
+      target_classes: ['ALL'],
+      description: 'Fill candidate examination particulars for upcoming annual examination.',
       expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       exam_center: 'Don Bosco Academy Main Examination Hall, Sitamarhi',
       is_active: true,
@@ -127,7 +151,7 @@ export const ExamLinksManagementPage: React.FC = () => {
       slug: link.slug || '',
       academic_year: link.academic_year || '2025-2026',
       exam_name: link.exam_name || '',
-      target_class: link.target_classes?.[0] || 'Class 10',
+      target_classes: link.target_classes && link.target_classes.length > 0 ? link.target_classes : ['ALL'],
       description: link.description || '',
       expiry_date: expDate,
       exam_center: link.exam_center || 'Don Bosco Academy Main Examination Hall, Sitamarhi',
@@ -156,7 +180,7 @@ export const ExamLinksManagementPage: React.FC = () => {
           description: form.description,
           expiry_date: expiryIso,
           exam_center: form.exam_center,
-          target_classes: [form.target_class],
+          target_classes: form.target_classes.length === 0 ? ['ALL'] : form.target_classes,
           is_active: form.is_active,
         });
         success('Examination Form Link updated successfully!');
@@ -171,7 +195,7 @@ export const ExamLinksManagementPage: React.FC = () => {
           description: form.description,
           expiry_date: expiryIso,
           exam_center: form.exam_center,
-          target_classes: [form.target_class],
+          target_classes: form.target_classes.length === 0 ? ['ALL'] : form.target_classes,
           is_active: form.is_active,
         });
         const urlPath = '/exam-portal/form/' + slug;
@@ -488,17 +512,65 @@ export const ExamLinksManagementPage: React.FC = () => {
                 className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900"
               />
             </div>
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">Target Class</label>
-              <select
-                value={form.target_class}
-                onChange={(e) => setForm({ ...form, target_class: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-slate-50"
-              >
-                {classes.map((c) => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
-                ))}
-              </select>
+                        <div className="sm:col-span-2 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block font-bold text-slate-800">
+                  🎯 Target Scope &amp; Applicable Classes * ({form.target_classes.includes('ALL') ? 'All Classes Selected' : `${form.target_classes.length} Classes Selected`})
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, target_classes: ['ALL'] })}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition ${form.target_classes.includes('ALL') ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300'}`}
+                  >
+                    🎯 Select All Classes (सभी कक्षाएं)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, target_classes: classes.map((c) => c.name) })}
+                    className="text-[11px] font-bold text-slate-500 hover:text-slate-700 underline"
+                  >
+                    Select Each
+                  </button>
+                </div>
+              </div>
+
+              {/* Multi-Class Badge Grid */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex flex-wrap gap-2 max-h-36 overflow-y-auto">
+                <button
+                  type="button"
+                  onClick={() => handleToggleClass('ALL')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${form.target_classes.includes('ALL') ? 'bg-sapphire-900 text-white shadow-sm ring-2 ring-indigo-400' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'}`}
+                >
+                  <span>🎯 All Classes (Play Group – 10th)</span>
+                </button>
+
+                {classes.map((c) => {
+                  const isSelected = form.target_classes.includes('ALL') || form.target_classes.includes(c.name);
+                  const isIndividuallySelected = form.target_classes.includes(c.name);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => handleToggleClass(c.name)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${isSelected ? 'bg-indigo-50 text-indigo-900 border-2 border-indigo-500 font-black shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+                    >
+                      <span className={`w-3.5 h-3.5 rounded-md flex items-center justify-center text-[10px] ${isSelected ? 'bg-indigo-600 text-white font-black' : 'border border-slate-300'}`}>
+                        {isSelected ? '✓' : ''}
+                      </span>
+                      <span>{c.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-500">
+                <span>
+                  {form.target_classes.includes('ALL')
+                    ? '⚡ यह परीक्षा फॉर्म स्कूल के सभी क्लास के छात्रों के लिए खुला रहेगा।'
+                    : `⚡ केवल चुनी गई कक्षाएं (${form.target_classes.join(', ')}) ही यह फॉर्म भर सकेंगी।`}
+                </span>
+              </div>
             </div>
             <div>
               <label className="block font-bold text-slate-700 mb-1">Academic Session</label>
