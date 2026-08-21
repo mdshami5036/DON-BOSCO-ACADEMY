@@ -18,21 +18,21 @@ export interface MarksheetData {
   school_address?: string;
   affiliation_text?: string;
   marksheet_title?: string;
-  marksheet_no: string;
-  verification_id: string;
   academic_session: string;
   exam_name: string;
+  class_name: string;
+  section_name: string;
+  marksheet_no: string;
+  verification_id: string;
   issue_date: string;
   student_name: string;
-  father_name: string;
-  mother_name: string;
   admission_no: string;
   registration_no?: string;
   roll_no: string;
   dob: string;
   gender: string;
-  class_name: string;
-  section_name: string;
+  father_name: string;
+  mother_name: string;
   photo_url?: string;
   subjects: MarksheetSubjectRow[];
   total_full_marks: number;
@@ -83,7 +83,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           height: '297mm',
           minHeight: '297mm',
           maxHeight: '297mm',
-          padding: '22mm 18mm 13mm 18mm', // Safe margins (Left/Right: 18mm, Top: 22mm to clear top ornament, Bottom: 13mm)
+          padding: '21mm 18mm 18mm 18mm', // Safe margins (Left/Right: 18mm, Top: 21mm, Bottom: 18mm to clear ornaments)
           fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           WebkitPrintColorAdjust: 'exact',
           printColorAdjust: 'exact',
@@ -105,12 +105,13 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* 5. HEADER SECTION */}
           {/* ========================================================================= */}
           <div className="text-center relative pt-0.5">
-            {/* School Logo (Left: 6mm offset to right, 24mm x 24mm) */}
+            {/* School Logo (Left: 6mm offset, 24mm x 24mm) */}
             <div className="absolute left-[6mm] top-[1mm] w-[24mm] h-[24mm] flex items-center justify-center">
               <img
                 src="/assets/branding/don-bosco-logo.png"
                 alt="School Crest"
-                className="w-full h-full object-contain drop-shadow-2xs"
+                style={{ width: '24mm', height: '24mm' }}
+                className="w-full h-full object-contain drop-shadow-2xs bg-white rounded-xl"
               />
             </div>
 
@@ -156,8 +157,8 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* 6. EXAMINATION INFORMATION CARD (172mm) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-[#0F2756]/40 bg-white/85 shadow-2xs mt-2"
-            style={{ padding: '4px 8px' }}
+            className="w-full rounded border border-[#0F2756]/40 bg-white/85 shadow-2xs mt-1.5"
+            style={{ padding: '3px 8px' }}
           >
             <div className="grid grid-cols-6 gap-2 text-center items-center">
               <div className="border-r border-slate-300 pr-1">
@@ -188,11 +189,11 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 7. STUDENT INFORMATION CARD (172mm x ~34mm) */}
+          {/* 7. STUDENT INFORMATION CARD (172mm x ~33mm) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-[#0F2756]/40 bg-white/85 p-2 shadow-2xs mt-2 flex gap-3 items-center"
-            style={{ height: '34mm', minHeight: '34mm', maxHeight: '34mm' }}
+            className="w-full rounded border border-[#0F2756]/40 bg-white/85 p-2 shadow-2xs mt-1.5 flex gap-3 items-center"
+            style={{ height: '33mm', minHeight: '33mm', maxHeight: '33mm' }}
           >
             {/* Left & Middle Info Columns */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-slate-800 flex-1 leading-tight" style={{ fontSize: '7.5pt' }}>
@@ -230,10 +231,10 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
               </div>
             </div>
 
-            {/* Right: Student Passport Photo (30mm x 36mm) */}
+            {/* Right: Student Passport Photo */}
             <div
-              className="w-[28mm] h-[34mm] shrink-0 rounded border border-slate-400 bg-slate-50 p-0.5 overflow-hidden flex items-center justify-center text-center"
-              style={{ width: '28mm', height: '32mm' }}
+              className="w-[28mm] h-[31mm] shrink-0 rounded border border-slate-400 bg-slate-50 p-0.5 overflow-hidden flex items-center justify-center text-center"
+              style={{ width: '28mm', height: '31mm' }}
             >
               {data.photo_url ? (
                 <img
@@ -252,18 +253,18 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* ========================================================================= */}
           {/* 8. MARKS TABLE (172mm) */}
           {/* ========================================================================= */}
-          <div className="w-full border border-[#0F2756]/50 rounded overflow-hidden bg-white/90 shadow-2xs mt-2">
+          <div className="w-full border border-[#0F2756]/50 rounded overflow-hidden bg-white/90 shadow-2xs mt-1.5">
             <table className="w-full border-collapse text-slate-900" style={{ fontSize: '7.5pt' }}>
               <thead>
-                <tr className="bg-[#0F2756] text-white font-bold uppercase text-center" style={{ height: '8mm' }}>
-                  <th style={{ width: '10mm', padding: '3px' }} className="border-r border-white/20">Sl.</th>
-                  <th style={{ width: '42mm', padding: '3px 6px' }} className="text-left border-r border-white/20">Subject Name</th>
-                  <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Full Marks</th>
-                  <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Pass Marks</th>
-                  <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Theory</th>
-                  <th style={{ width: '20mm', padding: '3px' }} className="border-r border-white/20">Practical</th>
-                  <th style={{ width: '22mm', padding: '3px' }} className="border-r border-white/20">Total</th>
-                  <th style={{ width: '20mm', padding: '3px' }}>Grade</th>
+                <tr className="bg-[#0F2756] text-white font-bold uppercase text-center" style={{ height: '7.5mm' }}>
+                  <th style={{ width: '10mm', padding: '2px' }} className="border-r border-white/20">Sl.</th>
+                  <th style={{ width: '42mm', padding: '2px 6px' }} className="text-left border-r border-white/20">Subject Name</th>
+                  <th style={{ width: '20mm', padding: '2px' }} className="border-r border-white/20">Full Marks</th>
+                  <th style={{ width: '20mm', padding: '2px' }} className="border-r border-white/20">Pass Marks</th>
+                  <th style={{ width: '20mm', padding: '2px' }} className="border-r border-white/20">Theory</th>
+                  <th style={{ width: '20mm', padding: '2px' }} className="border-r border-white/20">Practical</th>
+                  <th style={{ width: '22mm', padding: '2px' }} className="border-r border-white/20">Total</th>
+                  <th style={{ width: '20mm', padding: '2px' }}>Grade</th>
                 </tr>
               </thead>
               <tbody>
@@ -271,7 +272,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
                   <tr
                     key={idx}
                     className={'border-b border-slate-200 text-center ' + (idx % 2 === 1 ? 'bg-slate-50/70' : 'bg-white/80')}
-                    style={{ height: '7.2mm' }}
+                    style={{ height: '6.8mm' }}
                   >
                     <td className="font-mono text-slate-500 border-r border-slate-200">{idx + 1}</td>
                     <td className="text-left font-bold text-slate-900 px-2 border-r border-slate-200 truncate">{sub.subject_name}</td>
@@ -290,38 +291,38 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 11. RESULT SUMMARY CARD (172mm x ~18mm) */}
+          {/* 11. RESULT SUMMARY CARD (172mm x ~17mm) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border-2 border-[#0F2756] bg-[#0F2756]/5 p-2 mt-2 shadow-2xs"
-            style={{ height: '17mm', minHeight: '17mm' }}
+            className="w-full rounded border-2 border-[#0F2756] bg-[#0F2756]/5 p-1.5 mt-1.5 shadow-2xs"
+            style={{ height: '16mm', minHeight: '16mm' }}
           >
             <div className="grid grid-cols-6 gap-2 text-center items-center h-full">
               <div className="border-r border-slate-300">
                 <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Total Full Marks</span>
-                <strong className="block font-mono text-slate-900 font-bold" style={{ fontSize: '9.5pt' }}>{data.total_full_marks}</strong>
+                <strong className="block font-mono text-slate-900 font-bold" style={{ fontSize: '9pt' }}>{data.total_full_marks}</strong>
               </div>
               <div className="border-r border-slate-300">
                 <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Marks Obtained</span>
-                <strong className="block font-mono text-[#0F2756] font-black" style={{ fontSize: '10.5pt' }}>{data.total_marks_obtained}</strong>
+                <strong className="block font-mono text-[#0F2756] font-black" style={{ fontSize: '10pt' }}>{data.total_marks_obtained}</strong>
               </div>
               <div className="border-r border-slate-300">
                 <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Percentage</span>
-                <strong className="block font-mono text-emerald-800 font-black" style={{ fontSize: '10.5pt' }}>{data.percentage.toFixed(2)}%</strong>
+                <strong className="block font-mono text-emerald-800 font-black" style={{ fontSize: '10pt' }}>{data.percentage.toFixed(2)}%</strong>
               </div>
               <div className="border-r border-slate-300">
                 <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Overall Grade</span>
-                <strong className="block text-[#0F2756] font-black" style={{ fontSize: '10.5pt' }}>{data.overall_grade}</strong>
+                <strong className="block text-[#0F2756] font-black" style={{ fontSize: '10pt' }}>{data.overall_grade}</strong>
               </div>
               <div className="border-r border-slate-300">
                 <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Division</span>
-                <strong className="block text-slate-900 font-bold" style={{ fontSize: '8.5pt' }}>{data.division}</strong>
+                <strong className="block text-slate-900 font-bold" style={{ fontSize: '8pt' }}>{data.division}</strong>
               </div>
               <div>
                 <span className="block text-slate-500 uppercase font-semibold" style={{ fontSize: '6.5pt' }}>Final Result</span>
                 <span
                   className={'inline-block px-2 py-0.5 font-black uppercase rounded ' + (data.result === 'PASS' ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900')}
-                  style={{ fontSize: '9pt' }}
+                  style={{ fontSize: '8.5pt' }}
                 >
                   {data.result}
                 </span>
@@ -333,8 +334,8 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* 12. ADDITIONAL SUMMARY CARD (172mm) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-slate-300 bg-white/85 px-3 py-1.5 mt-2 flex items-center justify-between text-slate-800"
-            style={{ fontSize: '7pt' }}
+            className="w-full rounded border border-slate-300 bg-white/85 px-3 py-1 mt-1.5 flex items-center justify-between text-slate-800"
+            style={{ fontSize: '6.5pt' }}
           >
             <div>
               <span className="text-slate-500 font-semibold uppercase">Attendance:</span>{' '}
@@ -355,62 +356,69 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 13. QR VERIFICATION & 14. SIGNATURES SECTION */}
+          {/* 13. QR VERIFICATION & 14. TWO SIGNATURES SECTION (CLASS TEACHER & PRINCIPAL) */}
           {/* ========================================================================= */}
-          <div className="w-full pt-2 mt-1 border-t border-slate-300/80 flex items-end justify-between gap-2">
-            {/* Left: QR Code & Verification Info */}
+          <div className="w-full pt-1.5 mt-1 border-t border-slate-300/80 flex items-end justify-between gap-4">
+            {/* Left: QR Code & Direct Verification URL */}
             <div className="flex items-center gap-2.5">
-              <div className="w-[20mm] h-[20mm] bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center">
+              <div className="w-[19mm] h-[19mm] bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center shadow-2xs">
                 {qrDataUri ? (
                   <img src={qrDataUri} alt="QR Code" className="w-full h-full object-contain" />
                 ) : (
                   <QrCode className="w-full h-full text-slate-900" />
                 )}
               </div>
-              <div className="text-slate-600 leading-tight" style={{ fontSize: '6.5pt' }}>
+              <div className="text-slate-600 leading-tight space-y-0.5" style={{ fontSize: '6pt' }}>
                 <span className="font-bold text-[#0F2756] block uppercase tracking-wider">SECURE DIGITAL VERIFICATION</span>
-                <span className="font-mono text-slate-500 block">ID: {data.verification_id}</span>
-                <span className="text-slate-500 block mt-0.5">Scan to verify authentic CBSE record</span>
-                <span className="text-emerald-700 font-semibold block">don-bosco-academy.vercel.app/verify</span>
+                <span className="font-mono text-slate-700 font-bold block">ID: {data.verification_id}</span>
+                <span className="text-slate-500 block">Scan QR code to verify authentic CBSE record</span>
+                <a
+                  href={verifyUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-emerald-700 font-bold block truncate hover:underline"
+                  style={{ fontSize: '6pt' }}
+                >
+                  {origin ? origin.replace(/^https?:\/\//, '') : 'don-bosco-academy.vercel.app'}/verify?id={data.verification_id}
+                </a>
               </div>
             </div>
 
-            {/* Center: Institutional Seal */}
+            {/* Center: Institutional Seal (Using working SVG) */}
             <div className="text-center">
-              <img
-                src="/assets/branding/don-bosco-seal.png"
-                alt="Institutional Seal"
-                className="w-[18mm] h-[18mm] mx-auto object-contain opacity-90"
-              />
-              <span className="block text-[6pt] font-bold text-slate-500 uppercase tracking-wider mt-0.5">School Seal</span>
+              <div className="p-0.5 bg-white rounded-xl border border-slate-200 shadow-2xs inline-block">
+                <img
+                  src="/assets/branding/don-bosco-stamp.svg"
+                  alt="Institutional Seal"
+                  style={{ width: '48px', height: '48px' }}
+                  className="w-[15mm] h-[15mm] mx-auto object-contain opacity-95"
+                />
+              </div>
+              <span className="block text-[5.5pt] font-black text-slate-600 uppercase tracking-wider mt-0.5">Official School Seal</span>
             </div>
 
-            {/* Right: Three Signatures */}
-            <div className="flex gap-4 text-center items-end">
-              <div className="w-[24mm]">
+            {/* Right: Two Signatures (Class Teacher & Principal) */}
+            <div className="flex gap-6 text-center items-end">
+              {/* 1. Class Teacher */}
+              <div className="w-[32mm]">
                 <div className="h-[9mm]"></div>
-                <div className="border-t border-slate-500 pt-0.5 text-slate-800 font-bold uppercase" style={{ fontSize: '6.5pt' }}>
+                <div className="border-t-2 border-slate-500 pt-0.5 text-slate-800 font-bold uppercase" style={{ fontSize: '7pt' }}>
                   Class Teacher
                 </div>
               </div>
 
-              <div className="w-[24mm]">
-                <div className="h-[9mm]"></div>
-                <div className="border-t border-slate-500 pt-0.5 text-slate-800 font-bold uppercase" style={{ fontSize: '6.5pt' }}>
-                  Exam In-Charge
-                </div>
-              </div>
-
-              <div className="w-[28mm]">
+              {/* 2. Principal & Authorized Signatory */}
+              <div className="w-[36mm]">
                 <img
-                  src="/assets/branding/principal-signature.png"
+                  src="/assets/branding/principal-signature.svg"
                   alt="Principal Signature"
+                  style={{ height: '30px', maxWidth: '120px' }}
                   className="h-[8mm] mx-auto object-contain mb-0.5"
                 />
-                <div className="border-t border-slate-500 pt-0.5 text-slate-900 font-bold uppercase leading-none" style={{ fontSize: '6.5pt' }}>
+                <div className="border-t-2 border-slate-500 pt-0.5 text-slate-900 font-bold uppercase leading-none" style={{ fontSize: '7pt' }}>
                   Principal
                 </div>
-                <div className="text-slate-500 font-medium leading-none mt-0.5" style={{ fontSize: '5.5pt' }}>
+                <div className="text-slate-500 font-semibold leading-none mt-0.5" style={{ fontSize: '5.5pt' }}>
                   Md. Shami Ahmad
                 </div>
               </div>
@@ -420,7 +428,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* ========================================================================= */}
           {/* 15. FOOTER */}
           {/* ========================================================================= */}
-          <div className="text-center text-slate-400 font-medium pt-1" style={{ fontSize: '6pt' }}>
+          <div className="text-center text-slate-400 font-medium pt-0.5 pb-0.5" style={{ fontSize: '5.5pt' }}>
             This is a computer-generated official academic marksheet &bull; Don Bosco Academy &bull; Estd. 1997
           </div>
         </div>
