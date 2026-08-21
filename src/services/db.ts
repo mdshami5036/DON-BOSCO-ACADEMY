@@ -1,3 +1,69 @@
+
+const INITIAL_ISSUED_MARKSHEETS = [
+  {
+    id: 'ms-001',
+    school_id: 'sch-don-bosco',
+    marksheet_number: 'MS-2026-000101',
+    verification_id: 'DBA-MARK-2026-0103',
+    student_id: 'stu-101',
+    student_name: 'Aman Singh',
+    admission_no: 'DBA-2026-001',
+    roll_no: '1001',
+    class_name: 'Class 10',
+    section_name: 'A',
+    exam_name: 'CBSE Annual Board Examination 2026',
+    academic_session: '2025-2026',
+    issue_date: '2026-03-25',
+    total_full_marks: 600,
+    total_marks_obtained: 566,
+    percentage: 94.33,
+    overall_grade: 'A1',
+    division: '1st Division with Distinction',
+    result: 'PASS',
+    photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    status: 'ISSUED',
+    subjects: [
+      { subject_name: 'English Language & Literature', full_marks: 100, pass_marks: 33, theory_marks: 78, practical_marks: 18, total_marks: 96, grade: 'A1' },
+      { subject_name: 'Mathematics (Standard)', full_marks: 100, pass_marks: 33, theory_marks: 80, practical_marks: 19, total_marks: 99, grade: 'A1' },
+      { subject_name: 'Science (Physics, Chem, Bio)', full_marks: 100, pass_marks: 33, theory_marks: 75, practical_marks: 20, total_marks: 95, grade: 'A1' },
+      { subject_name: 'Social Science', full_marks: 100, pass_marks: 33, theory_marks: 88, practical_marks: null, total_marks: 88, grade: 'A2' },
+      { subject_name: 'Hindi Course-A', full_marks: 100, pass_marks: 33, theory_marks: 92, practical_marks: null, total_marks: 92, grade: 'A1' },
+      { subject_name: 'Computer Applications & AI', full_marks: 100, pass_marks: 33, theory_marks: 48, practical_marks: 48, total_marks: 96, grade: 'A1' }
+    ]
+  },
+  {
+    id: 'ms-002',
+    school_id: 'sch-don-bosco',
+    marksheet_number: 'MS-2026-000102',
+    verification_id: 'DBA-MARK-2026-0104',
+    student_id: 'stu-102',
+    student_name: 'Priya Sharma',
+    admission_no: 'DBA-2026-002',
+    roll_no: '1002',
+    class_name: 'Class 10',
+    section_name: 'A',
+    exam_name: 'CBSE Annual Board Examination 2026',
+    academic_session: '2025-2026',
+    issue_date: '2026-03-25',
+    total_full_marks: 600,
+    total_marks_obtained: 542,
+    percentage: 90.33,
+    overall_grade: 'A1',
+    division: '1st Division',
+    result: 'PASS',
+    photo_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
+    status: 'ISSUED',
+    subjects: [
+      { subject_name: 'English Language & Literature', full_marks: 100, pass_marks: 33, theory_marks: 74, practical_marks: 18, total_marks: 92, grade: 'A1' },
+      { subject_name: 'Mathematics (Standard)', full_marks: 100, pass_marks: 33, theory_marks: 72, practical_marks: 18, total_marks: 90, grade: 'A1' },
+      { subject_name: 'Science (Physics, Chem, Bio)', full_marks: 100, pass_marks: 33, theory_marks: 71, practical_marks: 18, total_marks: 89, grade: 'A2' },
+      { subject_name: 'Social Science', full_marks: 100, pass_marks: 33, theory_marks: 86, practical_marks: null, total_marks: 86, grade: 'A2' },
+      { subject_name: 'Hindi Course-A', full_marks: 100, pass_marks: 33, theory_marks: 91, practical_marks: null, total_marks: 91, grade: 'A1' },
+      { subject_name: 'Computer Applications & AI', full_marks: 100, pass_marks: 33, theory_marks: 47, practical_marks: 47, total_marks: 94, grade: 'A1' }
+    ]
+  }
+];
+
 import { formatDDMMYYYY } from '../lib/date-utils';
 import {
   Profile,
@@ -1878,6 +1944,25 @@ export const db = {
     (store as any).examLinks.splice(index, 1);
     store.persist();
     return true;
+  },
+
+
+  async getIssuedMarksheets(schoolId?: string): Promise<any[]> {
+    const list = ((store as any).issuedMarksheets || []) as any[];
+    if (!schoolId) return list;
+    return list.filter((m) => m.school_id === schoolId);
+  },
+
+  async createIssuedMarksheet(payload: any): Promise<any> {
+    const newMs = {
+      id: 'ms-' + Date.now(),
+      ...payload,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    (store as any).issuedMarksheets.unshift(newMs);
+    store.persist();
+    return newMs;
   },
 
   async getExamApplications(linkId?: string, schoolId?: string): Promise<ExamApplication[]> {

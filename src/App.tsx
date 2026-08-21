@@ -47,7 +47,8 @@ import { AttendancePage } from './features/attendance/AttendancePage';
 import { FeesManagementPage } from './features/fees/FeesManagementPage';
 import { ExamsManagementPage } from './features/exams/ExamsManagementPage';
 import { ResultsEnginePage } from './features/results/ResultsEnginePage';
-import { MarksheetGeneratorPage } from './features/documents/MarksheetGeneratorPage';
+import { MarksheetListPage } from './features/documents/MarksheetListPage';
+import { MarksheetIssuePage } from './features/documents/MarksheetIssuePage';
 import { CertificateGeneratorPage } from './features/documents/CertificateGeneratorPage';
 import { AdmitCardGeneratorPage } from './features/documents/AdmitCardGeneratorPage';
 import { IdCardGeneratorPage } from './features/documents/IdCardGeneratorPage';
@@ -95,6 +96,9 @@ export function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<Navigate to="/" replace />} />
             <Route path="/verify" element={<DocumentVerificationPage />} />
+            <Route path="/admin/marksheets" element={<Navigate to="/school/documents/marksheets" replace />} />
+            <Route path="/admin/marksheets/issue" element={<Navigate to="/school/documents/marksheets/issue" replace />} />
+            <Route path="/verify-marksheet/:verificationId" element={<DocumentVerificationPage />} />
             <Route path="/verify/:code" element={<DocumentVerificationPage />} />
             <Route path="/school/:slug" element={<PublicSchoolPage />} />
             {/* Dynamic Public ERP & Exam Portal Routes */}
@@ -134,7 +138,10 @@ export function App() {
               <Route path="exams" element={<ExamsManagementPage />} />
               <Route path="exam-links" element={<ExamLinksManagementPage />} />
               <Route path="results" element={<ResultsEnginePage />} />
-              <Route path="documents/marksheets" element={<MarksheetGeneratorPage />} />
+              <Route path="documents/marksheets" element={<MarksheetListPage />} />
+              <Route path="documents/marksheets/issue" element={<MarksheetIssuePage />} />
+              <Route path="marksheets" element={<MarksheetListPage />} />
+              <Route path="marksheets/issue" element={<MarksheetIssuePage />} />
               <Route path="documents/certificates" element={<CertificateGeneratorPage />} />
               <Route path="documents/admit-cards" element={<AdmitCardGeneratorPage />} />
               <Route path="documents/id-cards" element={<IdCardGeneratorPage />} />
