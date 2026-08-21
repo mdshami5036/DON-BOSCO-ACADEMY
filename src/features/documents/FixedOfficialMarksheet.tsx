@@ -83,7 +83,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           height: '297mm',
           minHeight: '297mm',
           maxHeight: '297mm',
-          padding: '20mm 18mm 23mm 18mm', // Safe margins (Left/Right: 18mm, Top: 20mm, Bottom: 23mm to clear bottom ornament)
+          padding: '27mm 18mm 18mm 18mm', // Top 27mm to clear top background ornament flourish
           fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           WebkitPrintColorAdjust: 'exact',
           printColorAdjust: 'exact',
