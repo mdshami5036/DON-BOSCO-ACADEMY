@@ -8,7 +8,6 @@ import {
   Printer,
   Download,
   CheckCircle2,
-  QrCode,
   FileCheck,
   Building2,
   Calendar,
@@ -31,7 +30,7 @@ export const ExamFormReceiptPage: React.FC = () => {
   useEffect(() => {
     async function loadReceipt() {
       if (!applicationNo) return;
-      setIsLoading(false);
+      setIsLoading(true);
       try {
         const found = await db.getExamApplicationByNumber(applicationNo);
         if (found) {
@@ -55,41 +54,12 @@ export const ExamFormReceiptPage: React.FC = () => {
     window.print();
   };
 
-  const receiptVerificationUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/exam-portal/receipt/${app?.application_no || applicationNo}`
-    : '';
-
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800 flex flex-col font-sans">
-      {/* PRINT-SPECIFIC CSS INJECTION */}
-      <style>{'\
-        @page {\
-          size: A4 portrait;\
-          margin: 8mm;\
-        }\
-        @media print {\
-          body {\
-            background: #ffffff !important;\
-            margin: 0 !important;\
-            padding: 0 !important;\
-            -webkit-print-color-adjust: exact !important;\
-            print-color-adjust: exact !important;\
-          }\
-          .no-print {\
-            display: none !important;\
-          }\
-          .a4-receipt-canvas {\
-            width: 100% !important;\
-            max-width: 100% !important;\
-            min-height: 100% !important;\
-            height: auto !important;\
-            border: none !important;\
-            box-shadow: none !important;\
-            margin: 0 !important;\
-            padding: 0 !important;\
-          }\
-        }\
-      '}</style>
+      {/* ========================================================================= */}
+      {/* EXACT FIXED A4 PORTRAIT PRINT & PDF STYLES (210mm x 297mm) */}
+      {/* ========================================================================= */}
+      <style>{'        @page {          size: 210mm 297mm;          margin: 0mm;        }        @media print {          html, body {            width: 210mm !important;            height: 297mm !important;            margin: 0 !important;            padding: 0 !important;            background: #ffffff !important;            -webkit-print-color-adjust: exact !important;            print-color-adjust: exact !important;            font-size: 12px !important;          }          .no-print {            display: none !important;          }          .a4-receipt-canvas {            width: 210mm !important;            min-width: 210mm !important;            max-width: 210mm !important;            height: 297mm !important;            min-height: 297mm !important;            max-height: 297mm !important;            margin: 0 auto !important;            padding: 12mm 14mm 10mm 14mm !important;            box-shadow: none !important;            border: none !important;            page-break-after: avoid !important;            page-break-inside: avoid !important;            overflow: hidden !important;            position: relative !important;          }        }      '}</style>
 
       {/* TOP PREVIEW ACTION BAR (WEB ONLY) */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs no-print">
@@ -111,7 +81,7 @@ export const ExamFormReceiptPage: React.FC = () => {
               className="px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-extrabold text-xs shadow-sm hover:bg-emerald-800 transition flex items-center gap-1.5 cursor-pointer"
             >
               <Download className="w-4 h-4" />
-              <span>⬇ Download PDF</span>
+              <span>⬇ Download PDF (Fixed A4)</span>
             </button>
           </div>
         </div>
@@ -136,28 +106,38 @@ export const ExamFormReceiptPage: React.FC = () => {
           </div>
         ) : (
           /* ========================================================================= */
-          /* A4 RECEIPT DOCUMENT CANVAS (210mm x 297mm) */
+          /* FIXED 1-PAGE A4 RECEIPT CANVAS (210mm x 297mm) */
           /* ========================================================================= */
-          <div className="a4-receipt-canvas w-[210mm] min-h-[297mm] bg-white border border-slate-300 shadow-2xl p-[10mm] text-slate-900 flex flex-col justify-between box-border rounded-xl print:rounded-none relative">
-            
+          <div
+            className="a4-receipt-canvas bg-white text-slate-900 shadow-2xl flex flex-col justify-between box-border rounded-xl print:rounded-none relative overflow-hidden"
+            style={{
+              width: '210mm',
+              minWidth: '210mm',
+              maxWidth: '210mm',
+              height: '297mm',
+              minHeight: '297mm',
+              maxHeight: '297mm',
+              padding: '12mm 14mm 10mm 14mm',
+            }}
+          >
             {/* Background Watermark */}
             <img
               src="/assets/branding/don-bosco-logo.png"
               alt="Watermark"
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 opacity-[0.035] pointer-events-none object-contain"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-88 h-88 opacity-[0.035] pointer-events-none object-contain select-none"
             />
 
-            <div className="space-y-4">
+            <div className="space-y-3.5 relative z-10">
               {/* ========================================================================= */}
               {/* A. HEADER — TOP SECTION */}
               {/* ========================================================================= */}
-              <div className="border-b-2 border-sapphire-900 pb-3 flex items-start justify-between gap-4">
+              <div className="border-b-2 border-sapphire-900 pb-2.5 flex items-start justify-between gap-4">
                 {/* Left: School Crest */}
                 <div className="flex items-center gap-3">
                   <img
                     src="/assets/branding/don-bosco-logo.png"
                     alt="Don Bosco Academy Crest"
-                    className="w-16 h-16 object-contain rounded-xl border border-slate-200 p-0.5"
+                    className="w-15 h-15 object-contain rounded-xl border border-slate-200 p-0.5"
                   />
                   <div>
                     <h1 className="text-xl sm:text-2xl font-black font-display text-sapphire-950 uppercase tracking-tight leading-none">
@@ -169,19 +149,19 @@ export const ExamFormReceiptPage: React.FC = () => {
                     <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
                       Raipur Bazar, Nanpur, Sitamarhi (Bihar) - 843326 &bull; ESTD 1997
                     </p>
-                    <div className="text-[10px] font-bold text-indigo-900 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 inline-block mt-1">
+                    <div className="text-[9.5px] font-bold text-indigo-900 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 inline-block mt-0.5">
                       Academic Session: {app.academic_year || '2025–2026'}
                     </div>
                   </div>
                 </div>
 
                 {/* Right: Receipt Identification Meta */}
-                <div className="text-right text-[11px] space-y-1 shrink-0 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <div className="text-right text-[10.5px] space-y-1 shrink-0 bg-slate-50 p-2 rounded-xl border border-slate-200">
                   <div><span className="text-slate-400">Receipt No:</span> <strong className="font-mono text-sapphire-900">{app.receipt_no || 'DBA-REC-2026-0001'}</strong></div>
                   <div><span className="text-slate-400">Application No:</span> <strong className="font-mono text-indigo-700">{app.application_no}</strong></div>
                   <div><span className="text-slate-400">Submission Date:</span> <strong className="font-mono text-slate-800">{formatDDMMYYYY(app.submitted_at)}</strong></div>
                   <div className="pt-0.5">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-900 text-[10px] font-black uppercase rounded border border-emerald-300">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-900 text-[9px] font-black uppercase rounded border border-emerald-300">
                       <Check className="w-3 h-3 text-emerald-700" />
                       <span>{app.status === 'VERIFIED' ? '✓ APPLICATION VERIFIED' : '✓ FORM SUBMITTED'}</span>
                     </span>
@@ -192,36 +172,36 @@ export const ExamFormReceiptPage: React.FC = () => {
               {/* ========================================================================= */}
               {/* B. EXAMINATION DETAILS */}
               {/* ========================================================================= */}
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-black uppercase tracking-wider text-sapphire-900 bg-sapphire-50/80 px-3 py-1 rounded border-l-4 border-sapphire-900">
+              <div className="space-y-1">
+                <div className="text-[10px] font-black uppercase tracking-wider text-sapphire-900 bg-sapphire-50/80 px-2.5 py-0.5 rounded border-l-4 border-sapphire-900">
                   EXAMINATION DETAILS
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs p-2 rounded-xl bg-slate-50 border border-slate-200">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Examination Name:</span>
-                    <strong className="text-slate-900">{app.exam_name || link?.exam_name || 'CBSE Annual Board Examination 2026'}</strong>
+                    <span className="text-[9.5px] text-slate-400 block">Examination Name:</span>
+                    <strong className="text-slate-900 text-[11px]">{app.exam_name || link?.exam_name || 'CBSE Annual Board Examination 2026'}</strong>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Academic Year / Session:</span>
-                    <strong className="text-slate-900">{app.academic_year || '2025-2026'}</strong>
+                    <span className="text-[9.5px] text-slate-400 block">Academic Session:</span>
+                    <strong className="text-slate-900 text-[11px]">{app.academic_year || '2025-2026'}</strong>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Registered Class & Section:</span>
-                    <strong className="text-slate-900">{app.class_name} (Section {app.section_name})</strong>
+                    <span className="text-[9.5px] text-slate-400 block">Registered Class &amp; Sec:</span>
+                    <strong className="text-slate-900 text-[11px]">{app.class_name} (Section {app.section_name})</strong>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Examination Center:</span>
+                    <span className="text-[9.5px] text-slate-400 block">Examination Center:</span>
                     <strong className="text-slate-900 text-[11px]">{link?.exam_center || 'Don Bosco Academy Main Hall'}</strong>
                   </div>
                 </div>
 
                 {/* Selected Subjects List */}
                 {app.subjects && app.subjects.length > 0 && (
-                  <div className="p-2 rounded-xl bg-white border border-slate-200 text-xs">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Confirmed Examination Papers / Selected Subjects:</span>
-                    <div className="flex flex-wrap gap-1.5">
+                  <div className="p-1.5 rounded-xl bg-white border border-slate-200 text-xs">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Confirmed Examination Papers / Selected Subjects:</span>
+                    <div className="flex flex-wrap gap-1">
                       {app.subjects.map((sub, idx) => (
-                        <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-800 text-[10px] font-bold rounded border border-slate-200">
+                        <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-800 text-[9.5px] font-bold rounded border border-slate-200">
                           {idx + 1}. {sub}
                         </span>
                       ))}
@@ -233,13 +213,13 @@ export const ExamFormReceiptPage: React.FC = () => {
               {/* ========================================================================= */}
               {/* C. STUDENT INFORMATION & D. ACADEMIC DETAILS */}
               {/* ========================================================================= */}
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-black uppercase tracking-wider text-sapphire-900 bg-sapphire-50/80 px-3 py-1 rounded border-l-4 border-sapphire-900">
-                  STUDENT & ACADEMIC PARTICULARS
+              <div className="space-y-1">
+                <div className="text-[10px] font-black uppercase tracking-wider text-sapphire-900 bg-sapphire-50/80 px-2.5 py-0.5 rounded border-l-4 border-sapphire-900">
+                  STUDENT &amp; ACADEMIC PARTICULARS
                 </div>
-                <div className="flex gap-4 p-3 rounded-xl bg-slate-50 border border-slate-200 items-center">
+                <div className="flex gap-3.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 items-center">
                   {/* LEFT: Fixed Passport Photo */}
-                  <div className="w-24 h-28 shrink-0 rounded-lg border-2 border-sapphire-900 overflow-hidden bg-white p-0.5 shadow-2xs">
+                  <div className="w-22 h-26 shrink-0 rounded-lg border-2 border-sapphire-900 overflow-hidden bg-white p-0.5 shadow-2xs">
                     <img
                       src={app.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
                       alt={app.student_name}
@@ -248,42 +228,42 @@ export const ExamFormReceiptPage: React.FC = () => {
                   </div>
 
                   {/* RIGHT: Grid Details */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs flex-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1.5 text-xs flex-1">
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Candidate Full Name:</span>
-                      <strong className="text-slate-900 text-sm font-extrabold">{app.student_name}</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Candidate Full Name:</span>
+                      <strong className="text-slate-900 text-xs font-extrabold">{app.student_name}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Admission Number (Unique):</span>
-                      <strong className="text-sapphire-900 font-mono font-bold">{app.admission_number}</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Admission Number (Unique):</span>
+                      <strong className="text-sapphire-900 font-mono font-bold text-xs">{app.admission_number}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Class Roll Number:</span>
-                      <strong className="text-slate-900 font-mono font-bold">{app.roll_number}</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Class Roll Number:</span>
+                      <strong className="text-slate-900 font-mono font-bold text-xs">{app.roll_number}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Father's Name:</span>
-                      <strong className="text-slate-800">{app.father_name || 'N/A'}</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Father's Name:</span>
+                      <strong className="text-slate-800 text-[11px]">{app.father_name || 'N/A'}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Mother's Name:</span>
-                      <strong className="text-slate-800">{app.mother_name || 'N/A'}</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Mother's Name:</span>
+                      <strong className="text-slate-800 text-[11px]">{app.mother_name || 'N/A'}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Date of Birth:</span>
-                      <strong className="text-slate-800 font-mono">{formatDDMMYYYY(app.dob)}</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Date of Birth:</span>
+                      <strong className="text-slate-800 font-mono text-[11px]">{formatDDMMYYYY(app.dob)}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Gender:</span>
-                      <strong className="text-slate-800">{app.gender}</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Gender:</span>
+                      <strong className="text-slate-800 text-[11px]">{app.gender}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Class & Cohort:</span>
-                      <strong className="text-slate-800">{app.class_name} (Section {app.section_name})</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Class &amp; Section:</span>
+                      <strong className="text-slate-800 text-[11px]">{app.class_name} (Sec {app.section_name})</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Contact Phone:</span>
-                      <strong className="text-slate-800 font-mono">{app.contact_phone}</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Contact Phone:</span>
+                      <strong className="text-slate-800 font-mono text-[11px]">{app.contact_phone}</strong>
                     </div>
                   </div>
                 </div>
@@ -292,15 +272,15 @@ export const ExamFormReceiptPage: React.FC = () => {
               {/* ========================================================================= */}
               {/* E. CONTACT & RESIDENTIAL ADDRESS */}
               {/* ========================================================================= */}
-              <div className="space-y-1">
-                <div className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs flex items-center justify-between">
+              <div>
+                <div className="p-2 rounded-xl bg-white border border-slate-200 text-xs flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Registered Residential Address:</span>
-                    <strong className="text-slate-800">{app.address || 'Raipur Bazar, Nanpur, Sitamarhi'}</strong>
+                    <span className="text-[9.5px] text-slate-400 block">Registered Residential Address:</span>
+                    <strong className="text-slate-800 text-[11px]">{app.address || 'Raipur Bazar, Nanpur, Sitamarhi'}</strong>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 block">Student Status:</span>
-                    <span className="font-bold text-emerald-700">Regular Enrolled Scholar</span>
+                    <span className="text-[9.5px] text-slate-400 block">Student Status:</span>
+                    <span className="font-bold text-emerald-700 text-[11px]">Regular Enrolled Scholar</span>
                   </div>
                 </div>
               </div>
@@ -308,69 +288,69 @@ export const ExamFormReceiptPage: React.FC = () => {
               {/* ========================================================================= */}
               {/* F. SUBMISSION CONFIRMATION NOTICE */}
               {/* ========================================================================= */}
-              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 space-y-1">
-                <div className="flex items-center gap-2 font-black text-xs font-display">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>✓ EXAMINATION FORM SUCCESSFULLY SUBMITTED</span>
+              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 space-y-0.5">
+                <div className="flex items-center gap-1.5 font-black text-xs font-display">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>✓ EXAMINATION FORM SUCCESSFULLY SUBMITTED &amp; LOCKED</span>
                 </div>
-                <p className="text-[11px] text-emerald-800 leading-snug">
-                  Your examination form has been successfully submitted and recorded in the official records of Don Bosco Academy. The stored particulars will serve as the primary source of truth for the upcoming Admit Card.
+                <p className="text-[10.5px] text-emerald-800 leading-snug">
+                  Your examination form has been successfully submitted and recorded in the official database of Don Bosco Academy. These verified particulars will be used directly for your upcoming Admit Card.
                 </p>
               </div>
 
               {/* ========================================================================= */}
               {/* G. SIGNATURES & OFFICIAL INSTITUTIONAL SEAL (NO QR CODE) */}
               {/* ========================================================================= */}
-              <div className="pt-4 border-t-2 border-slate-300 grid grid-cols-3 gap-6 items-end text-xs">
+              <div className="pt-2 border-t-2 border-slate-300 grid grid-cols-3 gap-6 items-end text-xs">
                 {/* Left: Candidate Signature */}
-                <div className="text-center space-y-3">
-                  <div className="h-10 flex items-end justify-center">
-                    <span className="text-[10px] font-mono text-slate-400 italic">Verified Submission</span>
+                <div className="text-center space-y-2">
+                  <div className="h-8 flex items-end justify-center">
+                    <span className="text-[9.5px] font-mono text-slate-400 italic">Verified Submission</span>
                   </div>
                   <div className="border-t-2 border-slate-400 pt-1">
                     <div className="font-bold text-slate-900 text-xs">{app.student_name}</div>
-                    <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">Candidate's Signature</div>
+                    <div className="text-[8.5px] text-slate-500 font-semibold uppercase tracking-wider">Candidate's Signature</div>
                   </div>
                 </div>
 
                 {/* Center: Institutional Seal */}
-                <div className="text-center space-y-1.5">
-                  <div className="inline-block p-1 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+                <div className="text-center space-y-1">
+                  <div className="inline-block p-0.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
                     <img
                       src="/assets/branding/don-bosco-stamp.svg"
                       alt="Institutional Seal"
-                      className="w-18 h-18 object-contain mx-auto opacity-95"
+                      className="w-14 h-14 object-contain mx-auto opacity-95"
                     />
                   </div>
-                  <div className="text-[9px] font-black uppercase tracking-wider text-sapphire-950 block">
+                  <div className="text-[8.5px] font-black uppercase tracking-wider text-sapphire-950 block">
                     Institutional Seal
                   </div>
-                  <div className="text-[8px] font-semibold text-slate-400 -mt-1 block">
+                  <div className="text-[7.5px] font-semibold text-slate-400 -mt-1 block">
                     Don Bosco Academy
                   </div>
                 </div>
 
                 {/* Right: Principal & Authorized Signatory */}
-                <div className="text-center sm:text-right space-y-1">
-                  <div className="h-12 flex items-end justify-center sm:justify-end">
+                <div className="text-center sm:text-right space-y-0.5">
+                  <div className="h-10 flex items-end justify-center sm:justify-end">
                     <img
                       src="/assets/branding/principal-signature.svg"
                       alt="Principal Signature"
-                      className="h-10 object-contain mx-auto sm:ml-auto"
+                      className="h-8 object-contain mx-auto sm:ml-auto"
                     />
                   </div>
                   <div className="border-t-2 border-slate-400 pt-1">
                     <div className="font-extrabold text-slate-900 text-xs">Md. Shami Ahmad</div>
-                    <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">Principal &amp; Authorized Signatory</div>
+                    <div className="text-[8.5px] text-slate-500 font-semibold uppercase tracking-wider">Principal &amp; Authorized Signatory</div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* ========================================================================= */}
-            {/* I. FOOTER */}
+            {/* H. FOOTER */}
             {/* ========================================================================= */}
-            <div className="border-t border-slate-200 pt-2 text-[9px] text-slate-400 flex items-center justify-between">
+            <div className="border-t border-slate-200 pt-1.5 text-[8.5px] text-slate-400 flex items-center justify-between relative z-10">
               <span>This is a computer-generated Examination Form Submission Receipt.</span>
               <span className="font-semibold text-slate-600">Please keep this receipt safely for future reference.</span>
               <span>Don Bosco Academy &bull; Estd 1997</span>
