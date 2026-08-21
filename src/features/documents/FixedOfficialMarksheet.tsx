@@ -89,15 +89,11 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           printColorAdjust: 'exact',
         }}
       >
-        {/* Security Background Layer (Guilloche / Ornamental Border & Watermark) */}
-        <div
-          className="absolute inset-0 pointer-events-none z-0"
-          style={{
-            backgroundImage: 'url(/assets/branding/marksheet-security-bg.jpg)',
-            backgroundSize: '100% 100%',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
+        {/* Permanent Security Background Layer (Ornamental Border & Guilloche Watermark) */}
+        <img
+          src="/assets/branding/marksheet-security-bg.jpg"
+          alt="Marksheet Security Background"
+          className="absolute inset-0 w-full h-full object-fill pointer-events-none z-0 select-none"
         />
 
         {/* Content Container (Constrained strictly to 174mm safe width) */}
