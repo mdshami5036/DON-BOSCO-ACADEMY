@@ -22,6 +22,7 @@ export const ExamFormFillPage: React.FC = () => {
   const [classQuery, setClassQuery] = useState('Class 10');
   const [rollQuery, setRollQuery] = useState('');
   const [matchedStudent, setMatchedStudent] = useState<Student | null>(null);
+  const [classSubjects, setClassSubjects] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     student_name: '',
@@ -95,6 +96,14 @@ export const ExamFormFillPage: React.FC = () => {
           photo_url: stu.photo_url || '',
         });
 
+        // Dynamically resolve subjects for this student's class
+        const stuClass = stu.class_name || classQuery || 'Class 10';
+        const allClasses = await db.getClasses('sch-don-bosco');
+        const matchedClassObj = allClasses.find((c) => c.name.toLowerCase() === stuClass.toLowerCase());
+        if (matchedClassObj && matchedClassObj.assigned_subjects && matchedClassObj.assigned_subjects.length > 0) {
+          setClassSubjects(matchedClassObj.assigned_subjects.map((s) => s.subject_name));
+        }
+
         if (link) {
           const already = await db.checkStudentAlreadySubmitted(link.id, stu.admission_number || stu.id);
           if (already) {
@@ -111,6 +120,16 @@ export const ExamFormFillPage: React.FC = () => {
       }
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  // When class name changes in form, update subjects list
+  const handleFormClassChange = async (newClassName: string) => {
+    setFormData((prev) => ({ ...prev, class_name: newClassName }));
+    const allClasses = await db.getClasses('sch-don-bosco');
+    const matched = allClasses.find((c) => c.name.toLowerCase() === newClassName.toLowerCase());
+    if (matched && matched.assigned_subjects && matched.assigned_subjects.length > 0) {
+      setClassSubjects(matched.assigned_subjects.map((s) => s.subject_name));
     }
   };
 
@@ -139,6 +158,7 @@ export const ExamFormFillPage: React.FC = () => {
         link_id: link.id,
         school_id: link.school_id,
         student_id: matchedStudent?.id,
+        subjects: classSubjects.length > 0 ? classSubjects : undefined,
         ...formData,
       });
       success('Examination Registration Form submitted successfully! Generating official receipt...');
@@ -371,7 +391,7 @@ export const ExamFormFillPage: React.FC = () => {
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Class & Section</label>
                     <div className="flex gap-2">
-                      <input type="text" value={formData.class_name} onChange={(e) => setFormData({ ...formData, class_name: e.target.value })} className="w-2/3 p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900" />
+                      <input type="text" value={formData.class_name} onChange={(e) => handleFormClassChange(e.target.value)} className="w-2/3 p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900" />
                       <input type="text" value={formData.section_name} onChange={(e) => setFormData({ ...formData, section_name: e.target.value })} className="w-1/3 p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 text-center" />
                     </div>
                   </div>
@@ -386,6 +406,29 @@ export const ExamFormFillPage: React.FC = () => {
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Residential Address</label>
                     <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-slate-900" />
+                  </div>
+                </div>
+
+                                {/* Live Class Subjects Strip */}
+                <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-200/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Confirmed Examination Papers for {formData.class_name || 'Selected Class'} ({classSubjects.length > 0 ? classSubjects.length : 4} Subjects):</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200">
+                      Auto-Loaded from Academics
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {(classSubjects.length > 0
+                      ? classSubjects
+                      : ['English (Oral & Rhymes)', 'Hindi (Kavita & Akshar)', 'Mathematics (Numbers & Counting)', 'Drawing, Art & Coloring']
+                    ).map((sub, idx) => (
+                      <span key={idx} className="px-2.5 py-1 bg-white text-slate-800 text-xs font-bold rounded-lg border border-indigo-200 shadow-2xs">
+                        {idx + 1}. {sub}
+                      </span>
+                    ))}
                   </div>
                 </div>
 

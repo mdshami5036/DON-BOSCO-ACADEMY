@@ -1995,21 +1995,39 @@ export const db = {
     return matched || null;
   },
 
-  async submitExamApplication(payload: Partial<ExamApplication>): Promise<ExamApplication> {
-    const apps = (store as any).examApplications as ExamApplication[];
-    const nextSeq = String(apps.length + 1).padStart(4, '0');
-    const applicationNo = 'DBA-EXAM-2026-' + nextSeq;
-    const receiptNo = 'DBA-REC-2026-' + nextSeq;
-    
-    // Find link details
+    async submitExamApplication(payload: Partial<ExamApplication>): Promise<ExamApplication> {
     const link = (store as any).examLinks.find((l: any) => l.id === payload.link_id);
+    const applicationNo = 'DBA-EXAM-2026-' + String((store as any).examApplications.length + 1001).padStart(4, '0');
+    const receiptNo = 'DBA-REC-2026-' + String((store as any).examApplications.length + 5001).padStart(4, '0');
+
+    // Dynamically resolve exact subjects for this candidate's class
+    let confirmedSubjects: string[] = [];
+    if (payload.subjects && payload.subjects.length > 0) {
+      confirmedSubjects = payload.subjects;
+    } else {
+      const candidateClass = payload.class_name || 'Class 10';
+      const matchedClassObj = store.classes.find(
+        (c) => c.name.toLowerCase() === candidateClass.toLowerCase()
+      );
+      if (matchedClassObj && matchedClassObj.assigned_subjects && matchedClassObj.assigned_subjects.length > 0) {
+        confirmedSubjects = matchedClassObj.assigned_subjects.map((s) => s.subject_name);
+      } else {
+        // Fallback default
+        confirmedSubjects = [
+          'English Language & Literature',
+          'Mathematics',
+          'General Science',
+          'Hindi Literature',
+        ];
+      }
+    }
 
     const newApp: ExamApplication = {
       id: 'app-' + Date.now(),
       link_id: payload.link_id || 'link-annual-2026',
       school_id: payload.school_id || 'sch-don-bosco',
       student_id: payload.student_id,
-      student_name: payload.student_name || 'Scholar Candidate',
+      student_name: payload.student_name || 'Aman Singh',
       father_name: payload.father_name || '',
       mother_name: payload.mother_name || '',
       dob: payload.dob || '2010-01-01',
@@ -2025,14 +2043,7 @@ export const db = {
       receipt_no: receiptNo,
       exam_name: link?.exam_name || 'CBSE Annual Board Examination 2026',
       academic_year: link?.academic_year || '2025-2026',
-      subjects: payload.subjects || [
-        'English Language & Literature',
-        'Mathematics (Standard)',
-        'Science (Physics, Chem, Bio)',
-        'Social Science',
-        'Hindi Course-A',
-        'Computer Applications & AI'
-      ],
+      subjects: confirmedSubjects,
       status: 'SUBMITTED',
       submitted_at: new Date().toISOString(),
     };

@@ -210,7 +210,7 @@ export const ExamFormReceiptPage: React.FC = () => {
                 <div className="text-[10px] font-black uppercase tracking-wider text-sapphire-900 bg-sapphire-50/80 px-2.5 py-0.5 rounded border-l-4 border-sapphire-900">
                   EXAMINATION DETAILS
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="grid grid-cols-3 gap-2 text-xs p-2 rounded-xl bg-slate-50 border border-slate-200">
                   <div>
                     <span className="text-[9.5px] text-slate-400 block">Examination Name:</span>
                     <strong className="text-slate-900 text-[11px]">{app.exam_name || link?.exam_name || 'CBSE Annual Board Examination 2026'}</strong>
