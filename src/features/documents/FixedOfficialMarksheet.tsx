@@ -98,7 +98,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
 
         {/* Content Container (Constrained strictly to 174mm safe width) */}
         <div
-          className="relative z-10 flex flex-col justify-between h-full"
+          className="relative z-10 flex flex-col justify-start gap-2 h-full"
           style={{ width: '174mm', maxWidth: '174mm', margin: '0 auto' }}
         >
           {/* ========================================================================= */}
@@ -358,7 +358,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* ========================================================================= */}
           {/* 13. QR VERIFICATION & 14. TWO SIGNATURES SECTION (CLASS TEACHER & PRINCIPAL) */}
           {/* ========================================================================= */}
-          <div className="w-full pt-1.5 mt-1 border-t border-slate-300/80 flex items-end justify-between gap-4">
+          <div className="w-full pt-1.5 mt-auto border-t border-slate-300/80 flex items-end justify-between gap-4">
             {/* Left: QR Code & Direct Verification URL */}
             <div className="flex items-center gap-2.5">
               <div className="w-[19mm] h-[19mm] bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center shadow-2xs">
