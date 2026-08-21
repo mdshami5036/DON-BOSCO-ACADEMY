@@ -294,39 +294,39 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 11. RESULT SUMMARY CARD (172mm x ~16mm - Transparent See-Through) */}
+          {/* 11. RESULT SUMMARY CARD (172mm - Transparent See-Through Table Box) */}
           {/* Section Heading / Labels: 8–9.5 pt | Total / Percentage Values: 10–11 pt | Result PASS/FAIL: 10–11 pt bold */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border-2 border-[#0F2756] bg-transparent p-1.5 mt-0.5"
-            style={{ height: '15mm', minHeight: '15mm' }}
+            className="w-full rounded border-2 border-[#0F2756] bg-transparent mt-0.5 overflow-hidden"
+            style={{ padding: '3px 0' }}
           >
-            <div className="grid grid-cols-6 gap-2 text-center items-center h-full">
-              <div className="border-r border-[#0F2756]/30">
-                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Total Full Marks</span>
-                <strong className="block font-mono text-slate-950 font-black" style={{ fontSize: '10.5pt' }}>{data.total_full_marks}</strong>
+            <div className="grid grid-cols-6 text-center items-center divide-x divide-[#0F2756]/40">
+              <div className="px-1 py-0.5">
+                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Total Full Marks</span>
+                <strong className="block font-mono text-slate-950 font-black mt-0.5" style={{ fontSize: '10pt', lineHeight: '1.1' }}>{data.total_full_marks}</strong>
               </div>
-              <div className="border-r border-[#0F2756]/30">
-                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Marks Obtained</span>
-                <strong className="block font-mono text-[#0F2756] font-black" style={{ fontSize: '10.5pt' }}>{data.total_marks_obtained}</strong>
+              <div className="px-1 py-0.5">
+                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Marks Obtained</span>
+                <strong className="block font-mono text-[#0F2756] font-black mt-0.5" style={{ fontSize: '10pt', lineHeight: '1.1' }}>{data.total_marks_obtained}</strong>
               </div>
-              <div className="border-r border-[#0F2756]/30">
-                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Percentage</span>
-                <strong className="block font-mono text-emerald-900 font-black" style={{ fontSize: '10.5pt' }}>{data.percentage.toFixed(2)}%</strong>
+              <div className="px-1 py-0.5">
+                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Percentage</span>
+                <strong className="block font-mono text-emerald-900 font-black mt-0.5" style={{ fontSize: '10pt', lineHeight: '1.1' }}>{data.percentage.toFixed(2)}%</strong>
               </div>
-              <div className="border-r border-[#0F2756]/30">
-                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Overall Grade</span>
-                <strong className="block text-[#0F2756] font-black" style={{ fontSize: '10.5pt' }}>{data.overall_grade}</strong>
+              <div className="px-1 py-0.5">
+                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Overall Grade</span>
+                <strong className="block text-[#0F2756] font-black mt-0.5" style={{ fontSize: '10pt', lineHeight: '1.1' }}>{data.overall_grade}</strong>
               </div>
-              <div className="border-r border-[#0F2756]/30">
-                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Division</span>
-                <strong className="block text-slate-950 font-black" style={{ fontSize: '10pt' }}>{data.division}</strong>
+              <div className="px-1 py-0.5">
+                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Division</span>
+                <strong className="block text-slate-950 font-black mt-0.5 leading-tight" style={{ fontSize: '8.5pt' }}>{data.division}</strong>
               </div>
-              <div>
-                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '8pt' }}>Final Result</span>
+              <div className="px-1 py-0.5 flex flex-col items-center justify-center">
+                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Final Result</span>
                 <span
-                  className={'inline-block px-2.5 py-0.5 font-black uppercase rounded border ' + (data.result === 'PASS' ? 'bg-emerald-100/90 text-emerald-950 border-emerald-400' : 'bg-rose-100/90 text-rose-950 border-rose-400')}
-                  style={{ fontSize: '10.5pt' }} // Result PASS/FAIL: 10–11 pt bold
+                  className={'inline-block px-2 py-0.5 font-black uppercase rounded border mt-0.5 ' + (data.result === 'PASS' ? 'bg-emerald-100/90 text-emerald-950 border-emerald-400' : 'bg-rose-100/90 text-rose-950 border-rose-400')}
+                  style={{ fontSize: '9.5pt', lineHeight: '1.1' }}
                 >
                   {data.result}
                 </span>
@@ -335,26 +335,31 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 12. ADDITIONAL SUMMARY CARD (172mm - Transparent See-Through) */}
+          {/* 12. ADDITIONAL ATTENDANCE & REMARKS CARD (172mm - Transparent Table Box) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-[#0F2756]/40 bg-transparent px-3 py-1 mt-0.5 flex items-center justify-between text-slate-900"
+            className="w-full rounded border border-[#0F2756]/60 bg-transparent mt-0.5 overflow-hidden"
+            style={{ padding: '3px 0' }}
           >
-            <div>
-              <span className="text-slate-700 font-black uppercase" style={{ fontSize: '8pt' }}>Attendance:</span>{' '}
-              <strong className="font-mono text-slate-950 font-black" style={{ fontSize: '9pt' }}>{data.attendance || '214 / 225 Days'}</strong>
-            </div>
-            <div>
-              <span className="text-slate-700 font-black uppercase" style={{ fontSize: '8pt' }}>Class Rank:</span>{' '}
-              <strong className="text-[#0F2756] font-black" style={{ fontSize: '9pt' }}>{data.class_rank || '1st Position'}</strong>
-            </div>
-            <div className="truncate max-w-[70mm]">
-              <span className="text-slate-700 font-black uppercase" style={{ fontSize: '8pt' }}>Remarks:</span>{' '}
-              <span className="italic font-bold text-slate-800" style={{ fontSize: '8.5pt' }}>{data.remarks || 'Outstanding academic performance and discipline.'}</span>
-            </div>
-            <div>
-              <span className="text-slate-700 font-black uppercase" style={{ fontSize: '8pt' }}>Status:</span>{' '}
-              <strong className="text-emerald-800 font-black" style={{ fontSize: '8.5pt' }}>OFFICIALLY ISSUED</strong>
+            <div className="grid grid-cols-12 text-center items-center divide-x divide-[#0F2756]/30">
+              <div className="col-span-3 px-1 py-0.5">
+                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Attendance</span>
+                <strong className="block font-mono text-slate-950 font-black mt-0.5 truncate" style={{ fontSize: '8.5pt', lineHeight: '1.1' }}>{data.attendance || '214 / 225 Days'}</strong>
+              </div>
+              <div className="col-span-2 px-1 py-0.5">
+                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Class Rank</span>
+                <strong className="block text-[#0F2756] font-black mt-0.5 truncate" style={{ fontSize: '8.5pt', lineHeight: '1.1' }}>{data.class_rank || '1st Position'}</strong>
+              </div>
+              <div className="col-span-5 px-2 py-0.5 text-left">
+                <span className="block text-slate-700 uppercase font-black text-center" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Remarks & Conduct</span>
+                <span className="block italic font-bold text-slate-800 truncate text-center mt-0.5" style={{ fontSize: '8pt', lineHeight: '1.1' }}>
+                  {data.remarks || 'Outstanding academic performance and discipline.'}
+                </span>
+              </div>
+              <div className="col-span-2 px-1 py-0.5">
+                <span className="block text-slate-700 uppercase font-black" style={{ fontSize: '7.5pt', lineHeight: '1.2' }}>Status</span>
+                <strong className="block text-emerald-900 font-black mt-0.5 truncate" style={{ fontSize: '8pt', lineHeight: '1.1' }}>OFFICIALLY ISSUED</strong>
+              </div>
             </div>
           </div>
 
