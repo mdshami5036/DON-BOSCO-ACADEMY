@@ -184,52 +184,52 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 7. STUDENT INFORMATION CARD (172mm x ~33mm - Transparent See-Through) */}
+          {/* 7. STUDENT INFORMATION CARD (172mm x ~36mm - Transparent See-Through) */}
           {/* ========================================================================= */}
           <div
-            className="w-full rounded border border-[#0F2756]/50 bg-transparent p-2 mt-1.5 flex gap-3 items-center"
-            style={{ height: '33mm', minHeight: '33mm', maxHeight: '33mm' }}
+            className="w-full rounded border border-[#0F2756]/60 bg-transparent p-2.5 mt-1.5 flex gap-4 items-center"
+            style={{ height: '36mm', minHeight: '36mm', maxHeight: '36mm' }}
           >
             {/* Left & Middle Info Columns */}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-slate-900 flex-1 leading-tight" style={{ fontSize: '7.5pt' }}>
-              <div className="flex">
-                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Student Name:</span>
-                <strong className="text-[#0F2756] uppercase font-black truncate">{data.student_name}</strong>
+            <div className="grid grid-cols-2 gap-x-5 gap-y-1.5 text-slate-900 flex-1 leading-snug">
+              <div className="flex items-center">
+                <span className="text-slate-700 font-black w-[27mm] shrink-0" style={{ fontSize: '8.5pt' }}>Student Name:</span>
+                <strong className="text-[#0F2756] uppercase font-black truncate" style={{ fontSize: '12pt' }}>{data.student_name}</strong>
               </div>
-              <div className="flex">
-                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Roll Number:</span>
-                <strong className="font-mono text-slate-950 font-black">{data.roll_no}</strong>
+              <div className="flex items-center">
+                <span className="text-slate-700 font-black w-[27mm] shrink-0" style={{ fontSize: '8.5pt' }}>Roll Number:</span>
+                <strong className="font-mono text-slate-950 font-black" style={{ fontSize: '11.5pt' }}>{data.roll_no}</strong>
               </div>
-              <div className="flex">
-                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Father's Name:</span>
-                <span className="font-bold text-slate-900 truncate">{data.father_name || '—'}</span>
+              <div className="flex items-center">
+                <span className="text-slate-700 font-black w-[27mm] shrink-0" style={{ fontSize: '8.5pt' }}>Father's Name:</span>
+                <span className="font-extrabold text-slate-950 truncate" style={{ fontSize: '9.5pt' }}>{data.father_name || '—'}</span>
               </div>
-              <div className="flex">
-                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Date of Birth:</span>
-                <span className="font-mono font-bold text-slate-900">{formatDDMMYYYY(data.dob)}</span>
+              <div className="flex items-center">
+                <span className="text-slate-700 font-black w-[27mm] shrink-0" style={{ fontSize: '8.5pt' }}>Date of Birth:</span>
+                <span className="font-mono font-black text-slate-950" style={{ fontSize: '10pt' }}>{formatDDMMYYYY(data.dob)}</span>
               </div>
-              <div className="flex">
-                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Mother's Name:</span>
-                <span className="font-bold text-slate-900 truncate">{data.mother_name || '—'}</span>
+              <div className="flex items-center">
+                <span className="text-slate-700 font-black w-[27mm] shrink-0" style={{ fontSize: '8.5pt' }}>Mother's Name:</span>
+                <span className="font-extrabold text-slate-950 truncate" style={{ fontSize: '9.5pt' }}>{data.mother_name || '—'}</span>
               </div>
-              <div className="flex">
-                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Gender:</span>
-                <span className="font-bold text-slate-900">{data.gender}</span>
+              <div className="flex items-center">
+                <span className="text-slate-700 font-black w-[27mm] shrink-0" style={{ fontSize: '8.5pt' }}>Gender:</span>
+                <span className="font-black text-slate-950" style={{ fontSize: '9.5pt' }}>{data.gender}</span>
               </div>
-              <div className="flex">
-                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Admission No:</span>
-                <strong className="font-mono text-[#0F2756] font-black">{data.admission_no}</strong>
+              <div className="flex items-center">
+                <span className="text-slate-700 font-black w-[27mm] shrink-0" style={{ fontSize: '8.5pt' }}>Admission No:</span>
+                <strong className="font-mono text-[#0F2756] font-black" style={{ fontSize: '11pt' }}>{data.admission_no}</strong>
               </div>
-              <div className="flex">
-                <span className="text-slate-600 font-bold w-[24mm] shrink-0">Reg. Number:</span>
-                <span className="font-mono font-bold text-slate-800">{data.registration_no || 'DBA/' + data.admission_no}</span>
+              <div className="flex items-center">
+                <span className="text-slate-700 font-black w-[27mm] shrink-0" style={{ fontSize: '8.5pt' }}>Reg. Number:</span>
+                <span className="font-mono font-black text-slate-800" style={{ fontSize: '9.5pt' }}>{data.registration_no || 'DBA/' + data.admission_no}</span>
               </div>
             </div>
 
             {/* Right: Student Passport Photo */}
             <div
-              className="w-[28mm] h-[31mm] shrink-0 rounded border-2 border-[#0F2756]/60 bg-white/60 p-0.5 overflow-hidden flex items-center justify-center text-center shadow-2xs"
-              style={{ width: '28mm', height: '31mm' }}
+              className="shrink-0 rounded border-2 border-[#0F2756]/70 bg-white/70 p-0.5 overflow-hidden flex items-center justify-center text-center shadow-2xs"
+              style={{ width: '30mm', height: '34mm' }}
             >
               {data.photo_url ? (
                 <img
@@ -238,7 +238,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
                   className="w-full h-full object-cover rounded"
                 />
               ) : (
-                <div className="text-slate-500 font-bold tracking-wider" style={{ fontSize: '6.5pt' }}>
+                <div className="text-slate-600 font-black tracking-wider" style={{ fontSize: '7pt' }}>
                   STUDENT<br />PHOTO
                 </div>
               )}
