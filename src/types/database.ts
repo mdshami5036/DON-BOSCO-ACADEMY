@@ -150,6 +150,14 @@ export interface ClassRoom {
   numeric_grade?: number | null;
   class_teacher_id?: string | null;
   class_teacher_name?: string | null;
+  assigned_subject_ids?: string[];
+  assigned_subjects?: Array<{
+    subject_id?: string;
+    subject_name: string;
+    full_marks: number;
+    pass_marks: number;
+    has_practical: boolean;
+  }>;
   created_at: string;
 }
 

@@ -125,10 +125,40 @@ export const MarksheetIssuePage: React.FC = () => {
       setStudents(stuList);
 
       if (eList.length > 0) setSelectedExamName(eList[0].name);
-      if (cList.length > 0) setSelectedClass(cList[0].name);
+      if (cList.length > 0) {
+        setSelectedClass(cList[0].name);
+        if (cList[0].assigned_subjects && cList[0].assigned_subjects.length > 0) {
+          setSubjects(
+            cList[0].assigned_subjects.map((s) => ({
+              subject_name: s.subject_name,
+              full_marks: s.full_marks || 100,
+              pass_marks: s.pass_marks || 33,
+              theory_marks: Math.round((s.full_marks || 100) * 0.8),
+              practical_marks: s.has_practical ? Math.round((s.full_marks || 100) * 0.18) : null,
+            }))
+          );
+        }
+      }
     }
     loadMeta();
   }, [currentSchool]);
+
+  const handleClassChange = (className: string) => {
+    setSelectedClass(className);
+    const matchedClass = classes.find((c) => c.name === className);
+    if (matchedClass && matchedClass.assigned_subjects && matchedClass.assigned_subjects.length > 0) {
+      setSubjects(
+        matchedClass.assigned_subjects.map((s) => ({
+          subject_name: s.subject_name,
+          full_marks: s.full_marks || 100,
+          pass_marks: s.pass_marks || 33,
+          theory_marks: Math.round((s.full_marks || 100) * 0.8),
+          practical_marks: s.has_practical ? Math.round((s.full_marks || 100) * 0.18) : null,
+        }))
+      );
+      success(`Loaded ${matchedClass.assigned_subjects.length} subjects configured for ${className}!`);
+    }
+  };
 
   // Handle Student Auto-load
   const handleSelectStudent = (stu: Student) => {
@@ -355,8 +385,8 @@ export const MarksheetIssuePage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Class</label>
-                <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900">
+                <label className="block font-bold text-slate-700 mb-1">Class (Loads Class Subjects)</label>
+                <select value={selectedClass} onChange={(e) => handleClassChange(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 bg-slate-50">
                   {classes.map((c) => (
                     <option key={c.id} value={c.name}>{c.name}</option>
                   ))}

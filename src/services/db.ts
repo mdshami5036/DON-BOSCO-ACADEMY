@@ -593,6 +593,15 @@ export const db = {
     return store.classes.filter((c) => c.school_id === schoolId);
   },
 
+
+  async updateClassSubjects(classId: string, assignedSubjects: any[]): Promise<ClassRoom | null> {
+    const cls = (store as any).classes.find((c: any) => c.id === classId);
+    if (!cls) return null;
+    cls.assigned_subjects = assignedSubjects;
+    store.persist();
+    return cls;
+  },
+
   async createClass(data: Partial<ClassRoom>): Promise<ClassRoom> {
     const newClass: ClassRoom = {
       id: 'class-' + Date.now(),
