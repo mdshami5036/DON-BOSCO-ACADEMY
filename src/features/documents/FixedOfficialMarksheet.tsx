@@ -126,18 +126,24 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
               {data.school_name || 'DON BOSCO ACADEMY'}
             </h1>
 
-            <p className="text-slate-700 font-semibold mt-1" style={{ fontSize: '9pt', lineHeight: '1.2' }}>
-              {/* School Address: 8.5–9 pt */}
-              {data.school_address || 'Raipur Bazar, Nanpur, Sitamarhi (Bihar) - 843326'}
+            <p className="text-slate-800 font-semibold mt-0.5" style={{ fontSize: '9pt', lineHeight: '1.2' }}>
+              Raipur Bazar, PS Nanpur
             </p>
 
-            <p className="text-slate-600 font-medium mt-0.5" style={{ fontSize: '8pt', lineHeight: '1.2' }}>
-              {/* Affiliation / School Code: 7.5–8 pt */}
-              {data.affiliation_text || 'Affiliated to CBSE, New Delhi • School Code: 65001 • UDISE Code: 100204001'}
+            <p className="text-slate-700 font-semibold mt-0.5" style={{ fontSize: '8.5pt', lineHeight: '1.2' }}>
+              District Sitamarhi Bihar - Pin Code 843326
+            </p>
+
+            <p className="text-slate-700 font-medium mt-0.5" style={{ fontSize: '8pt', lineHeight: '1.2' }}>
+              Affiliated to CBSE (Affiliation No. 1234567)
+            </p>
+
+            <p className="text-slate-600 font-semibold mt-0.5" style={{ fontSize: '8pt', lineHeight: '1.2' }}>
+              School Code: 12345 | UDISE Code: 12345678901
             </p>
 
             {/* MARKSHEET Title: 15–17 pt */}
-            <div className="mt-2 inline-block">
+            <div className="mt-1.5 inline-block">
               <span
                 className="font-bold tracking-wider uppercase text-[#0F2756] border-y-2 border-[#0F2756] px-6 py-0.5 inline-block"
                 style={{
