@@ -351,12 +351,58 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* 13. QR VERIFICATION & 14. TWO SIGNATURES SECTION (CLASS TEACHER & PRINCIPAL) */}
+          {/* 13. OFFICIAL SIGNATURES & INSTITUTIONAL SEAL ROW (Higher Up & Prominent) */}
           {/* ========================================================================= */}
-          <div className="w-full pt-1.5 mt-auto border-t border-slate-300/80 flex items-end justify-between gap-4">
-            {/* Left: QR Code & Direct Verification URL (Offset with pl-2 to avoid corner border) */}
-            <div className="flex items-center gap-2.5 pl-2">
-              <div className="w-[19mm] h-[19mm] bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center shadow-2xs">
+          <div className="w-full pt-3 mt-1 flex items-end justify-between gap-6 px-2">
+            {/* Left: Class Teacher Signature */}
+            <div className="w-[36mm] text-center">
+              <div className="h-[10mm] flex items-end justify-center">
+                <span className="text-[6.5pt] font-mono text-slate-400 italic">Signature Verified</span>
+              </div>
+              <div className="border-t-2 border-slate-600 pt-0.5 text-slate-900 font-bold uppercase" style={{ fontSize: '7.5pt' }}>
+                Class Teacher
+              </div>
+            </div>
+
+            {/* Center: Institutional Seal */}
+            <div className="text-center space-y-0.5">
+              <div className="p-0.5 bg-white rounded-xl border border-slate-200 shadow-2xs inline-block">
+                <img
+                  src="/assets/branding/don-bosco-stamp.svg"
+                  alt="Institutional Seal"
+                  style={{ width: '46px', height: '46px' }}
+                  className="w-[14mm] h-[14mm] mx-auto object-contain opacity-95"
+                />
+              </div>
+              <span className="block text-[6pt] font-black text-slate-700 uppercase tracking-wider">Institutional Seal</span>
+            </div>
+
+            {/* Right: Principal & Authorized Signatory */}
+            <div className="w-[40mm] text-center">
+              <div className="h-[10mm] flex items-end justify-center">
+                <img
+                  src="/assets/branding/principal-signature.svg"
+                  alt="Principal Signature"
+                  style={{ height: '32px', maxWidth: '130px' }}
+                  className="mx-auto object-contain"
+                />
+              </div>
+              <div className="border-t-2 border-slate-600 pt-0.5 text-slate-900 font-extrabold uppercase leading-none" style={{ fontSize: '7.5pt' }}>
+                Principal
+              </div>
+              <div className="text-slate-600 font-semibold leading-none mt-0.5" style={{ fontSize: '6pt' }}>
+                Md. Shami Ahmad
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================================================= */}
+          {/* 14. BOTTOM DIGITAL QR VERIFICATION BAR (URL Encoded In QR, No Raw Text URL) */}
+          {/* ========================================================================= */}
+          <div className="w-full pt-2 mt-auto border-t border-slate-300/80 flex items-center justify-between gap-4 px-2">
+            {/* Left: QR Code with Encoded Verify URL */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-[18mm] h-[18mm] bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center shadow-2xs">
                 {qrDataUri ? (
                   <img src={qrDataUri} alt="QR Code" className="w-full h-full object-contain" />
                 ) : (
@@ -364,67 +410,17 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
                 )}
               </div>
               <div className="text-slate-600 leading-tight space-y-0.5" style={{ fontSize: '6pt' }}>
-                <span className="font-bold text-[#0F2756] block uppercase tracking-wider">SECURE DIGITAL VERIFICATION</span>
-                <span className="font-mono text-slate-700 font-bold block">ID: {data.verification_id}</span>
-                <span className="text-slate-500 block">Scan QR code to verify authentic CBSE record</span>
-                <a
-                  href={verifyUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-emerald-700 font-bold block truncate hover:underline"
-                  style={{ fontSize: '6pt' }}
-                >
-                  {origin ? origin.replace(/^https?:\/\//, '') : 'don-bosco-academy.vercel.app'}/verify?id={data.verification_id}
-                </a>
+                <span className="font-bold text-[#0F2756] block uppercase tracking-wider">SECURE DIGITAL QR VERIFICATION</span>
+                <span className="font-mono text-slate-800 font-bold block">ID: {data.verification_id}</span>
+                <span className="text-slate-500 block">Scan QR code using camera to verify authentic marksheet</span>
               </div>
             </div>
 
-            {/* Center: Institutional Seal (Using working SVG) */}
-            <div className="text-center">
-              <div className="p-0.5 bg-white rounded-xl border border-slate-200 shadow-2xs inline-block">
-                <img
-                  src="/assets/branding/don-bosco-stamp.svg"
-                  alt="Institutional Seal"
-                  style={{ width: '48px', height: '48px' }}
-                  className="w-[15mm] h-[15mm] mx-auto object-contain opacity-95"
-                />
-              </div>
-              <span className="block text-[5.5pt] font-black text-slate-600 uppercase tracking-wider mt-0.5">Official School Seal</span>
+            {/* Right: Computer Generated Footer Note */}
+            <div className="text-right text-slate-400 font-medium leading-tight" style={{ fontSize: '5.5pt' }}>
+              <div>This is a computer-generated official academic marksheet.</div>
+              <div className="text-slate-500 font-semibold">Don Bosco Academy &bull; Estd. 1997</div>
             </div>
-
-            {/* Right: Two Signatures (Class Teacher & Principal) */}
-            <div className="flex gap-6 text-center items-end">
-              {/* 1. Class Teacher */}
-              <div className="w-[32mm]">
-                <div className="h-[9mm]"></div>
-                <div className="border-t-2 border-slate-500 pt-0.5 text-slate-800 font-bold uppercase" style={{ fontSize: '7pt' }}>
-                  Class Teacher
-                </div>
-              </div>
-
-              {/* 2. Principal & Authorized Signatory */}
-              <div className="w-[36mm]">
-                <img
-                  src="/assets/branding/principal-signature.svg"
-                  alt="Principal Signature"
-                  style={{ height: '30px', maxWidth: '120px' }}
-                  className="h-[8mm] mx-auto object-contain mb-0.5"
-                />
-                <div className="border-t-2 border-slate-500 pt-0.5 text-slate-900 font-bold uppercase leading-none" style={{ fontSize: '7pt' }}>
-                  Principal
-                </div>
-                <div className="text-slate-500 font-semibold leading-none mt-0.5" style={{ fontSize: '5.5pt' }}>
-                  Md. Shami Ahmad
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ========================================================================= */}
-          {/* 15. FOOTER */}
-          {/* ========================================================================= */}
-          <div className="text-center text-slate-400 font-medium pt-0.5 pb-0.5" style={{ fontSize: '5.5pt' }}>
-            This is a computer-generated official academic marksheet &bull; Don Bosco Academy &bull; Estd. 1997
           </div>
         </div>
       </div>
