@@ -83,7 +83,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           height: '297mm',
           minHeight: '297mm',
           maxHeight: '297mm',
-          padding: '15mm 18mm 15mm 18mm', // Safe margins (Left/Right: 18mm, Top/Bottom: 15mm)
+          padding: '22mm 18mm 13mm 18mm', // Safe margins (Left/Right: 18mm, Top: 22mm to clear top ornament, Bottom: 13mm)
           fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           WebkitPrintColorAdjust: 'exact',
           printColorAdjust: 'exact',
@@ -104,25 +104,25 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* ========================================================================= */}
           {/* 5. HEADER SECTION */}
           {/* ========================================================================= */}
-          <div className="text-center relative pt-1">
-            {/* School Logo (Left: 26mm x 26mm) */}
-            <div className="absolute left-0 top-0 w-[26mm] h-[26mm] flex items-center justify-center">
+          <div className="text-center relative pt-0.5">
+            {/* School Logo (Left: 6mm offset to right, 24mm x 24mm) */}
+            <div className="absolute left-[6mm] top-[1mm] w-[24mm] h-[24mm] flex items-center justify-center">
               <img
                 src="/assets/branding/don-bosco-logo.png"
                 alt="School Crest"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain drop-shadow-2xs"
               />
             </div>
 
             {/* School Title & Affiliation Details (Centered) */}
-            <div className="pl-[26mm] pr-[10mm]">
+            <div className="pl-[26mm] pr-[6mm]">
               <h1
                 className="font-bold tracking-tight uppercase text-[#0F2756]"
                 style={{
                   fontFamily: 'Georgia, "Times New Roman", Garamond, serif',
-                  fontSize: '21pt',
+                  fontSize: '20.5pt',
                   lineHeight: '1.1',
-                  letterSpacing: '0.5px',
+                  letterSpacing: '0.6px',
                 }}
               >
                 {data.school_name || 'DON BOSCO ACADEMY'}
@@ -137,12 +137,12 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
               </p>
 
               {/* Main Title Badge */}
-              <div className="mt-2.5 inline-block">
+              <div className="mt-2 inline-block">
                 <span
                   className="font-bold tracking-wider uppercase text-[#0F2756] border-y-2 border-[#0F2756] px-6 py-0.5 inline-block"
                   style={{
                     fontFamily: 'Georgia, "Times New Roman", Garamond, serif',
-                    fontSize: '13pt',
+                    fontSize: '12.5pt',
                     letterSpacing: '1.5px',
                   }}
                 >
