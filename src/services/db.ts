@@ -2085,7 +2085,7 @@ export const db = {
     return matched || null;
   },
 
-    async issueAdmitCardsBulk(linkId: string, customTimetable?: any[]): Promise<{ count: number }> {
+  async issueAdmitCardsBulk(linkId: string, customTimetable?: any[], classTimetables?: Record<string, any[]>): Promise<{ count: number }> {
     const link = (store as any).examLinks.find((l: any) => l.id === linkId);
     const apps = (store as any).examApplications.filter((a: any) => a.link_id === linkId);
     
@@ -2093,6 +2093,9 @@ export const db = {
       link.admit_cards_issued = true;
       if (customTimetable && customTimetable.length > 0) {
         link.timetable = customTimetable;
+      }
+      if (classTimetables) {
+        link.class_timetables = classTimetables;
       }
     }
 

@@ -129,14 +129,42 @@ export const AdmitCardDownloadPage: React.FC = () => {
         { subject: 'Computer Applications & AI', date: '17/03/2026', time: '10:00 AM - 12:30 PM', room: 'Lab 2' },
       ];
 
-      const timetableToUse = link?.timetable && link.timetable.length > 0
-        ? link.timetable.map((t) => ({
-            subject: t.subject,
-            date: formatDDMMYYYY(t.date),
-            time: t.time,
-            room: t.room || 'Hall 1',
-          }))
-        : defaultTimetable;
+            // 2. Resolve Class-Wise Subjects for this student (LKG gets LKG subjects, UKG gets UKG subjects, etc.)
+      const studentClass = appData.class_name || 'Class 10';
+      const allClassList = await db.getClasses(school?.id || 'sch-don-bosco');
+      const matchedClassObj = allClassList.find((c) => c.name.toLowerCase() === studentClass.toLowerCase());
+
+      let timetableToUse: Array<{ subject: string; date: string; time: string; room: string }> = [];
+
+      // Check if admin set class-specific timetable
+      if (link?.class_timetables && link.class_timetables[studentClass] && link.class_timetables[studentClass].length > 0) {
+        timetableToUse = link.class_timetables[studentClass].map((t) => ({
+          subject: t.subject,
+          date: formatDDMMYYYY(t.date),
+          time: t.time,
+          room: t.room || 'Hall 1',
+        }));
+      } else if (matchedClassObj && matchedClassObj.assigned_subjects && matchedClassObj.assigned_subjects.length > 0) {
+        // Use EXACT subjects configured for this class in Academics
+        timetableToUse = matchedClassObj.assigned_subjects.map((sub, i) => {
+          const matchedTEntry = link?.timetable?.find((t) => t.subject.toLowerCase() === sub.subject_name.toLowerCase());
+          return {
+            subject: sub.subject_name,
+            date: matchedTEntry ? formatDDMMYYYY(matchedTEntry.date) : `0${2 + i * 3}/03/2026`,
+            time: matchedTEntry ? matchedTEntry.time : '10:00 AM - 01:00 PM',
+            room: matchedTEntry?.room || 'Hall 1',
+          };
+        });
+      } else if (link?.timetable && link.timetable.length > 0) {
+        timetableToUse = link.timetable.map((t) => ({
+          subject: t.subject,
+          date: formatDDMMYYYY(t.date),
+          time: t.time,
+          room: t.room || 'Hall 1',
+        }));
+      } else {
+        timetableToUse = defaultTimetable;
+      }
 
       setFoundStudent({
         first_name: appData.student_name.split(' ')[0],

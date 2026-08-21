@@ -55,16 +55,18 @@ export const ExamLinksManagementPage: React.FC = () => {
     slug: '',
     academic_year: '2025-2026',
     exam_name: '',
-    target_class: 'Class 10',
+    target_class: 'ALL',
     description: '',
     expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     exam_center: 'Don Bosco Academy Main Examination Hall, Sitamarhi',
     is_active: true,
   });
 
-  // Modal 2: Issue Admit Cards with Timetable Scheduler
+    // Modal 2: Issue Admit Cards with Timetable Scheduler
   const [isAdmitSchedulerOpen, setIsAdmitSchedulerOpen] = useState(false);
   const [selectedSourceExamId, setSelectedSourceExamId] = useState('');
+  const [selectedSchedulerClass, setSelectedSchedulerClass] = useState('ALL');
+  const [classTimetables, setClassTimetables] = useState<Record<string, Array<{ subject: string; date: string; time: string; room: string }>>>({});
   const [admitTimetable, setAdmitTimetable] = useState<Array<{
     subject: string;
     date: string;
@@ -107,7 +109,7 @@ export const ExamLinksManagementPage: React.FC = () => {
       slug: '',
       academic_year: '2025-2026',
       exam_name: '',
-      target_class: 'Class 10',
+      target_class: 'ALL',
       description: 'Fill candidate examination particulars for upcoming board examination.',
       expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       exam_center: 'Don Bosco Academy Main Examination Hall, Sitamarhi',
@@ -187,31 +189,54 @@ export const ExamLinksManagementPage: React.FC = () => {
     }
   };
 
-  // Open Issue Admit Cards Scheduler
+    // Open Issue Admit Cards Scheduler
   const handleOpenAdmitScheduler = (linkId?: string) => {
     const targetId = linkId || selectedSourceExamId || (links[0]?.id || '');
     setSelectedSourceExamId(targetId);
+    setSelectedSchedulerClass('ALL');
 
     const matchedLink = links.find((l) => l.id === targetId);
-    if (matchedLink && matchedLink.target_classes && matchedLink.target_classes.length > 0) {
-      const clsName = matchedLink.target_classes[0];
-      const matchedClass = classes.find((c) => c.name === clsName);
-      if (matchedClass && matchedClass.assigned_subjects && matchedClass.assigned_subjects.length > 0) {
-        setAdmitTimetable(
-          matchedClass.assigned_subjects.map((sub, i) => ({
-            subject: sub.subject_name,
-            date: `2026-03-${String(2 + i * 3).padStart(2, '0')}`,
-            time: '10:00 AM - 01:00 PM',
-            room: 'Hall 1',
-          }))
-        );
-      } else {
-        setAdmitTimetable(DEFAULT_TIMETABLE);
-      }
+    if (matchedLink && matchedLink.timetable && matchedLink.timetable.length > 0) {
+      setAdmitTimetable(matchedLink.timetable as any);
     } else {
       setAdmitTimetable(DEFAULT_TIMETABLE);
     }
+    if (matchedLink && matchedLink.class_timetables) {
+      setClassTimetables(matchedLink.class_timetables as any);
+    }
     setIsAdmitSchedulerOpen(true);
+  };
+
+  // Change Class in Timetable Scheduler to load specific Class Subjects
+  const handleSchedulerClassChange = (className: string) => {
+    setSelectedSchedulerClass(className);
+
+    if (className === 'ALL') {
+      const matchedLink = links.find((l) => l.id === selectedSourceExamId);
+      setAdmitTimetable((matchedLink?.timetable as any) || DEFAULT_TIMETABLE);
+      return;
+    }
+
+    // Check if class timetable already saved in local state
+    if (classTimetables[className] && classTimetables[className].length > 0) {
+      setAdmitTimetable(classTimetables[className]);
+      return;
+    }
+
+    // Otherwise lookup class assigned_subjects
+    const matchedClass = classes.find((c) => c.name.toLowerCase() === className.toLowerCase());
+    if (matchedClass && matchedClass.assigned_subjects && matchedClass.assigned_subjects.length > 0) {
+      const generated = matchedClass.assigned_subjects.map((sub, i) => ({
+        subject: sub.subject_name,
+        date: `2026-03-${String(2 + i * 3).padStart(2, '0')}`,
+        time: '10:00 AM - 01:00 PM',
+        room: 'Hall 1',
+      }));
+      setAdmitTimetable(generated);
+      setClassTimetables((prev) => ({ ...prev, [className]: generated }));
+    } else {
+      setAdmitTimetable(DEFAULT_TIMETABLE);
+    }
   };
 
   // Handle Changing Source Exam in Scheduler
@@ -242,7 +267,12 @@ export const ExamLinksManagementPage: React.FC = () => {
     }
 
     try {
-      const res = await db.issueAdmitCardsBulk(selectedSourceExamId, admitTimetable);
+      // Save current view timetable into classTimetables if viewing specific class
+      const updatedClassTimetables = { ...classTimetables };
+      if (selectedSchedulerClass !== 'ALL') {
+        updatedClassTimetables[selectedSchedulerClass] = admitTimetable;
+      }
+      const res = await db.issueAdmitCardsBulk(selectedSourceExamId, admitTimetable, updatedClassTimetables);
       const sourceLink = links.find((l) => l.id === selectedSourceExamId);
       const url = window.location.origin + '/exam-portal/admit-card/' + (sourceLink?.slug || 'admit-card-download-2026');
 
@@ -530,34 +560,52 @@ export const ExamLinksManagementPage: React.FC = () => {
       <Modal
         isOpen={isAdmitSchedulerOpen}
         onClose={() => setIsAdmitSchedulerOpen(false)}
-        title="🎟️ Issue Admit Cards &amp; Schedule Timetable"
+        title="🎟️ Issue Admit Cards & Schedule Timetable"
         size="lg"
       >
         <div className="space-y-4 text-xs">
           <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-2xl text-indigo-950 space-y-1">
             <div className="font-bold flex items-center gap-1.5 text-indigo-900">
               <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>Connected Admit Card Release Flow</span>
+              <span>Connected Class-Wise Admit Card Release Flow</span>
             </div>
             <p className="text-[11px] text-indigo-800">
-              Select an active examination below. The system will load its subjects, allow you to set the date &amp; time for each subject, and release Admit Cards <strong>strictly to students who submitted the form</strong>.
+              Select an examination and choose a specific Class below (e.g. LKG, UKG, Class 10) to review or customize its subject timetable. Admit cards will be released <strong>strictly with each student's class subjects</strong>.
             </p>
           </div>
 
-          {/* 1. Select Existing Examination Form */}
-          <div>
-            <label className="block font-bold text-slate-800 mb-1">1. Select Published Examination Form *</label>
-            <select
-              value={selectedSourceExamId}
-              onChange={(e) => handleSourceExamChange(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-900 bg-slate-50"
-            >
-              {links.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.exam_name} ({l.academic_year}) • {l.target_classes?.[0] || 'Class 10'}
-                </option>
-              ))}
-            </select>
+          {/* 1. Select Existing Examination Form & Class Scope */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-slate-800 mb-1">1. Select Published Examination Form *</label>
+              <select
+                value={selectedSourceExamId}
+                onChange={(e) => handleSourceExamChange(e.target.value)}
+                className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-900 bg-slate-50"
+              >
+                {links.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.exam_name} ({l.academic_year}) • {l.target_classes?.[0] === 'ALL' ? 'All Classes' : l.target_classes?.[0] || 'All Classes'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-indigo-900 mb-1">📚 Select Class to Set Subjects & Timetable</label>
+              <select
+                value={selectedSchedulerClass}
+                onChange={(e) => handleSchedulerClassChange(e.target.value)}
+                className="w-full p-2.5 rounded-xl border border-indigo-300 font-black text-xs text-indigo-950 bg-indigo-50/50"
+              >
+                <option value="ALL">🎯 General / All Classes Default</option>
+                {classes.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name} ({c.assigned_subjects?.length || 0} Subjects Configured)
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* 2. Form Submissions Verification Strip */}
@@ -576,7 +624,9 @@ export const ExamLinksManagementPage: React.FC = () => {
           {/* 3. Subject-wise Timetable Scheduler */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="font-bold text-slate-800">2. Set Examination Schedule &amp; Timetable for Subjects *</label>
+              <label className="font-bold text-slate-800">
+                2. Set Schedule & Timetable for {selectedSchedulerClass === 'ALL' ? 'All Classes' : selectedSchedulerClass} ({admitTimetable.length} Subjects) *
+              </label>
               <button
                 type="button"
                 onClick={() => {
@@ -667,7 +717,7 @@ export const ExamLinksManagementPage: React.FC = () => {
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sapphire-900 to-indigo-800 text-white font-extrabold text-xs shadow-md hover:shadow-indigo-glow flex items-center gap-1.5 cursor-pointer"
             >
               <Check className="w-4 h-4 text-amber-300" />
-              <span>Publish &amp; Release Official Admit Cards ({selectedExamSubmissionsCount} Students)</span>
+              <span>Publish & Release Official Admit Cards ({selectedExamSubmissionsCount} Students)</span>
             </button>
           </div>
         </div>

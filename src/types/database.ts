@@ -526,6 +526,12 @@ export interface PublishableExamLink {
   certificates_issued?: boolean;
   exam_center?: string;
   instructions?: string[];
+  class_timetables?: Record<string, Array<{
+    subject: string;
+    date: string;
+    time: string;
+    room?: string;
+  }>>;
   timetable?: Array<{
     subject: string;
     date: string;
