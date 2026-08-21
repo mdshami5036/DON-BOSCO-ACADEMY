@@ -83,7 +83,7 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           height: '297mm',
           minHeight: '297mm',
           maxHeight: '297mm',
-          padding: '21mm 18mm 18mm 18mm', // Safe margins (Left/Right: 18mm, Top: 21mm, Bottom: 18mm to clear ornaments)
+          padding: '20mm 18mm 25mm 18mm', // Safe margins (Left/Right: 18mm, Top: 20mm, Bottom: 25mm to clear bottom ornament)
           fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           WebkitPrintColorAdjust: 'exact',
           printColorAdjust: 'exact',
@@ -359,8 +359,8 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* 13. QR VERIFICATION & 14. TWO SIGNATURES SECTION (CLASS TEACHER & PRINCIPAL) */}
           {/* ========================================================================= */}
           <div className="w-full pt-1.5 mt-auto border-t border-slate-300/80 flex items-end justify-between gap-4">
-            {/* Left: QR Code & Direct Verification URL */}
-            <div className="flex items-center gap-2.5">
+            {/* Left: QR Code & Direct Verification URL (Offset with pl-2 to avoid corner border) */}
+            <div className="flex items-center gap-2.5 pl-2">
               <div className="w-[19mm] h-[19mm] bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center shadow-2xs">
                 {qrDataUri ? (
                   <img src={qrDataUri} alt="QR Code" className="w-full h-full object-contain" />
