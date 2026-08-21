@@ -367,9 +367,9 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* 13. DIGITAL QR VERIFICATION BLOCK (Placed ABOVE Signatures, As Per Reference) */}
           {/* Verification Text: 7–7.5 pt */}
           {/* ========================================================================= */}
-          <div className="w-full pt-1.5 flex items-center gap-3 px-1">
-            {/* Left: Square QR Code */}
-            <div className="w-[18mm] h-[18mm] bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center shadow-2xs">
+          <div className="w-full pt-1.5 flex items-center gap-3.5 px-1">
+            {/* Left: Square QR Code (Enlarged & Prominent) */}
+            <div className="w-[23mm] h-[23mm] min-w-[23mm] bg-white p-1 rounded border border-[#0F2756]/60 shrink-0 flex items-center justify-center shadow-2xs">
               {qrDataUri ? (
                 <img src={qrDataUri} alt="QR Code" className="w-full h-full object-contain" />
               ) : (
@@ -399,10 +399,10 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
           {/* 14. SIGNATURES & OFFICIAL STAMP ROW (Placed BELOW QR Block, As Per Reference) */}
           {/* Signature Labels: 7.5–8 pt */}
           {/* ========================================================================= */}
-          <div className="w-full pt-1.5 flex items-end justify-between gap-6 px-3">
+          <div className="w-full pt-1 flex items-end justify-between gap-6 px-3">
             {/* 1. Class Teacher Signature */}
             <div className="w-[38mm] text-center">
-              <div className="h-[9mm] flex items-end justify-center">
+              <div className="h-[10mm] flex items-end justify-center">
                 <span className="text-[7pt] font-mono text-slate-400 italic">Signature Verified</span>
               </div>
               <div className="border-t-2 border-slate-600 pt-0.5 text-slate-900 font-bold uppercase" style={{ fontSize: '8pt' }}>
@@ -410,25 +410,25 @@ export const FixedOfficialMarksheet: React.FC<FixedOfficialMarksheetProps> = ({
               </div>
             </div>
 
-            {/* 2. Official Institutional Seal / Stamp (Center) */}
+            {/* 2. Official Institutional Seal / Stamp (Center - Large & 100% Transparent See-Through) */}
             <div className="text-center">
-              <div className="p-0.5 bg-white rounded-full border border-slate-200 shadow-2xs inline-block">
+              <div className="bg-transparent inline-block">
                 <img
                   src="/assets/branding/don-bosco-stamp.svg"
                   alt="Institutional Seal"
-                  style={{ width: '48px', height: '48px' }}
-                  className="w-[14mm] h-[14mm] mx-auto object-contain opacity-95"
+                  style={{ width: '22mm', height: '22mm', mixBlendMode: 'multiply' }}
+                  className="w-[22mm] h-[22mm] mx-auto object-contain opacity-95"
                 />
               </div>
             </div>
 
             {/* 3. Principal / Headmaster Signature (Right) */}
             <div className="w-[42mm] text-center">
-              <div className="h-[9mm] flex items-end justify-center">
+              <div className="h-[10mm] flex items-end justify-center">
                 <img
                   src="/assets/branding/principal-signature.svg"
                   alt="Principal Signature"
-                  style={{ height: '30px', maxWidth: '120px' }}
+                  style={{ height: '32px', maxWidth: '120px' }}
                   className="mx-auto object-contain"
                 />
               </div>
