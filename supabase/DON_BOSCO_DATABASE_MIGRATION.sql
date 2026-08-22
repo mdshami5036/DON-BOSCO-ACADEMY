@@ -2053,3 +2053,134 @@ INSERT INTO school_settings (
     'DD/MM/YYYY',
     '#0F2756'
 ) ON CONFLICT (school_id) DO NOTHING;
+
+
+-- =========================================================================
+-- FILE: 04_exam_links_and_applications.sql (EXAMINATION PORTALS & ADMIT CARDS)
+-- =========================================================================
+
+-- 1. EXAM LINKS (Public / Protected Examination Links)
+CREATE TABLE IF NOT EXISTS exam_links (
+    id TEXT PRIMARY KEY,
+    school_id TEXT NOT NULL DEFAULT 'sch-don-bosco',
+    title TEXT NOT NULL,
+    exam_name TEXT NOT NULL,
+    academic_year TEXT NOT NULL DEFAULT '2025-2026',
+    target_classes JSONB NOT NULL DEFAULT '["ALL"]'::jsonb,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    expiry_date TEXT NOT NULL,
+    link_type TEXT NOT NULL DEFAULT 'EXAM_FORM',
+    class_timetables JSONB DEFAULT '{}'::jsonb,
+    admit_cards_issued BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE exam_links ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read exam_links" ON exam_links FOR SELECT USING (true);
+CREATE POLICY "Allow all full access exam_links" ON exam_links FOR ALL USING (true);
+
+-- 2. EXAM APPLICATIONS (Student Online Examination Form Submissions)
+CREATE TABLE IF NOT EXISTS exam_applications (
+    id TEXT PRIMARY KEY,
+    link_id TEXT NOT NULL,
+    school_id TEXT NOT NULL DEFAULT 'sch-don-bosco',
+    student_id TEXT,
+    student_name TEXT NOT NULL,
+    father_name TEXT,
+    mother_name TEXT,
+    dob TEXT NOT NULL,
+    gender TEXT NOT NULL,
+    class_name TEXT NOT NULL,
+    section_name TEXT NOT NULL DEFAULT 'A',
+    roll_number TEXT NOT NULL,
+    admission_number TEXT NOT NULL,
+    contact_phone TEXT NOT NULL,
+    address TEXT,
+    photo_url TEXT,
+    application_no TEXT UNIQUE NOT NULL,
+    receipt_no TEXT UNIQUE NOT NULL,
+    exam_name TEXT NOT NULL,
+    academic_year TEXT NOT NULL DEFAULT '2025-2026',
+    subjects JSONB NOT NULL DEFAULT '[]'::jsonb,
+    status TEXT NOT NULL DEFAULT 'SUBMITTED',
+    submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE exam_applications ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read exam_applications" ON exam_applications FOR SELECT USING (true);
+CREATE POLICY "Allow public insert exam_applications" ON exam_applications FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow all full access exam_applications" ON exam_applications FOR ALL USING (true);
+
+-- 3. ISSUED MARKSHEETS (Official Verified Digital Marksheets)
+CREATE TABLE IF NOT EXISTS issued_marksheets (
+    id TEXT PRIMARY KEY,
+    school_id TEXT NOT NULL DEFAULT 'sch-don-bosco',
+    student_id TEXT,
+    student_name TEXT NOT NULL,
+    father_name TEXT,
+    mother_name TEXT,
+    dob TEXT,
+    gender TEXT,
+    class_name TEXT NOT NULL,
+    section_name TEXT NOT NULL DEFAULT 'A',
+    roll_number TEXT NOT NULL,
+    admission_no TEXT NOT NULL,
+    registration_no TEXT,
+    academic_year TEXT NOT NULL DEFAULT '2025-2026',
+    exam_name TEXT NOT NULL,
+    marksheet_no TEXT UNIQUE NOT NULL,
+    verification_id TEXT UNIQUE NOT NULL,
+    issue_date TEXT NOT NULL,
+    subjects JSONB NOT NULL DEFAULT '[]'::jsonb,
+    total_full_marks NUMERIC(10,2) NOT NULL DEFAULT 600,
+    total_marks_obtained NUMERIC(10,2) NOT NULL DEFAULT 0,
+    percentage NUMERIC(6,2) NOT NULL DEFAULT 0,
+    overall_grade TEXT NOT NULL DEFAULT 'A',
+    division TEXT NOT NULL DEFAULT '1st Division',
+    result TEXT NOT NULL DEFAULT 'PASS',
+    attendance TEXT,
+    class_rank TEXT,
+    remarks TEXT,
+    photo_url TEXT,
+    status TEXT NOT NULL DEFAULT 'ISSUED',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE issued_marksheets ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read issued_marksheets" ON issued_marksheets FOR SELECT USING (true);
+CREATE POLICY "Allow all full access issued_marksheets" ON issued_marksheets FOR ALL USING (true);
+
+-- 4. ADMIT CARDS (Official Verified Examination Admit Cards)
+CREATE TABLE IF NOT EXISTS admit_cards (
+    id TEXT PRIMARY KEY,
+    school_id TEXT NOT NULL DEFAULT 'sch-don-bosco',
+    link_id TEXT,
+    application_id TEXT,
+    admit_card_no TEXT UNIQUE NOT NULL,
+    student_name TEXT NOT NULL,
+    father_name TEXT,
+    mother_name TEXT,
+    dob TEXT,
+    class_name TEXT NOT NULL,
+    section_name TEXT NOT NULL DEFAULT 'A',
+    roll_number TEXT NOT NULL,
+    admission_number TEXT NOT NULL,
+    exam_name TEXT NOT NULL,
+    academic_year TEXT NOT NULL DEFAULT '2025-2026',
+    issue_date TEXT NOT NULL,
+    photo_url TEXT,
+    timetable JSONB NOT NULL DEFAULT '[]'::jsonb,
+    status TEXT NOT NULL DEFAULT 'ISSUED',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE admit_cards ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read admit_cards" ON admit_cards FOR SELECT USING (true);
+CREATE POLICY "Allow all full access admit_cards" ON admit_cards FOR ALL USING (true);
+
+-- Default Seed for Exam Links
+INSERT INTO exam_links (id, school_id, title, exam_name, academic_year, target_classes, is_active, expiry_date, link_type, admit_cards_issued)
+VALUES 
+('link-annual-2026', 'sch-don-bosco', 'CBSE Class X Annual Board Examination 2026 - Registration Portal', 'CBSE Class X Annual Board Exam 2026', '2025-2026', '["ALL"]'::jsonb, TRUE, '2026-03-31', 'EXAM_FORM', TRUE),
+('link-terminal-2026', 'sch-don-bosco', 'Class 8-10 Mid-Term Examination 2026 Form', 'Mid-Term Examination 2026', '2025-2026', '["Class 8", "Class 9", "Class 10"]'::jsonb, TRUE, '2026-04-15', 'EXAM_FORM', FALSE)
+ON CONFLICT (id) DO NOTHING;

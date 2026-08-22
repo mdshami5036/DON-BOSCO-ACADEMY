@@ -1995,7 +1995,7 @@ export const db = {
     return matched || null;
   },
 
-    async submitExamApplication(payload: Partial<ExamApplication>): Promise<ExamApplication> {
+      async submitExamApplication(payload: Partial<ExamApplication>): Promise<ExamApplication> {
     const link = (store as any).examLinks.find((l: any) => l.id === payload.link_id);
     const applicationNo = 'DBA-EXAM-2026-' + String((store as any).examApplications.length + 1001).padStart(4, '0');
     const receiptNo = 'DBA-REC-2026-' + String((store as any).examApplications.length + 5001).padStart(4, '0');
@@ -2012,7 +2012,6 @@ export const db = {
       if (matchedClassObj && matchedClassObj.assigned_subjects && matchedClassObj.assigned_subjects.length > 0) {
         confirmedSubjects = matchedClassObj.assigned_subjects.map((s) => s.subject_name);
       } else {
-        // Fallback default
         confirmedSubjects = [
           'English Language & Literature',
           'Mathematics',
@@ -2047,6 +2046,14 @@ export const db = {
       status: 'SUBMITTED',
       submitted_at: new Date().toISOString(),
     };
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('exam_applications').insert([newApp]);
+      } catch (err) {
+        console.warn('Supabase submitExamApplication insert warning:', err);
+      }
+    }
 
     (store as any).examApplications.unshift(newApp);
     store.persist();
