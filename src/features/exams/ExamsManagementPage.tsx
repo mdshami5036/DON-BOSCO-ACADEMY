@@ -21,6 +21,7 @@ export const ExamsManagementPage: React.FC = () => {
   const { success, error: toastError } = useToast();
 
   const [exams, setExams] = useState<Exam[]>([]);
+  const [publishedExamLinks, setPublishedExamLinks] = useState<any[]>([]);
   const [selectedExamId, setSelectedExamId] = useState('');
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [selectedClassId, setSelectedClassId] = useState('');
@@ -46,15 +47,44 @@ export const ExamsManagementPage: React.FC = () => {
   >({});
   const [isSavingConfigs, setIsSavingConfigs] = useState(false);
 
-  const loadInitial = async () => {
+    const loadInitial = async () => {
     if (!currentSchool) return;
-    const [eList, cList] = await Promise.all([
+    const [eList, cList, lList] = await Promise.all([
       db.getExams(currentSchool.id),
       db.getClasses(currentSchool.id),
+      db.getExamLinks(currentSchool.id),
     ]);
-    setExams(eList);
+
+    setPublishedExamLinks(lList);
     setClasses(cList);
-    if (eList.length > 0) setSelectedExamId(eList[0].id);
+
+    // Merge published exam form links into exams list so all forms published on ERP are available
+    const combinedExams: Exam[] = [];
+
+    // Add published ERP exam links first
+    lList.forEach((link) => {
+      combinedExams.push({
+        id: link.id,
+        school_id: link.school_id || currentSchool.id,
+        session_id: 'sess-2026',
+        name: link.exam_name || link.title,
+        exam_type: 'Board/Annual',
+        start_date: '2026-03-01',
+        end_date: link.expiry_date || '2026-03-31',
+        is_published: true,
+        created_at: link.created_at || new Date().toISOString(),
+      });
+    });
+
+    // Also include any other created exams if not already included
+    eList.forEach((ex) => {
+      if (!combinedExams.some((ce) => ce.name.toLowerCase() === ex.name.toLowerCase() || ce.id === ex.id)) {
+        combinedExams.push(ex);
+      }
+    });
+
+    setExams(combinedExams);
+    if (combinedExams.length > 0) setSelectedExamId(combinedExams[0].id);
     if (cList.length > 0) setSelectedClassId(cList[0].id);
   };
 
@@ -62,17 +92,37 @@ export const ExamsManagementPage: React.FC = () => {
     loadInitial();
   }, [currentSchool]);
 
-  // Load Exam Subjects
+    // Load Exam Subjects dynamically from Class Assigned Subjects or Exam Subjects
   useEffect(() => {
     async function loadSubjects() {
-      if (!currentSchool || !selectedExamId || !selectedClassId) return;
+      if (!currentSchool || !selectedClassId) return;
       const esList = await db.getExamSubjects(currentSchool.id, selectedExamId, selectedClassId);
-      setExamSubjects(esList);
-      if (esList.length > 0) setSelectedExamSubId(esList[0].id);
-      else setSelectedExamSubId('');
+      
+      const matchedClassObj = classes.find((c) => c.id === selectedClassId);
+      if (esList.length === 0 && matchedClassObj && matchedClassObj.assigned_subjects && matchedClassObj.assigned_subjects.length > 0) {
+        // Automatically map class assigned subjects to exam subjects
+        const mappedSubjects: ExamSubject[] = matchedClassObj.assigned_subjects.map((sub, idx) => ({
+          id: `es-${selectedClassId}-${idx}`,
+          school_id: currentSchool.id,
+          exam_id: selectedExamId,
+          class_id: selectedClassId,
+          subject_id: `sub-${idx}`,
+          subject_name: sub.subject_name,
+          max_theory_marks: sub.has_practical ? Math.round((sub.full_marks || 100) * 0.7) : (sub.full_marks || 100),
+          max_practical_marks: sub.has_practical ? Math.round((sub.full_marks || 100) * 0.3) : 0,
+          pass_marks: sub.pass_marks || 33,
+          created_at: new Date().toISOString(),
+        }));
+        setExamSubjects(mappedSubjects);
+        if (mappedSubjects.length > 0) setSelectedExamSubId(mappedSubjects[0].id);
+      } else {
+        setExamSubjects(esList);
+        if (esList.length > 0) setSelectedExamSubId(esList[0].id);
+        else setSelectedExamSubId('');
+      }
     }
     loadSubjects();
-  }, [currentSchool, selectedExamId, selectedClassId]);
+  }, [currentSchool, selectedExamId, selectedClassId, classes]);
 
     // Load Students & Marks (Filtered strictly by Exam Form Submissions)
   useEffect(() => {
@@ -292,16 +342,24 @@ export const ExamsManagementPage: React.FC = () => {
 
       {/* Selector Bar */}
       <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Select Exam</label>
+                <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
+            <span>Select Published Exam Form</span>
+            <span className="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 px-1.5 py-0.5 rounded">ERP Live</span>
+          </label>
           <select
             value={selectedExamId}
             onChange={(e) => setSelectedExamId(e.target.value)}
-            className="w-full text-xs p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none"
+            className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none font-bold text-slate-900 dark:text-white"
           >
-            {exams.map((ex) => (
-              <option key={ex.id} value={ex.id}>{ex.name}</option>
-            ))}
+            {exams.map((ex) => {
+              const matchedLink = publishedExamLinks.find((l) => l.id === ex.id || l.exam_name === ex.name);
+              return (
+                <option key={ex.id} value={ex.id}>
+                  {ex.name} {matchedLink ? '★ (ERP Form Published)' : ''}
+                </option>
+              );
+            })}
           </select>
         </div>
 
