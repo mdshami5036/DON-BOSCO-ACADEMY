@@ -195,6 +195,65 @@ export const AdmitCardDownloadPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#334155] flex flex-col font-sans">
+      {/* PRINT-SPECIFIC CSS INJECTION: STRICT 1-PAGE A4 PORTRAIT */}
+      <style>{`
+        @page {
+          size: A4 portrait;
+          margin: 0mm;
+        }
+        @media print {
+          html, body {
+            width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            overflow: hidden !important;
+          }
+          .no-print, header, nav, footer, .print-hide {
+            display: none !important;
+          }
+          main {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 210mm !important;
+            background: transparent !important;
+          }
+          .admit-card-wrapper {
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+          }
+          .fixed-admit-card-root {
+            width: 210mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .a4-admit-card-canvas {
+            width: 210mm !important;
+            min-width: 210mm !important;
+            max-width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            margin: 0 auto !important;
+            padding: 8mm 10mm 8mm 10mm !important;
+            box-shadow: none !important;
+            border: none !important;
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
+            overflow: hidden !important;
+          }
+        }
+      `}</style>
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs print:hidden">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to="/exam-portal" className="flex items-center gap-3">
@@ -374,7 +433,7 @@ export const AdmitCardDownloadPage: React.FC = () => {
 
             {/* OFFICIAL ADMIT CARD RENDER */}
             {foundStudent && (
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 print:border-none print:shadow-none print:p-0">
+              <div className="admit-card-wrapper bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 print:border-none print:shadow-none print:p-0">
                 <div className="flex items-center justify-between no-print border-b border-slate-200 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
