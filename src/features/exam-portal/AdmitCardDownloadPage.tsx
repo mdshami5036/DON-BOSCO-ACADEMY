@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { db } from '../../services/db';
 import { PublishableExamLink, Student, School, ExamApplication } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
+import { FixedOfficialAdmitCard } from '../documents/FixedOfficialAdmitCard';
 import {
   FileBadge,
   Search,
@@ -373,81 +374,47 @@ export const AdmitCardDownloadPage: React.FC = () => {
 
             {/* OFFICIAL ADMIT CARD RENDER */}
             {foundStudent && (
-              <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl p-6 sm:p-8 space-y-6 text-slate-900 print:border-none print:shadow-none print:p-0">
-                <div className="flex items-center justify-between border-b-2 border-sapphire-900 pb-4">
-                  <div className="flex items-center gap-4">
-                    <img src="/assets/branding/don-bosco-logo.png" alt="Logo" className="w-16 h-16 object-contain rounded-xl border border-slate-200 p-1" />
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-black font-display text-sapphire-950 uppercase tracking-tight">DON BOSCO ACADEMY</h2>
-                      <p className="text-xs text-slate-600 font-medium">Raipur Bazar, Nanpur, Sitamarhi (Bihar) - 843326</p>
-                      <p className="text-[11px] font-bold text-coral-600 uppercase tracking-wide">CBSE Pattern • ESTD: 1997 • KNOWLEDGE IS POWER</p>
-                    </div>
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 print:border-none print:shadow-none print:p-0">
+                <div className="flex items-center justify-between no-print border-b border-slate-200 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h3 className="font-extrabold text-sm text-slate-900">Official Examination Hall Ticket Preview (1-Page A4)</h3>
                   </div>
-                  <div className="text-right hidden sm:block">
-                    <div className="inline-block px-3 py-1 bg-sapphire-900 text-white rounded-lg text-xs font-black uppercase tracking-wider">OFFICIAL ADMIT CARD</div>
-                    <div className="text-xs font-mono font-bold text-slate-500 mt-1">Session {link?.academic_year || '2025-2026'}</div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="px-5 py-2 rounded-xl bg-sapphire-900 hover:bg-sapphire-800 text-white font-extrabold text-xs shadow-md flex items-center gap-2 cursor-pointer transition"
+                  >
+                    <Printer className="w-4 h-4 text-amber-300" />
+                    <span>Print Official Admit Card (A4)</span>
+                  </button>
                 </div>
-                <div className="bg-sapphire-50/70 p-3 rounded-2xl border border-sapphire-200 text-center">
-                  <h3 className="text-base font-black text-sapphire-950 font-display">{link?.exam_name || 'CBSE Board Examination 2026'}</h3>
-                  <p className="text-xs text-slate-600 mt-0.5">Center: <strong>{foundStudent.exam_center}</strong></p>
-                </div>
-                <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                  <img src={foundStudent.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'} alt={foundStudent.first_name} className="w-24 h-28 object-cover rounded-xl border-2 border-sapphire-800 shrink-0 bg-white p-0.5" />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs flex-1 w-full">
-                    <div><span className="text-slate-400 block">Candidate Name:</span><strong className="text-sm text-slate-900 font-extrabold">{foundStudent.first_name} {foundStudent.last_name}</strong></div>
-                    <div><span className="text-slate-400 block">Admission No:</span><strong className="text-sm text-sapphire-900 font-mono font-bold">{foundStudent.admission_number}</strong></div>
-                    <div><span className="text-slate-400 block">Father's Name:</span><strong className="text-slate-800">{foundStudent.father_name}</strong></div>
-                    <div><span className="text-slate-400 block">Mother's Name:</span><strong className="text-slate-800">{foundStudent.mother_name}</strong></div>
-                    <div><span className="text-slate-400 block">Class &amp; Section:</span><strong className="text-slate-800">{foundStudent.class_name || 'Class 10'} (Section {foundStudent.section_name || 'A'})</strong></div>
-                    <div><span className="text-slate-400 block">Roll Number:</span><strong className="text-slate-800 font-mono">{foundStudent.roll_number}</strong></div>
-                    <div><span className="text-slate-400 block">Form Application No:</span><strong className="text-indigo-700 font-mono">{foundStudent.application_no}</strong></div>
-                    <div><span className="text-slate-400 block">Admit Card No:</span><strong className="text-sapphire-900 font-mono font-bold">{foundStudent.admit_card_no}</strong></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">Exam Schedule &amp; Timetable</div>
-                  <div className="overflow-x-auto rounded-xl border border-slate-200">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
-                        <tr>
-                          <th className="p-2.5">Subject</th>
-                          <th className="p-2.5">Date</th>
-                          <th className="p-2.5">Timing</th>
-                          <th className="p-2.5 text-center">Room</th>
-                          <th className="p-2.5 text-center">Sign of Invigilator</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200">
-                        {foundStudent.timetable.map((t: any, idx: number) => (
-                          <tr key={idx} className="hover:bg-slate-50">
-                            <td className="p-2.5 font-bold text-slate-800">{t.subject}</td>
-                            <td className="p-2.5 font-mono text-slate-600 font-bold">{t.date}</td>
-                            <td className="p-2.5 font-mono text-slate-600">{t.time}</td>
-                            <td className="p-2.5 font-bold text-center text-slate-700">{t.room || 'Hall 1'}</td>
-                            <td className="p-2.5 text-center"><div className="w-24 h-6 border-b border-slate-300 mx-auto"></div></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div className="pt-6 border-t-2 border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs">
-                  <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-white border border-slate-300 rounded-xl shadow-2xs">
-                      <img src="/assets/branding/don-bosco-seal.png" alt="Seal" className="w-14 h-14 object-contain opacity-90" />
-                    </div>
-                    <div>
-                      <div className="font-mono text-[10px] text-slate-400">DBA-HALL-TICKET-{foundStudent.roll_number}</div>
-                      <div className="text-[11px] font-bold text-slate-700">Official Institutional Seal</div>
-                    </div>
-                  </div>
-                  <div className="text-center sm:text-right">
-                    <img src="/assets/branding/principal-signature.png" alt="Signature" className="h-10 mx-auto sm:ml-auto object-contain" />
-                    <div className="font-bold text-slate-900 mt-1">Md. Shami Ahmad</div>
-                    <div className="text-[10px] text-slate-500 font-semibold">Principal &amp; Head of Institution</div>
-                  </div>
-                </div>
+
+                {/* Pixel-Perfect Fixed 1-Page A4 Admit Card */}
+                <FixedOfficialAdmitCard
+                  data={{
+                    school_name: school?.name || 'DON BOSCO ACADEMY',
+                    school_address: 'Raipur Bazar, PS Nanpur, District Sitamarhi, Bihar - Pin Code 843326',
+                    school_affiliation: 'Affiliated to CBSE (Affiliation No. 1234567)',
+                    school_code: '12345',
+                    udise_code: '12345678901',
+                    academic_session: link?.academic_year || '2025-2026',
+                    exam_name: link?.exam_name || 'Annual Examination 2026',
+                    admit_card_no: foundStudent.admit_card_no,
+                    student_name: `${foundStudent.first_name} ${foundStudent.last_name || ''}`.trim(),
+                    father_name: foundStudent.father_name,
+                    mother_name: foundStudent.mother_name,
+                    dob: foundStudent.dob,
+                    gender: foundStudent.gender,
+                    class_name: foundStudent.class_name,
+                    section_name: foundStudent.section_name,
+                    roll_number: foundStudent.roll_number,
+                    admission_no: foundStudent.admission_number,
+                    photo_url: foundStudent.photo_url,
+                    exam_center: foundStudent.exam_center,
+                    timetable: foundStudent.timetable,
+                  }}
+                />
               </div>
             )}
           </>
