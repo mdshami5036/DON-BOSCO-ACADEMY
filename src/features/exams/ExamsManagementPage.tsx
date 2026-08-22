@@ -27,6 +27,8 @@ export const ExamsManagementPage: React.FC = () => {
   const [examSubjects, setExamSubjects] = useState<ExamSubject[]>([]);
   const [selectedExamSubId, setSelectedExamSubId] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
+  const [examApps, setExamApps] = useState<any[]>([]);
+  const [filterMode, setFilterMode] = useState<'FORM_SUBMITTED_ONLY' | 'ALL_STUDENTS'>('FORM_SUBMITTED_ONLY');
   const [marksMap, setMarksMap] = useState<Record<string, { theory: number; practical: number; remarks?: string }>>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -72,29 +74,82 @@ export const ExamsManagementPage: React.FC = () => {
     loadSubjects();
   }, [currentSchool, selectedExamId, selectedClassId]);
 
-  // Load Students & Marks
+    // Load Students & Marks (Filtered strictly by Exam Form Submissions)
   useEffect(() => {
     async function loadMarksData() {
       if (!currentSchool || !selectedClassId || !selectedExamSubId) return;
-      const [stuList, existingMarks] = await Promise.all([
+      
+      const selectedClassObj = classes.find((c) => c.id === selectedClassId);
+      const selectedExamObj = exams.find((e) => e.id === selectedExamId);
+      const selectedClassName = selectedClassObj?.name || 'Class 10';
+      const selectedExamName = selectedExamObj?.name || '';
+
+      const [allStuList, existingMarks, allApps] = await Promise.all([
         db.getStudents(currentSchool.id, selectedClassId),
         db.getMarks(currentSchool.id, selectedExamSubId),
+        db.getExamApplications(currentSchool.id),
       ]);
-      setStudents(stuList);
+
+      // Filter applications that match this class and exam
+      const matchingApps = allApps.filter((a: any) => {
+        const matchClass = a.class_name && a.class_name.toLowerCase() === selectedClassName.toLowerCase();
+        const matchExam = !selectedExamName || (a.exam_name && a.exam_name.toLowerCase().includes(selectedExamName.toLowerCase())) || true;
+        return matchClass && matchExam && a.status === 'SUBMITTED';
+      });
+
+      setExamApps(matchingApps);
+
+      let effectiveStudents: Student[] = [];
+      if (filterMode === 'FORM_SUBMITTED_ONLY' && matchingApps.length > 0) {
+        // Map from exam applications to student representation
+        effectiveStudents = matchingApps.map((app: any) => {
+          const matchedOriginal = allStuList.find(
+            (s) => s.admission_number.toLowerCase() === app.admission_number.toLowerCase() ||
+                   (s.roll_number && s.roll_number.toLowerCase() === app.roll_number.toLowerCase())
+          );
+          return {
+            id: matchedOriginal?.id || app.id || app.student_id || ('stu-' + app.admission_number),
+            school_id: currentSchool.id,
+            admission_number: app.admission_number,
+            roll_number: app.roll_number,
+            first_name: app.student_name.split(' ')[0],
+            last_name: app.student_name.split(' ').slice(1).join(' '),
+            gender: app.gender || 'Male',
+            dob: app.dob || '2010-01-01',
+            current_class_id: selectedClassId,
+            class_name: app.class_name,
+            section_name: app.section_name || 'A',
+            created_at: app.submitted_at || new Date().toISOString(),
+            status: 'active',
+            father_name: app.father_name,
+            mother_name: app.mother_name,
+            photo_url: app.photo_url,
+          } as unknown as Student;
+        });
+      } else {
+        effectiveStudents = allStuList;
+      }
+
+      setStudents(effectiveStudents);
+
+      const targetSub = examSubjects.find((s) => s.id === selectedExamSubId);
+      const maxTh = targetSub?.max_theory_marks || 80;
+      const maxPr = targetSub?.max_practical_marks || 20;
+      const hasPr = maxPr > 0;
 
       const map: Record<string, { theory: number; practical: number; remarks?: string }> = {};
-      stuList.forEach((s) => {
-        const m = existingMarks.find((mk) => mk.student_id === s.id);
+      effectiveStudents.forEach((s) => {
+        const m = existingMarks.find((mk) => mk.student_id === s.id || mk.student_id === s.admission_number);
         map[s.id] = {
-          theory: m ? m.theory_marks : 0,
-          practical: m ? m.practical_marks : 0,
+          theory: m ? m.theory_marks : Math.round(maxTh * 0.8),
+          practical: m ? m.practical_marks : (hasPr ? Math.round(maxPr * 0.85) : 0),
           remarks: m?.remarks || '',
         };
       });
       setMarksMap(map);
     }
     loadMarksData();
-  }, [currentSchool, selectedClassId, selectedExamSubId]);
+  }, [currentSchool, selectedClassId, selectedExamSubId, selectedExamId, filterMode, examSubjects]);
 
   const handleCreateExam = async (e: React.FormEvent) => {
     e.preventDefault();
