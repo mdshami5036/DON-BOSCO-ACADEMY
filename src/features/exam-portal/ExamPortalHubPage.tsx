@@ -105,13 +105,75 @@ export const ExamPortalHubPage: React.FC = () => {
     }
   };
 
-  const filteredLinks = links.filter((item) => {
-    const matchTab = activeTab === 'ALL' || item.link_type === activeTab;
+    // Build list of portal cards: Include both Registration Forms AND Released Admit Card Portals
+  const allPortalCards: Array<{
+    id: string;
+    slug: string;
+    cardType: 'FORM' | 'ADMIT_CARD' | 'RESULT' | 'CERTIFICATE';
+    title: string;
+    exam_name: string;
+    academic_year: string;
+    description: string;
+    expiry_date: string;
+    targetUrl: string;
+    admit_cards_issued: boolean;
+    buttonText: string;
+    badgeText: string;
+    badgeColor: string;
+  }> = [];
+
+  links.forEach((l) => {
+    // 1. Examination Form Card
+    allPortalCards.push({
+      id: l.id + '-form',
+      slug: l.slug,
+      cardType: 'FORM',
+      title: l.title,
+      exam_name: l.exam_name,
+      academic_year: l.academic_year,
+      description: l.description || 'Fill and submit online examination candidate particulars.',
+      expiry_date: l.expiry_date,
+      targetUrl: `/exam-portal/form/${l.slug}`,
+      admit_cards_issued: !!l.admit_cards_issued,
+      buttonText: '📝 Fill Examination Form',
+      badgeText: `${l.academic_year} • REGISTRATION FORM`,
+      badgeColor: 'bg-sapphire-50 text-sapphire-900 border-sapphire-200',
+    });
+
+    // 2. If Admit Cards are issued/released for this exam, publish LIVE ADMIT CARD DOWNLOAD card
+    if (l.admit_cards_issued || l.link_type === 'ADMIT_CARD_DOWNLOAD') {
+      allPortalCards.push({
+        id: l.id + '-admit',
+        slug: l.slug,
+        cardType: 'ADMIT_CARD',
+        title: `🎟️ ${l.exam_name} — Official Admit Card Portal`,
+        exam_name: l.exam_name,
+        academic_year: l.academic_year,
+        description: 'Official Admit Cards are now live. Registered students who submitted their examination form can download and print their verified A4 Hall Ticket.',
+        expiry_date: l.expiry_date,
+        targetUrl: `/exam-portal/admit-card/${l.slug}`,
+        admit_cards_issued: true,
+        buttonText: '🎟️ Download Official Admit Card',
+        badgeText: 'ADMIT CARDS RELEASED & LIVE',
+        badgeColor: 'bg-emerald-50 text-emerald-900 border-emerald-300',
+      });
+    }
+  });
+
+  const filteredCards = allPortalCards.filter((card) => {
+    const matchTab =
+      activeTab === 'ALL' ||
+      (activeTab === 'ADMIT_CARD_FORM' && card.cardType === 'FORM') ||
+      (activeTab === 'ADMIT_CARD_DOWNLOAD' && card.cardType === 'ADMIT_CARD') ||
+      (activeTab === 'RESULT_PORTAL' && card.cardType === 'RESULT') ||
+      (activeTab === 'CERTIFICATE_RECORDS' && card.cardType === 'CERTIFICATE');
+
     const matchSearch =
       searchQuery === '' ||
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.exam_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.academic_year.toLowerCase().includes(searchQuery.toLowerCase());
+      card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.exam_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.academic_year.toLowerCase().includes(searchQuery.toLowerCase());
+
     return matchTab && matchSearch;
   });
 
@@ -230,34 +292,30 @@ export const ExamPortalHubPage: React.FC = () => {
         {/* Links Grid */}
         {isLoading ? (
           <div className="py-12 text-center text-slate-400 font-bold">Loading portals...</div>
-        ) : filteredLinks.length === 0 ? (
+        ) : filteredCards.length === 0 ? (
           <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
             <Building2 className="w-12 h-12 text-slate-300 mx-auto" />
             <h3 className="text-base font-bold text-slate-700">No active portal links found matching your criteria.</h3>
-            <p className="text-xs text-slate-400">Please check back later or contact the administration.</p>
+            <p className="text-xs text-slate-400">Please check back later or contact the school administration.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredLinks.map((link) => {
-              const expired = isExpired(link.expiry_date);
-              const days = getDaysRemaining(link.expiry_date);
-
-              let targetUrl = `/exam-portal/form/${link.slug}`;
-              if (link.link_type === 'ADMIT_CARD_DOWNLOAD') targetUrl = `/exam-portal/admit-card/${link.slug}`;
-              if (link.link_type === 'RESULT_PORTAL') targetUrl = `/exam-portal/results/${link.slug}`;
-              if (link.link_type === 'CERTIFICATE_RECORDS') targetUrl = `/exam-portal/certificate/${link.slug}`;
+            {filteredCards.map((card) => {
+              const expired = isExpired(card.expiry_date);
+              const days = getDaysRemaining(card.expiry_date);
+              const isAdmitCard = card.cardType === 'ADMIT_CARD';
 
               return (
                 <div
-                  key={link.id}
-                  className={'bg-white rounded-3xl border p-6 shadow-soft-card flex flex-col justify-between space-y-4 hover:shadow-soft-hover transition-all duration-300 ' + (expired ? 'border-rose-200 bg-rose-50/20' : 'border-slate-200')}
+                  key={card.id}
+                  className={`bg-white rounded-3xl border p-6 shadow-soft-card flex flex-col justify-between space-y-4 hover:shadow-soft-hover transition-all duration-300 ${isAdmitCard ? 'border-emerald-300/80 ring-2 ring-emerald-500/20 bg-gradient-to-b from-emerald-50/20 to-white' : expired ? 'border-rose-200 bg-rose-50/20' : 'border-slate-200'}`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider bg-sapphire-50 text-sapphire-900 border border-sapphire-200">
-                        {link.academic_year} • {link.link_type.replace(/_/g, ' ')}
+                      <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider border ${card.badgeColor}`}>
+                        {card.badgeText}
                       </span>
-                      {expired ? (
+                      {expired && !isAdmitCard ? (
                         <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
                           <Lock className="w-3 h-3" /> CLOSED
                         </span>
@@ -269,33 +327,32 @@ export const ExamPortalHubPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-black text-slate-900 font-display line-clamp-2">{link.title}</h3>
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">{link.description}</p>
+                      <h3 className="text-lg font-black text-slate-900 font-display line-clamp-2">{card.title}</h3>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">{card.description}</p>
                     </div>
 
                     <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1.5">
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Exam:</span>
-                        <strong className="text-slate-800 font-medium">{link.exam_name}</strong>
+                        <span className="text-slate-400">Examination:</span>
+                        <strong className="text-slate-800 font-medium">{card.exam_name}</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Deadline:</span>
-                        <span className="font-mono font-bold text-slate-700">{formatDDMMYYYY(link.expiry_date)}</span>
+                        <span className="text-slate-400">Eligibility:</span>
+                        <span className="font-bold text-indigo-700">{isAdmitCard ? 'Form-Submitted Students' : 'Registered Students'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Portal Deadline:</span>
+                        <span className="font-mono font-bold text-slate-700">{formatDDMMYYYY(card.expiry_date)}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="pt-2">
                     <Link
-                      to={targetUrl}
-                      className={'w-full py-3 rounded-xl text-center font-extrabold text-xs flex items-center justify-center gap-2 transition ' + (expired ? 'bg-slate-200 text-slate-600 cursor-not-allowed' : 'bg-sapphire-900 text-white shadow-md hover:bg-sapphire-800')}
+                      to={card.targetUrl}
+                      className={`w-full py-3 rounded-xl text-center font-extrabold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${isAdmitCard ? 'bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 text-white shadow-md hover:from-emerald-900 hover:to-teal-900 shadow-emerald-700/20' : expired ? 'bg-slate-200 text-slate-600 cursor-not-allowed' : 'bg-sapphire-900 text-white shadow-md hover:bg-sapphire-800'}`}
                     >
-                      <span>
-                        {link.link_type === 'ADMIT_CARD_FORM' && 'Fill Examination Form'}
-                        {link.link_type === 'ADMIT_CARD_DOWNLOAD' && 'Download Admit Card'}
-                        {link.link_type === 'RESULT_PORTAL' && 'View Marksheet & Result'}
-                        {link.link_type === 'CERTIFICATE_RECORDS' && 'Download Certificate'}
-                      </span>
+                      <span>{card.buttonText}</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
