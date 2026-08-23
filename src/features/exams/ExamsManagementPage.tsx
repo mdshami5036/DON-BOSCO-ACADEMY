@@ -167,9 +167,19 @@ export const ExamsManagementPage: React.FC = () => {
         });
       }
 
-      setExamApps(matchingApps);
+            // Deduplicate applications so each unique student / roll number appears EXACTLY ONCE
+      const uniqueAppMap = new Map<string, any>();
+      matchingApps.forEach((app: any) => {
+        const key = (app.roll_number || app.admission_number || app.student_name || '').toLowerCase().trim();
+        if (key && !uniqueAppMap.has(key)) {
+          uniqueAppMap.set(key, app);
+        }
+      });
+      const uniqueMatchingApps = Array.from(uniqueAppMap.values());
 
-      const effectiveStudents: Student[] = matchingApps.map((app: any) => {
+      setExamApps(uniqueMatchingApps);
+
+      const effectiveStudents: Student[] = uniqueMatchingApps.map((app: any) => {
         const matchedOriginal = allStuList.find(
           (s) => s.admission_number.toLowerCase() === (app.admission_number || '').toLowerCase() ||
                  (s.roll_number && s.roll_number.toLowerCase() === (app.roll_number || '').toLowerCase())
@@ -192,6 +202,16 @@ export const ExamsManagementPage: React.FC = () => {
           mother_name: app.mother_name || '—',
           photo_url: app.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
         } as unknown as Student;
+      });
+
+      // Sort students in ascending order by Roll Number
+      effectiveStudents.sort((a, b) => {
+        const numA = parseInt(a.roll_number || '0', 10);
+        const numB = parseInt(b.roll_number || '0', 10);
+        if (!isNaN(numA) && !isNaN(numB) && numA !== 0 && numB !== 0) {
+          return numA - numB;
+        }
+        return (a.roll_number || '').localeCompare(b.roll_number || '');
       });
 
       setStudents(effectiveStudents);

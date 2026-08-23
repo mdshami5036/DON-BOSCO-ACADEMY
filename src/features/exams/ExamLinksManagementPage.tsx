@@ -331,9 +331,19 @@ export const ExamLinksManagementPage: React.FC = () => {
         return matchId || matchName || (links.length === 1);
       });
 
-      const validApps = matchedApps.filter((a: any) => a.status === 'SUBMITTED' || a.status === 'VERIFIED' || a.status === 'ADMIT_CARD_ISSUED' || !a.status);
+            const validApps = matchedApps.filter((a: any) => a.status === 'SUBMITTED' || a.status === 'VERIFIED' || a.status === 'ADMIT_CARD_ISSUED' || !a.status);
 
-      const studentAuditList = validApps.map((app: any, idx: number) => ({
+      // Deduplicate so each student / roll number is counted exactly once
+      const uniqueAuditMap = new Map<string, any>();
+      validApps.forEach((app: any) => {
+        const key = (app.roll_number || app.admission_number || app.student_name || '').toLowerCase().trim();
+        if (key && !uniqueAuditMap.has(key)) {
+          uniqueAuditMap.set(key, app);
+        }
+      });
+      const uniqueValidApps = Array.from(uniqueAuditMap.values());
+
+      const studentAuditList = uniqueValidApps.map((app: any, idx: number) => ({
         id: app.id || `app-${idx}`,
         student_name: app.student_name || 'Candidate',
         roll_number: app.roll_number || `${1001 + idx}`,
@@ -343,6 +353,14 @@ export const ExamLinksManagementPage: React.FC = () => {
         total_subjects: app.class_name?.toLowerCase().includes('play') ? 4 : 6,
         graded_subjects: app.class_name?.toLowerCase().includes('play') ? 4 : 6,
       }));
+
+      // Sort by roll number
+      studentAuditList.sort((a, b) => {
+        const numA = parseInt(a.roll_number || '0', 10);
+        const numB = parseInt(b.roll_number || '0', 10);
+        if (!isNaN(numA) && !isNaN(numB) && numA !== 0 && numB !== 0) return numA - numB;
+        return a.roll_number.localeCompare(b.roll_number);
+      });
 
       const total = studentAuditList.length;
       const graded = studentAuditList.filter((s) => s.is_graded).length;
