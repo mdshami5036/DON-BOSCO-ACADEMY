@@ -523,6 +523,7 @@ export interface PublishableExamLink {
   target_classes?: string[];
   admit_cards_issued?: boolean;
   results_published?: boolean;
+  marksheets_issued?: boolean;
   certificates_issued?: boolean;
   exam_center?: string;
   instructions?: string[];
@@ -557,6 +558,7 @@ export interface ExamApplication {
   section_name: string;
   roll_number: string;
   admission_number: string;
+  registration_no?: string;
   contact_phone: string;
   address: string;
   photo_url?: string;

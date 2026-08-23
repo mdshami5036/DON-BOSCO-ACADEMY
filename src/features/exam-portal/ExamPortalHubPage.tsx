@@ -123,6 +123,25 @@ export const ExamPortalHubPage: React.FC = () => {
   }> = [];
 
   links.forEach((l) => {
+    // 3. If Results & Marksheets are issued/published, publish LIVE RESULTS & MARKSHEET PORTAL card
+    if (l.results_published || l.marksheets_issued || l.link_type === 'RESULT_PORTAL') {
+      allPortalCards.push({
+        id: l.id + '-result',
+        slug: l.slug,
+        cardType: 'RESULT',
+        title: `📜 ${l.exam_name} — Official Marksheet & Results Portal`,
+        exam_name: l.exam_name,
+        academic_year: l.academic_year,
+        description: 'Official Examination Results & Marksheets have been declared. Students can check their result and download verified A4 Marksheets using Roll No / Reg No / Admission No & DOB.',
+        expiry_date: l.expiry_date,
+        targetUrl: `/exam-portal/results/${l.slug}`,
+        admit_cards_issued: true,
+        buttonText: '📜 Check Result & Download Marksheet',
+        badgeText: 'RESULTS & MARKSHEETS DECLARED',
+        badgeColor: 'bg-purple-50 text-purple-900 border-purple-300',
+      });
+    }
+
     // 1. Examination Form Card
     allPortalCards.push({
       id: l.id + '-form',
