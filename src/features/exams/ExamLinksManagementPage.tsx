@@ -949,6 +949,146 @@ export const ExamLinksManagementPage: React.FC = () => {
         </div>
       </Modal>
 
+      {/* Modal 2.5: Issue Official Marksheets & Declare Results Modal */}
+      <Modal
+        isOpen={isMarksheetModalOpen}
+        onClose={() => setIsMarksheetModalOpen(false)}
+        title="📜 Issue Official Marksheets & Declare Results on ERP"
+        size="2xl"
+      >
+        <div className="space-y-5 text-xs">
+          {/* Step 1: Select Exam */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Select Examination Form
+            </label>
+            <select
+              value={selectedMarksheetExamId}
+              onChange={(e) => handleOpenMarksheetIssuer(e.target.value)}
+              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            >
+              {links.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.exam_name} ({l.academic_year}) {l.results_published ? '★ [Results Already Live]' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Step 2: Evaluation & Grading Audit Summary Cards */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+              <span className="text-[10px] font-extrabold uppercase text-slate-500 block">Exam Form Submissions</span>
+              <strong className="text-xl font-black text-slate-900 font-mono">{marksheetAuditData.total}</strong>
+              <span className="text-[9px] text-slate-400 block mt-0.5">Students Registered</span>
+            </div>
+
+            <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 text-center">
+              <span className="text-[10px] font-extrabold uppercase text-emerald-700 block">Marks Entered</span>
+              <strong className="text-xl font-black text-emerald-800 font-mono">{marksheetAuditData.graded}</strong>
+              <span className="text-[9px] text-emerald-600 block mt-0.5">Ready for Marksheet</span>
+            </div>
+
+            <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-center">
+              <span className="text-[10px] font-extrabold uppercase text-amber-700 block">Marks Pending</span>
+              <strong className="text-xl font-black text-amber-800 font-mono">{marksheetAuditData.pending}</strong>
+              <span className="text-[9px] text-amber-600 block mt-0.5">Evaluation Incomplete</span>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-xs font-bold text-slate-700">
+              <span>Overall Evaluation Progress</span>
+              <span className="text-emerald-700 font-mono">
+                {marksheetAuditData.total > 0
+                  ? Math.round((marksheetAuditData.graded / marksheetAuditData.total) * 100)
+                  : 100}
+                % Completed
+              </span>
+            </div>
+            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500"
+                style={{
+                  width: `${marksheetAuditData.total > 0 ? (marksheetAuditData.graded / marksheetAuditData.total) * 100 : 100}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Candidate Breakdown List */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+              <span>Eligible Candidates ({marksheetAuditData.list.length})</span>
+              <a href="/school/exams" target="_blank" className="text-indigo-600 hover:underline text-[11px] font-bold">
+                ✎ Enter / Edit Subject Marks &rarr;
+              </a>
+            </div>
+
+            <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 divide-y divide-slate-100 bg-slate-50/50">
+              {marksheetAuditData.list.length === 0 ? (
+                <div className="p-4 text-center text-slate-400 font-bold">
+                  No submitted student applications found for this exam.
+                </div>
+              ) : (
+                marksheetAuditData.list.map((stu, i) => (
+                  <div key={stu.id || i} className="p-2.5 flex items-center justify-between text-xs hover:bg-white transition">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono font-bold text-slate-500 w-8">{stu.roll_number || (i + 1)}</span>
+                      <div>
+                        <strong className="text-slate-900 block">{stu.student_name}</strong>
+                        <span className="text-[10px] text-slate-500">{stu.class_name} • Adm: {stu.admission_number}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-slate-600">
+                        {stu.graded_subjects} / {stu.total_subjects} Subjects Graded
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-300">
+                        ✓ Marksheet Ready
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Notice */}
+          <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-purple-950 text-xs flex items-start gap-2.5">
+            <Sparkles className="w-4 h-4 text-purple-700 shrink-0 mt-0.5" />
+            <div>
+              <strong className="block font-bold">What happens when you Issue Marksheets:</strong>
+              <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-purple-900 mt-1">
+                <li>A public <strong>Official Marksheet &amp; Results Portal</strong> is instantly published on ERP Hub (<code>/exam-portal</code>).</li>
+                <li>Students can enter their <strong>Roll No / Reg No / Admission ID + DOB</strong> to view and download their verified A4 Marksheet.</li>
+                <li>Each marksheet includes school crest, CBSE affiliation, verified QR code, and transparent seal.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={() => setIsMarksheetModalOpen(false)}
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmIssueMarksheets}
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-900 to-indigo-900 hover:from-purple-800 hover:to-indigo-800 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center gap-2"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-300" />
+              <span>🚀 Release Official Marksheets &amp; Declare Results</span>
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Modal 3: Published URL Pop-up */}
       {publishedDialog && (
         <Modal isOpen={publishedDialog.isOpen} onClose={() => setPublishedDialog(null)} title="🎉 Portal Link Published Live to ERP!" size="md">
