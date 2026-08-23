@@ -109,7 +109,7 @@ export const FixedOfficialAdmitCard: React.FC<FixedOfficialAdmitCardProps> = ({ 
 
         {/* Outer Double Security Border Container */}
         <div
-          className="relative z-10 w-full h-full border-2 border-[#0F2756] rounded-xl p-2.5 flex flex-col justify-between"
+          className="relative z-10 w-full h-full border-2 border-[#0F2756] rounded-xl p-3 flex flex-col justify-start gap-2.5"
           style={{ boxSizing: 'border-box' }}
         >
           {/* ========================================================================= */}
@@ -332,7 +332,7 @@ export const FixedOfficialAdmitCard: React.FC<FixedOfficialAdmitCardProps> = ({ 
           {/* ========================================================================= */}
           {/* 6. SIGNATURES & OFFICIAL SCHOOL SEAL / STAMP SECTION */}
           {/* ========================================================================= */}
-          <div className="w-full pt-1.5 flex items-end justify-between gap-4 px-2 border-t border-slate-200">
+          <div className="w-full mt-auto pt-2 flex items-end justify-between gap-4 px-2 border-t border-slate-200">
             {/* 1. Student / Candidate Signature */}
             <div className="w-[40mm] text-center">
               <div className="h-[8mm] flex items-end justify-center">
