@@ -156,16 +156,16 @@ export const FixedOfficialAdmitCard: React.FC<FixedOfficialAdmitCardProps> = ({ 
               </div>
             </div>
 
-            {/* ADMIT CARD Title Bar */}
-            <div className="flex items-center justify-between bg-[#0F2756] text-white px-2.5 py-0.5 rounded mt-0.5">
-              <span className="font-mono text-[7pt] tracking-wide font-bold opacity-90">
-                ADMIT CARD NO: <strong className="text-amber-300">{data.admit_card_no}</strong>
+            {/* ADMIT CARD Title Bar (Clean White / Ujla Theme) */}
+            <div className="flex items-center justify-between bg-white text-[#0F2756] border-y-2 border-[#0F2756] px-2.5 py-0.5 mt-0.5">
+              <span className="font-mono text-[7pt] tracking-wide font-bold text-slate-600">
+                ADMIT CARD NO: <strong className="text-[#0F2756] font-black">{data.admit_card_no}</strong>
               </span>
-              <h2 className="font-black uppercase tracking-widest text-[9pt] font-display">
+              <h2 className="font-black uppercase tracking-widest text-[9.5pt] font-display text-[#0F2756]">
                 EXAMINATION ADMIT CARD / HALL TICKET
               </h2>
-              <span className="font-mono text-[7pt] tracking-wide font-bold opacity-90">
-                EXAM: <strong className="text-amber-300">{data.exam_name}</strong>
+              <span className="font-mono text-[7pt] tracking-wide font-bold text-slate-600">
+                EXAM: <strong className="text-[#0F2756] font-black">{data.exam_name}</strong>
               </span>
             </div>
           </div>
@@ -269,12 +269,12 @@ export const FixedOfficialAdmitCard: React.FC<FixedOfficialAdmitCardProps> = ({ 
           {/* 4. EXAMINATION SCHEDULE TABLE */}
           {/* ========================================================================= */}
           <div className="w-full border-2 border-[#0F2756] rounded-lg overflow-hidden mt-0.5">
-            <div className="bg-[#0F2756] text-white px-2.5 py-0.5 flex items-center justify-between">
-              <h3 className="font-black uppercase tracking-wider text-[7.5pt]">
+            <div className="bg-white text-[#0F2756] border-b-2 border-[#0F2756] px-2.5 py-1 flex items-center justify-between">
+              <h3 className="font-black uppercase tracking-wider text-[8pt] text-[#0F2756]">
                 📅 EXAMINATION SCHEDULE &amp; SUBJECT TIMETABLE
               </h3>
-              <span className="text-[6.5pt] font-medium opacity-90">
-                Total Papers: {data.timetable.length} Subjects
+              <span className="text-[7pt] font-bold text-slate-600">
+                Total Papers: <strong className="text-[#0F2756]">{data.timetable.length} Subjects</strong>
               </span>
             </div>
 
