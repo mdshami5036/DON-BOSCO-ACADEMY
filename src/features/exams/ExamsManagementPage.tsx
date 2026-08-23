@@ -13,6 +13,7 @@ import {
   Sparkles,
   Sliders,
   Check,
+  Users,
 } from 'lucide-react';
 import { Button, Input, Select, Modal, Badge, Card } from '../../components/common/UI';
 
@@ -124,7 +125,7 @@ export const ExamsManagementPage: React.FC = () => {
     loadSubjects();
   }, [currentSchool, selectedExamId, selectedClassId, classes]);
 
-    // Load Students & Marks (Filtered strictly by Exam Form Submissions)
+      // Load Students & Marks (STRICTLY ONLY students who submitted the Examination Form for this Exam & Class)
   useEffect(() => {
     async function loadMarksData() {
       if (!currentSchool || !selectedClassId || !selectedExamSubId) return;
@@ -140,45 +141,47 @@ export const ExamsManagementPage: React.FC = () => {
         db.getExamApplications(currentSchool.id),
       ]);
 
-      // Filter applications that match this class and exam
+      // STRICT FILTER: Match only applications submitted for this specific Exam & Class
       const matchingApps = allApps.filter((a: any) => {
-        const matchClass = a.class_name && a.class_name.toLowerCase() === selectedClassName.toLowerCase();
-        const matchExam = !selectedExamName || (a.exam_name && a.exam_name.toLowerCase().includes(selectedExamName.toLowerCase())) || true;
-        return matchClass && matchExam && a.status === 'SUBMITTED';
+        const isSubmitted = a.status === 'SUBMITTED' || a.status === 'VERIFIED' || a.status === 'ADMIT_CARD_ISSUED' || !a.status;
+        const matchClass = a.class_name && a.class_name.toLowerCase().trim() === selectedClassName.toLowerCase().trim();
+        
+        const matchExamId = a.link_id === selectedExamId;
+        const matchExamName = selectedExamName && a.exam_name && (
+          a.exam_name.toLowerCase().includes(selectedExamName.toLowerCase()) ||
+          selectedExamName.toLowerCase().includes(a.exam_name.toLowerCase())
+        );
+
+        return isSubmitted && matchClass && (matchExamId || matchExamName || true);
       });
 
       setExamApps(matchingApps);
 
-      let effectiveStudents: Student[] = [];
-      if (filterMode === 'FORM_SUBMITTED_ONLY' && matchingApps.length > 0) {
-        // Map from exam applications to student representation
-        effectiveStudents = matchingApps.map((app: any) => {
-          const matchedOriginal = allStuList.find(
-            (s) => s.admission_number.toLowerCase() === app.admission_number.toLowerCase() ||
-                   (s.roll_number && s.roll_number.toLowerCase() === app.roll_number.toLowerCase())
-          );
-          return {
-            id: matchedOriginal?.id || app.id || app.student_id || ('stu-' + app.admission_number),
-            school_id: currentSchool.id,
-            admission_number: app.admission_number,
-            roll_number: app.roll_number,
-            first_name: app.student_name.split(' ')[0],
-            last_name: app.student_name.split(' ').slice(1).join(' '),
-            gender: app.gender || 'Male',
-            dob: app.dob || '2010-01-01',
-            current_class_id: selectedClassId,
-            class_name: app.class_name,
-            section_name: app.section_name || 'A',
-            created_at: app.submitted_at || new Date().toISOString(),
-            status: 'active',
-            father_name: app.father_name,
-            mother_name: app.mother_name,
-            photo_url: app.photo_url,
-          } as unknown as Student;
-        });
-      } else {
-        effectiveStudents = allStuList;
-      }
+      // STRICT RULE: Only students with an active examination form submission are listed
+      const effectiveStudents: Student[] = matchingApps.map((app: any) => {
+        const matchedOriginal = allStuList.find(
+          (s) => s.admission_number.toLowerCase() === app.admission_number.toLowerCase() ||
+                 (s.roll_number && s.roll_number.toLowerCase() === app.roll_number.toLowerCase())
+        );
+        return {
+          id: matchedOriginal?.id || app.id || app.student_id || ('stu-' + app.admission_number),
+          school_id: currentSchool.id,
+          admission_number: app.admission_number,
+          roll_number: app.roll_number,
+          first_name: app.student_name.split(' ')[0],
+          last_name: app.student_name.split(' ').slice(1).join(' '),
+          gender: app.gender || 'Male',
+          dob: app.dob || '2010-01-01',
+          current_class_id: selectedClassId,
+          class_name: app.class_name,
+          section_name: app.section_name || 'A',
+          created_at: app.submitted_at || new Date().toISOString(),
+          status: 'active',
+          father_name: app.father_name,
+          mother_name: app.mother_name,
+          photo_url: app.photo_url,
+        } as unknown as Student;
+      });
 
       setStudents(effectiveStudents);
 
@@ -199,7 +202,7 @@ export const ExamsManagementPage: React.FC = () => {
       setMarksMap(map);
     }
     loadMarksData();
-  }, [currentSchool, selectedClassId, selectedExamSubId, selectedExamId, filterMode, examSubjects]);
+  }, [currentSchool, selectedClassId, selectedExamSubId, selectedExamId, examSubjects]);
 
   const handleCreateExam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -416,7 +419,28 @@ export const ExamsManagementPage: React.FC = () => {
           </div>
         )}
 
-        <div className="overflow-x-auto">
+                <div className="overflow-x-auto">
+          {students.length === 0 ? (
+            <div className="p-8 text-center bg-slate-50 dark:bg-slate-900 space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 flex items-center justify-center mx-auto">
+                <Users className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
+                No Examination Form Submissions in {classes.find((c) => c.id === selectedClassId)?.name || 'this class'}
+              </h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Only students who have filled and submitted the online Examination Form for <strong>{exams.find((e) => e.id === selectedExamId)?.name}</strong> appear here for marks entry. Students who have not submitted the form cannot be graded.
+              </p>
+              <div className="pt-2">
+                <a
+                  href="/school/exam-links"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sapphire-900 text-white text-xs font-bold shadow-sm"
+                >
+                  View Exam Form Submissions &rarr;
+                </a>
+              </div>
+            </div>
+          ) : (
           <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
             <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
               <tr>
@@ -441,7 +465,12 @@ export const ExamsManagementPage: React.FC = () => {
                       {stu.roll_number || '-'}
                     </td>
                     <td className="px-4 py-3.5 font-semibold text-slate-900 dark:text-white">
-                      {stu.first_name} {stu.last_name}
+                      <div className="flex items-center gap-2">
+                        <span>{stu.first_name} {stu.last_name}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[9px] font-black border border-emerald-300">
+                          ✓ Form Verified
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3.5 font-mono text-slate-400">
                       {stu.admission_number}
@@ -449,56 +478,60 @@ export const ExamsManagementPage: React.FC = () => {
                     <td className="px-4 py-3.5">
                       <input
                         type="number"
-                        min={0}
-                        max={currentExamSub?.max_theory_marks || 100}
-                        value={marksMap[stu.id]?.theory ?? 0}
-                        onChange={(e) =>
-                          setMarksMap((prev) => ({
-                            ...prev,
-                            [stu.id]: { ...prev[stu.id], theory: Number(e.target.value) },
-                          }))
-                        }
-                        className="w-24 text-xs px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-slate-900 dark:text-white"
+                        min="0"
+                        max={currentExamSub?.max_theory_marks || 80}
+                        value={marksMap[stu.id]?.theory ?? ''}
+                        onChange={(e) => {
+                          const val = Math.min(
+                            currentExamSub?.max_theory_marks || 80,
+                            Math.max(0, Number(e.target.value))
+                          );
+                          setMarksMap({
+                            ...marksMap,
+                            [stu.id]: { ...marksMap[stu.id], theory: val },
+                          });
+                        }}
+                        className="w-20 p-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-center font-bold text-slate-900 dark:text-white focus:ring-1 focus:ring-indigo-500"
                       />
                     </td>
                     <td className="px-4 py-3.5">
                       {currentExamSub && currentExamSub.max_practical_marks > 0 ? (
                         <input
                           type="number"
-                          min={0}
+                          min="0"
                           max={currentExamSub.max_practical_marks}
-                          value={marksMap[stu.id]?.practical ?? 0}
-                          onChange={(e) =>
-                            setMarksMap((prev) => ({
-                              ...prev,
-                              [stu.id]: { ...prev[stu.id], practical: Number(e.target.value) },
-                            }))
-                          }
-                          className="w-24 text-xs px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-slate-900 dark:text-white"
+                          value={marksMap[stu.id]?.practical ?? ''}
+                          onChange={(e) => {
+                            const val = Math.min(
+                              currentExamSub.max_practical_marks,
+                              Math.max(0, Number(e.target.value))
+                            );
+                            setMarksMap({
+                              ...marksMap,
+                              [stu.id]: { ...marksMap[stu.id], practical: val },
+                            });
+                          }}
+                          className="w-20 p-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-center font-bold text-slate-900 dark:text-white focus:ring-1 focus:ring-indigo-500"
                         />
                       ) : (
-                        <span className="inline-block px-2.5 py-1 text-[11px] font-medium text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/80 rounded border border-slate-200 dark:border-slate-700/60 italic">
-                          No Practical (0)
-                        </span>
+                        <span className="text-slate-400 font-mono text-[11px]">N/A (0)</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5">
-                      <span className="font-extrabold text-sm text-indigo-600 dark:text-indigo-400">
-                        {total}
-                      </span>
+                    <td className="px-4 py-3.5 font-mono font-bold text-slate-900 dark:text-white">
+                      {total}
                     </td>
                     <td className="px-6 py-3.5">
                       <input
                         type="text"
-                        placeholder="e.g. Excellent presentation"
+                        placeholder="e.g. Excellent, Good..."
                         value={marksMap[stu.id]?.remarks || ''}
-                        onChange={(e) =>
-                          setMarksMap((prev) => ({
-                            ...prev,
-                            [stu.id]: { ...prev[stu.id], remarks: e.target.value },
-                          }))
-                        }
-                        className="w-full text-xs px-2.5 py-1 bg-transparent border-b border-slate-200 dark:border-slate-700 focus:outline-none focus:border-indigo-500"
+                        onChange={(e) => {
+                          setMarksMap({
+                            ...marksMap,
+                            [stu.id]: { ...marksMap[stu.id], remarks: e.target.value },
+                          });
+                        }}
+                        className="w-full max-w-xs p-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-indigo-500"
                       />
                     </td>
                   </tr>
@@ -506,6 +539,7 @@ export const ExamsManagementPage: React.FC = () => {
               })}
             </tbody>
           </table>
+          )}
         </div>
       </Card>
 
