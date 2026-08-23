@@ -516,6 +516,7 @@ export interface PublishableExamLink {
   link_type: ExamLinkType;
   academic_year: string;
   exam_name: string;
+  marksheet_title?: string;
   description: string;
   start_date: string;
   expiry_date: string;

@@ -190,7 +190,7 @@ export const ExamResultsCheckPage: React.FC = () => {
         school_name: 'DON BOSCO ACADEMY',
         school_address: 'Raipur Bazar, PS Nanpur\nDistrict Sitamarhi Bihar - Pin Code 843326',
         affiliation_text: 'Affiliated to CBSE (Affiliation No. 1234567)\nSchool Code: 12345 | UDISE Code: 12345678901',
-        marksheet_title: 'ANNUAL EXAMINATION MARKSHEET',
+        marksheet_title: link?.marksheet_title || 'ANNUAL EXAMINATION MARKSHEET',
         academic_session: link?.academic_year || '2025-2026',
         exam_name: link?.exam_name || 'Annual Examination 2025-2026',
         class_name: className,
