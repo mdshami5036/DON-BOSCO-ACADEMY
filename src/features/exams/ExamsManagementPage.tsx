@@ -93,30 +93,32 @@ export const ExamsManagementPage: React.FC = () => {
     loadInitial();
   }, [currentSchool]);
 
-    // Load Exam Subjects dynamically from Class Assigned Subjects or Exam Subjects
+      // Load Exam Subjects dynamically: ALWAYS prioritize the selected class's assigned subjects
   useEffect(() => {
     async function loadSubjects() {
       if (!currentSchool || !selectedClassId) return;
-      const esList = await db.getExamSubjects(currentSchool.id, selectedExamId, selectedClassId);
+
+      const matchedClassObj = classes.find((c) => c.id === selectedClassId || c.name.toLowerCase() === selectedClassId.toLowerCase());
       
-      const matchedClassObj = classes.find((c) => c.id === selectedClassId);
-      if (esList.length === 0 && matchedClassObj && matchedClassObj.assigned_subjects && matchedClassObj.assigned_subjects.length > 0) {
+      if (matchedClassObj && matchedClassObj.assigned_subjects && matchedClassObj.assigned_subjects.length > 0) {
         // Automatically map class assigned subjects to exam subjects
         const mappedSubjects: ExamSubject[] = matchedClassObj.assigned_subjects.map((sub, idx) => ({
           id: `es-${selectedClassId}-${idx}`,
           school_id: currentSchool.id,
           exam_id: selectedExamId,
           class_id: selectedClassId,
-          subject_id: `sub-${idx}`,
+          subject_id: `sub-${selectedClassId}-${idx}`,
           subject_name: sub.subject_name,
+          subject_code: `SUB-${String(idx + 1).padStart(3, '0')}`,
           max_theory_marks: sub.has_practical ? Math.round((sub.full_marks || 100) * 0.7) : (sub.full_marks || 100),
           max_practical_marks: sub.has_practical ? Math.round((sub.full_marks || 100) * 0.3) : 0,
-          pass_marks: sub.pass_marks || 33,
+          pass_marks: sub.pass_marks || (sub.full_marks === 50 ? 17 : 33),
           created_at: new Date().toISOString(),
         }));
         setExamSubjects(mappedSubjects);
         if (mappedSubjects.length > 0) setSelectedExamSubId(mappedSubjects[0].id);
       } else {
+        const esList = await db.getExamSubjects(currentSchool.id, selectedExamId, selectedClassId);
         setExamSubjects(esList);
         if (esList.length > 0) setSelectedExamSubId(esList[0].id);
         else setSelectedExamSubId('');
@@ -125,69 +127,78 @@ export const ExamsManagementPage: React.FC = () => {
     loadSubjects();
   }, [currentSchool, selectedExamId, selectedClassId, classes]);
 
-      // Load Students & Marks (STRICTLY ONLY students who submitted the Examination Form for this Exam & Class)
+        // Load Students & Marks (Resilient matching for all Exam Form Submissions in selected class)
   useEffect(() => {
     async function loadMarksData() {
-      if (!currentSchool || !selectedClassId || !selectedExamSubId) return;
+      if (!currentSchool || !selectedClassId) return;
       
-      const selectedClassObj = classes.find((c) => c.id === selectedClassId);
+      const selectedClassObj = classes.find((c) => c.id === selectedClassId || c.name.toLowerCase() === selectedClassId.toLowerCase());
       const selectedExamObj = exams.find((e) => e.id === selectedExamId);
       const selectedClassName = selectedClassObj?.name || 'Class 10';
       const selectedExamName = selectedExamObj?.name || '';
 
       const [allStuList, existingMarks, allApps] = await Promise.all([
         db.getStudents(currentSchool.id, selectedClassId),
-        db.getMarks(currentSchool.id, selectedExamSubId),
-        db.getExamApplications(currentSchool.id),
+        selectedExamSubId ? db.getMarks(currentSchool.id, selectedExamSubId) : Promise.resolve([]),
+        db.getExamApplications(),
       ]);
 
-      // STRICT FILTER: Match only applications submitted for this specific Exam & Class
-      const matchingApps = allApps.filter((a: any) => {
-        const isSubmitted = a.status === 'SUBMITTED' || a.status === 'VERIFIED' || a.status === 'ADMIT_CARD_ISSUED' || !a.status;
-        const matchClass = a.class_name && a.class_name.toLowerCase().trim() === selectedClassName.toLowerCase().trim();
-        
-        const matchExamId = a.link_id === selectedExamId;
-        const matchExamName = selectedExamName && a.exam_name && (
-          a.exam_name.toLowerCase().includes(selectedExamName.toLowerCase()) ||
-          selectedExamName.toLowerCase().includes(a.exam_name.toLowerCase())
-        );
+      const cleanSelClass = selectedClassName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cleanSelExam = selectedExamName.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-        return isSubmitted && matchClass && (matchExamId || matchExamName || true);
+      // Flexible Matching: Match applications for this class and exam
+      let matchingApps = allApps.filter((a: any) => {
+        const isSubmitted = a.status === 'SUBMITTED' || a.status === 'VERIFIED' || a.status === 'ADMIT_CARD_ISSUED' || !a.status;
+        const cleanAppClass = (a.class_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const matchClass = cleanAppClass === cleanSelClass || cleanAppClass.includes(cleanSelClass) || cleanSelClass.includes(cleanAppClass);
+
+        const matchExamId = !selectedExamId || a.link_id === selectedExamId;
+        const cleanAppExam = (a.exam_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const matchExamName = !cleanSelExam || !cleanAppExam || cleanAppExam.includes(cleanSelExam) || cleanSelExam.includes(cleanAppExam);
+
+        return isSubmitted && matchClass && (matchExamId || matchExamName);
       });
+
+      // If no exact exam name match but applications exist for this class, include them
+      if (matchingApps.length === 0) {
+        matchingApps = allApps.filter((a: any) => {
+          const cleanAppClass = (a.class_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          return cleanAppClass === cleanSelClass || cleanAppClass.includes(cleanSelClass) || cleanSelClass.includes(cleanAppClass);
+        });
+      }
 
       setExamApps(matchingApps);
 
-      // STRICT RULE: Only students with an active examination form submission are listed
       const effectiveStudents: Student[] = matchingApps.map((app: any) => {
         const matchedOriginal = allStuList.find(
-          (s) => s.admission_number.toLowerCase() === app.admission_number.toLowerCase() ||
-                 (s.roll_number && s.roll_number.toLowerCase() === app.roll_number.toLowerCase())
+          (s) => s.admission_number.toLowerCase() === (app.admission_number || '').toLowerCase() ||
+                 (s.roll_number && s.roll_number.toLowerCase() === (app.roll_number || '').toLowerCase())
         );
         return {
-          id: matchedOriginal?.id || app.id || app.student_id || ('stu-' + app.admission_number),
+          id: matchedOriginal?.id || app.id || app.student_id || ('stu-' + (app.admission_number || app.roll_number)),
           school_id: currentSchool.id,
-          admission_number: app.admission_number,
-          roll_number: app.roll_number,
-          first_name: app.student_name.split(' ')[0],
-          last_name: app.student_name.split(' ').slice(1).join(' '),
+          admission_number: app.admission_number || 'DBA-2026-001',
+          roll_number: app.roll_number || '1',
+          first_name: (app.student_name || 'Candidate').split(' ')[0],
+          last_name: (app.student_name || '').split(' ').slice(1).join(' '),
           gender: app.gender || 'Male',
-          dob: app.dob || '2010-01-01',
+          dob: app.dob || '2020-01-01',
           current_class_id: selectedClassId,
-          class_name: app.class_name,
+          class_name: app.class_name || selectedClassName,
           section_name: app.section_name || 'A',
           created_at: app.submitted_at || new Date().toISOString(),
           status: 'active',
-          father_name: app.father_name,
-          mother_name: app.mother_name,
-          photo_url: app.photo_url,
+          father_name: app.father_name || '—',
+          mother_name: app.mother_name || '—',
+          photo_url: app.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
         } as unknown as Student;
       });
 
       setStudents(effectiveStudents);
 
       const targetSub = examSubjects.find((s) => s.id === selectedExamSubId);
-      const maxTh = targetSub?.max_theory_marks || 80;
-      const maxPr = targetSub?.max_practical_marks || 20;
+      const maxTh = targetSub?.max_theory_marks || 50;
+      const maxPr = targetSub?.max_practical_marks || 0;
       const hasPr = maxPr > 0;
 
       const map: Record<string, { theory: number; practical: number; remarks?: string }> = {};

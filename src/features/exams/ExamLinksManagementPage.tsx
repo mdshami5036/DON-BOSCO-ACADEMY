@@ -307,37 +307,28 @@ export const ExamLinksManagementPage: React.FC = () => {
     }
   };
 
-    // Open Marksheet Issuer & Evaluation Audit Modal (Rock-solid with live fetch fallback)
-  const handleOpenMarksheetIssuer = async (examId?: string) => {
-    try {
-      let currentLinks = links;
-      let currentApps = applications;
+      // Open Marksheet Issuer & Evaluation Audit Modal (Instant synchronous open with live audit refresh)
+  const handleOpenMarksheetIssuer = (examId?: string) => {
+    setIsMarksheetModalOpen(true);
 
-      if (currentLinks.length === 0 || currentApps.length === 0) {
-        const [lList, aList] = await Promise.all([
-          db.getExamLinks(currentSchool?.id || 'sch-don-bosco'),
-          db.getExamApplications(),
-        ]);
-        currentLinks = lList;
-        currentApps = aList;
-        setLinks(lList);
-        setApplications(aList);
-      }
-
-      const targetExamId = examId || selectedMarksheetExamId || selectedSourceExamId || (currentLinks.length > 0 ? currentLinks[0].id : '');
+    const targetExamId = examId || selectedMarksheetExamId || selectedSourceExamId || (links.length > 0 ? links[0].id : '');
+    if (targetExamId) {
       setSelectedMarksheetExamId(targetExamId);
+    }
 
-      const matchedLink = currentLinks.find((l) => l.id === targetExamId);
+    // Refresh audit data asynchronously
+    db.getExamApplications().then((allApps) => {
+      setApplications(allApps);
+      const matchedLink = links.find((l) => l.id === targetExamId);
 
-      // Compute audit data for this exam's form submissions
-      const matchedApps = currentApps.filter((a: any) => {
+      const matchedApps = allApps.filter((a: any) => {
         if (!targetExamId) return true;
         const matchId = a.link_id === targetExamId;
         const matchName = matchedLink?.exam_name && a.exam_name && (
           a.exam_name.toLowerCase().includes(matchedLink.exam_name.toLowerCase()) ||
           matchedLink.exam_name.toLowerCase().includes(a.exam_name.toLowerCase())
         );
-        return matchId || matchName || (currentLinks.length === 1);
+        return matchId || matchName || (links.length === 1);
       });
 
       const validApps = matchedApps.filter((a: any) => a.status === 'SUBMITTED' || a.status === 'VERIFIED' || a.status === 'ADMIT_CARD_ISSUED' || !a.status);
@@ -363,12 +354,9 @@ export const ExamLinksManagementPage: React.FC = () => {
         pending,
         list: studentAuditList,
       });
-
-      setIsMarksheetModalOpen(true);
-    } catch (err) {
-      console.error('Error in handleOpenMarksheetIssuer:', err);
-      setIsMarksheetModalOpen(true);
-    }
+    }).catch((err) => {
+      console.error('Error fetching audit data:', err);
+    });
   };
 
   // Confirm Release of Marksheets / Results on ERP
