@@ -296,8 +296,8 @@ export const ExamFormReceiptPage: React.FC = () => {
                       <strong className="text-slate-800 text-[11px]">{app.gender}</strong>
                     </div>
                     <div>
-                      <span className="text-[9.5px] text-slate-400 block">Class &amp; Section:</span>
-                      <strong className="text-slate-800 text-[11px]">{app.class_name} (Sec {app.section_name})</strong>
+                      <span className="text-[9.5px] text-slate-400 block">Class:</span>
+                      <strong className="text-slate-800 text-[11px]">{app.class_name}</strong>
                     </div>
                     <div>
                       <span className="text-[9.5px] text-slate-400 block">Contact Phone:</span>

@@ -196,9 +196,9 @@ export const FixedOfficialAdmitCard: React.FC<FixedOfficialAdmitCardProps> = ({ 
                   <span className="text-slate-900 font-bold truncate">{data.mother_name || 'N/A'}</span>
                 </div>
                 <div className="flex items-center border-b border-slate-200 pb-0.5">
-                  <span className="text-slate-600 font-bold w-[26mm] shrink-0">Class &amp; Section:</span>
+                  <span className="text-slate-600 font-bold w-[26mm] shrink-0">Class:</span>
                   <strong className="text-slate-900 font-black text-[8pt]">
-                    {data.class_name} {data.section_name ? `(Section ${data.section_name})` : ''}
+                    {data.class_name}
                   </strong>
                 </div>
                 <div className="flex items-center border-b border-slate-200 pb-0.5">

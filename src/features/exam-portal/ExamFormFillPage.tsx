@@ -389,11 +389,8 @@ export const ExamFormFillPage: React.FC = () => {
                     <input type="text" value={formData.mother_name} onChange={(e) => setFormData({ ...formData, mother_name: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-300 text-slate-900" />
                   </div>
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Class & Section</label>
-                    <div className="flex gap-2">
-                      <input type="text" value={formData.class_name} onChange={(e) => handleFormClassChange(e.target.value)} className="w-2/3 p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900" />
-                      <input type="text" value={formData.section_name} onChange={(e) => setFormData({ ...formData, section_name: e.target.value })} className="w-1/3 p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 text-center" />
-                    </div>
+                    <label className="block font-bold text-slate-700 mb-1">Class *</label>
+                    <input type="text" required value={formData.class_name} onChange={(e) => handleFormClassChange(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-300 font-bold text-slate-900" />
                   </div>
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Roll Number *</label>
