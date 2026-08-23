@@ -1141,8 +1141,8 @@ export const db = {
     return store.examSubjects[idx];
   },
 
-  async getMarks(schoolId: string, examSubjectId: string): Promise<MarkRecord[]> {
-    return store.marks.filter((m) => m.school_id === schoolId && m.exam_subject_id === examSubjectId);
+  async getMarks(schoolId: string, examSubjectId?: string): Promise<MarkRecord[]> {
+    return store.marks.filter((m) => m.school_id === schoolId && (!examSubjectId || m.exam_subject_id === examSubjectId));
   },
 
   async saveMarks(schoolId: string, records: Partial<MarkRecord>[]): Promise<void> {

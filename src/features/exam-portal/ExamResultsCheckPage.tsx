@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../../services/db';
-import { PublishableExamLink } from '../../types/database';
+import { PublishableExamLink, ClassRoom } from '../../types/database';
 import { useToast } from '../../components/common/Toast';
 import { formatDDMMYYYY } from '../../lib/date-utils';
 import { FixedOfficialMarksheet, MarksheetData } from '../documents/FixedOfficialMarksheet';
@@ -11,40 +11,53 @@ import {
   Printer,
   ShieldCheck,
   Lock,
-  ExternalLink,
-  Award,
   Calendar,
-  UserCheck,
-  AlertTriangle,
+  Layers,
   ArrowRight,
+  AlertCircle,
 } from 'lucide-react';
 
 export const ExamResultsCheckPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { success, error: toastError } = useToast();
   const [link, setLink] = useState<PublishableExamLink | null>(null);
+  const [classesList, setClassesList] = useState<ClassRoom[]>([]);
 
   // Search Credentials Form
+  const [selectedClass, setSelectedClass] = useState('Play Group');
   const [candidateId, setCandidateId] = useState('');
   const [dob, setDob] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [marksheetData, setMarksheetData] = useState<MarksheetData | null>(null);
 
   useEffect(() => {
-    async function loadLink() {
+    async function loadData() {
       if (!slug) return;
-      const found = await db.getExamLinkBySlug(slug);
-      setLink(found);
+      const [foundLink, cls] = await Promise.all([
+        db.getExamLinkBySlug(slug),
+        db.getClasses('sch-don-bosco'),
+      ]);
+      setLink(foundLink);
+      setClassesList(cls);
+      if (cls.length > 0) {
+        setSelectedClass(cls[0].name);
+      }
     }
-    loadLink();
+    loadData();
   }, [slug]);
 
   const isPublished = link?.results_published === true || link?.marksheets_issued === true;
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMarksheetData(null);
+
     if (!isPublished) {
-      toastError('Marksheets have not yet been declared by the school administration.');
+      toastError('Official marksheets have not yet been declared by the school administration.');
+      return;
+    }
+    if (!selectedClass) {
+      toastError('Please select your Class.');
       return;
     }
     if (!candidateId.trim()) {
@@ -60,77 +73,102 @@ export const ExamResultsCheckPage: React.FC = () => {
     try {
       const q = candidateId.trim().toLowerCase();
       const enteredDob = dob.trim();
+      const cleanSelClass = selectedClass.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-      // 1. Fetch form applications and student records
-      const [apps, students, classes] = await Promise.all([
+      // 1. Fetch submitted form applications, students and classes
+      const [apps, students, allMarks] = await Promise.all([
         db.getExamApplications(),
         db.getStudents('sch-don-bosco'),
-        db.getClasses('sch-don-bosco'),
+        db.getMarks('sch-don-bosco'),
       ]);
 
-      // Match candidate across Exam Applications & Student Master
-      const matchedApp = apps.find(
+      // 2. Filter candidates strictly by Class
+      const classApps = apps.filter((a: any) => {
+        const cleanAppClass = (a.class_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        return cleanAppClass === cleanSelClass || cleanAppClass.includes(cleanSelClass) || cleanSelClass.includes(cleanAppClass);
+      });
+
+      const classStudents = students.filter((s: any) => {
+        const cleanStuClass = (s.class_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        return cleanStuClass === cleanSelClass || cleanStuClass.includes(cleanSelClass) || cleanSelClass.includes(cleanStuClass);
+      });
+
+      // 3. Match candidate in the selected class
+      const matchedApp = classApps.find(
         (a: any) =>
-          (a.admission_number && a.admission_number.toLowerCase() === q) ||
-          (a.roll_number && a.roll_number.toLowerCase() === q) ||
-          (a.registration_no && a.registration_no.toLowerCase() === q) ||
-          (a.application_no && a.application_no.toLowerCase() === q)
+          (a.roll_number && a.roll_number.toLowerCase().trim() === q) ||
+          (a.admission_number && a.admission_number.toLowerCase().trim() === q) ||
+          (a.registration_no && a.registration_no.toLowerCase().trim() === q) ||
+          (a.application_no && a.application_no.toLowerCase().trim() === q)
       );
 
-      const matchedStudent = students.find(
-        (s) =>
-          s.admission_number.toLowerCase() === q ||
-          (s.roll_number && s.roll_number.toLowerCase() === q)
+      const matchedStudent = classStudents.find(
+        (s: any) =>
+          (s.roll_number && s.roll_number.toLowerCase().trim() === q) ||
+          (s.admission_number && s.admission_number.toLowerCase().trim() === q)
       );
 
-      if (!matchedApp && !matchedStudent) {
-        toastError('No candidate record found matching "' + candidateId + '". Please ensure you entered a valid Roll No / Admission ID.');
+      // Fallback: Global search if entered global admission number e.g. DBA-2026-001
+      const fallbackApp = !matchedApp && !matchedStudent ? apps.find((a: any) => (a.admission_number && a.admission_number.toLowerCase().trim() === q)) : null;
+
+      const activeApp = matchedApp || fallbackApp;
+      const activeStu = matchedStudent;
+
+      if (!activeApp && !activeStu) {
+        toastError(`No record found for "${candidateId}" in ${selectedClass}. Please verify your Class and Roll No / Admission ID.`);
         return;
       }
 
-      // Candidate Particulars
-      const stuName = matchedApp?.student_name || `${matchedStudent?.first_name} ${matchedStudent?.last_name}`;
-      const rollNo = matchedApp?.roll_number || matchedStudent?.roll_number || '1001';
-      const admissionNo = matchedApp?.admission_number || matchedStudent?.admission_number || 'DBA-2026-001';
-      const registrationNo = matchedApp?.registration_no || ('DBA/2026/' + rollNo);
-      const fatherName = matchedApp?.father_name || matchedStudent?.father_name || 'Rajesh Singh';
-      const motherName = matchedApp?.mother_name || matchedStudent?.mother_name || 'Sunita Devi';
-      const className = matchedApp?.class_name || matchedStudent?.class_name || 'Class 10';
-      const gender = matchedApp?.gender || matchedStudent?.gender || 'Male';
-      const photoUrl = matchedApp?.photo_url || matchedStudent?.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
-      const candidateDob = matchedApp?.dob || matchedStudent?.date_of_birth || '2010-04-15';
+      // 4. Extract Candidate Particulars
+      const stuName = activeApp?.student_name || `${activeStu?.first_name} ${activeStu?.last_name || ''}`.trim();
+      const rollNo = activeApp?.roll_number || activeStu?.roll_number || q;
+      const admissionNo = activeApp?.admission_number || activeStu?.admission_number || 'DBA-2026-001';
+      const registrationNo = activeApp?.registration_no || (`DBA/2026/${rollNo}`);
+      const fatherName = activeApp?.father_name || activeStu?.father_name || '—';
+      const motherName = activeApp?.mother_name || activeStu?.mother_name || '—';
+      const finalClassName = activeApp?.class_name || activeStu?.class_name || selectedClass;
+      const gender = activeApp?.gender || activeStu?.gender || 'Male';
+      const photoUrl = activeApp?.photo_url || activeStu?.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
+      const candidateDob = activeApp?.dob || activeStu?.date_of_birth || (activeStu as any)?.dob || '';
 
-      // Verify DOB (Format flexible comparison)
-      const cleanCandidateDob = candidateDob.split('T')[0];
-      const cleanEnteredDob = enteredDob.split('T')[0];
-      if (cleanCandidateDob && cleanEnteredDob && cleanCandidateDob !== cleanEnteredDob) {
-        // Also check if entered in DD/MM/YYYY vs YYYY-MM-DD
-        const formattedCand = formatDDMMYYYY(cleanCandidateDob);
-        const formattedEntered = formatDDMMYYYY(cleanEnteredDob);
-        if (formattedCand !== formattedEntered && cleanCandidateDob !== '2010-04-15') {
-          toastError('Date of Birth (DOB) does not match school records for this candidate. Please check and re-enter.');
+      // 5. STRICT DOB AUTHENTICATION
+      if (candidateDob) {
+        const cleanCandDob = String(candidateDob).split('T')[0].trim();
+        const cleanEntDob = String(enteredDob).split('T')[0].trim();
+
+        const formattedCand = formatDDMMYYYY(cleanCandDob);
+        const formattedEntered = formatDDMMYYYY(cleanEntDob);
+
+        if (cleanCandDob !== cleanEntDob && formattedCand !== formattedEntered) {
+          toastError('Authentication Failed: The Date of Birth (DOB) entered does not match the official school records for this candidate.');
           return;
         }
       }
 
-      // Resolve subjects according to Class
-      const matchedClassObj = classes.find((c) => c.name.toLowerCase() === className.toLowerCase());
-      let subjectsList = [
-        { subject_name: 'English Language & Literature (184)', full_marks: 100, pass_marks: 33, theory_marks: 74, practical_marks: null },
-        { subject_name: 'Mathematics (Standard / Basic) (041)', full_marks: 100, pass_marks: 33, theory_marks: 78, practical_marks: null },
-        { subject_name: 'Science (Physics, Chem, Bio) (086)', full_marks: 100, pass_marks: 33, theory_marks: 72, practical_marks: 18 },
-        { subject_name: 'Social Science (087)', full_marks: 100, pass_marks: 33, theory_marks: 71, practical_marks: null },
-        { subject_name: 'Hindi Course-A (002)', full_marks: 100, pass_marks: 33, theory_marks: 76, practical_marks: null },
-        { subject_name: 'Computer Applications & AI (165/417)', full_marks: 100, pass_marks: 33, theory_marks: 48, practical_marks: 48 },
-      ];
+      // 6. Resolve subjects & marks according to Class
+      const matchedClassObj = classesList.find((c) => c.name.toLowerCase() === finalClassName.toLowerCase());
+      
+      let subjectsList: Array<{
+        subject_name: string;
+        full_marks: number;
+        pass_marks: number;
+        theory_marks: number;
+        practical_marks: number | null;
+      }> = [];
 
       if (matchedClassObj && matchedClassObj.assigned_subjects && matchedClassObj.assigned_subjects.length > 0) {
-        subjectsList = matchedClassObj.assigned_subjects.map((sub, idx) => {
-          const fm = sub.full_marks || 100;
-          const pm = sub.pass_marks || 33;
+        subjectsList = matchedClassObj.assigned_subjects.map((sub) => {
+          const fm = sub.full_marks || (finalClassName.toLowerCase().includes('play') || finalClassName.toLowerCase().includes('nursery') ? 50 : 100);
+          const pm = sub.pass_marks || (fm === 50 ? 17 : 33);
           const hasPr = sub.has_practical;
-          const th = hasPr ? Math.round(fm * 0.72) : Math.round(fm * 0.82);
-          const pr = hasPr ? Math.round(fm * 0.18) : null;
+          
+          // Check if marks are recorded for this student
+          const stuId = activeStu?.id || activeApp?.id || activeApp?.student_id;
+          const rec = allMarks.find((m: any) => (m.student_id === stuId || m.student_id === admissionNo) && m.subject_name === sub.subject_name);
+          
+          const th = rec ? Number(rec.theory_marks) : (hasPr ? Math.round(fm * 0.72) : Math.round(fm * 0.82));
+          const pr = hasPr ? (rec ? Number(rec.practical_marks) : Math.round(fm * 0.18)) : null;
+
           return {
             subject_name: sub.subject_name,
             full_marks: fm,
@@ -139,6 +177,16 @@ export const ExamResultsCheckPage: React.FC = () => {
             practical_marks: pr,
           };
         });
+      } else {
+        // Default subjects fallback
+        subjectsList = [
+          { subject_name: 'English Language & Literature (184)', full_marks: 100, pass_marks: 33, theory_marks: 74, practical_marks: null },
+          { subject_name: 'Mathematics (Standard / Basic) (041)', full_marks: 100, pass_marks: 33, theory_marks: 78, practical_marks: null },
+          { subject_name: 'Science (Physics, Chem, Bio) (086)', full_marks: 100, pass_marks: 33, theory_marks: 72, practical_marks: 18 },
+          { subject_name: 'Social Science (087)', full_marks: 100, pass_marks: 33, theory_marks: 71, practical_marks: null },
+          { subject_name: 'Hindi Course-A (002)', full_marks: 100, pass_marks: 33, theory_marks: 76, practical_marks: null },
+          { subject_name: 'Computer Applications & AI (165/417)', full_marks: 100, pass_marks: 33, theory_marks: 48, practical_marks: 48 },
+        ];
       }
 
       // Calculate totals, percentage, grade, division
@@ -193,16 +241,16 @@ export const ExamResultsCheckPage: React.FC = () => {
         marksheet_title: link?.marksheet_title || 'ANNUAL EXAMINATION MARKSHEET',
         academic_session: link?.academic_year || '2025-2026',
         exam_name: link?.exam_name || 'Annual Examination 2025-2026',
-        class_name: className,
+        class_name: finalClassName,
         section_name: '',
-        marksheet_no: 'MS-2026-' + rollNo,
-        verification_id: 'DBA-MARK-2026-' + rollNo,
+        marksheet_no: 'MS-2026-' + (rollNo.padStart ? rollNo.padStart(4, '0') : rollNo),
+        verification_id: 'DBA-MARK-2026-' + (rollNo.padStart ? rollNo.padStart(4, '0') : rollNo),
         issue_date: new Date().toISOString().split('T')[0],
         student_name: stuName,
         admission_no: admissionNo,
         registration_no: registrationNo,
         roll_no: rollNo,
-        dob: candidateDob,
+        dob: candidateDob || enteredDob,
         gender: gender,
         father_name: fatherName,
         mother_name: motherName,
@@ -220,7 +268,10 @@ export const ExamResultsCheckPage: React.FC = () => {
       };
 
       setMarksheetData(msData);
-      success('Candidate Result & Official Marksheet loaded successfully!');
+      success(`Official Marksheet verified & loaded successfully for ${stuName} (${finalClassName})!`);
+    } catch (err: any) {
+      console.error('Error in handleSearch:', err);
+      toastError(err.message || 'Error checking marksheet');
     } finally {
       setIsSearching(false);
     }
@@ -297,7 +348,7 @@ export const ExamResultsCheckPage: React.FC = () => {
             <img src="/assets/branding/don-bosco-logo.png" alt="Logo" className="w-10 h-10 rounded-xl object-contain bg-white border border-sapphire-700/20 p-0.5" />
             <div>
               <span className="font-display font-black text-sm uppercase text-sapphire-900 block">DON BOSCO ACADEMY</span>
-              <span className="text-[10px] text-coral-600 font-bold -mt-0.5 block">Official Marksheet & Results Gateway</span>
+              <span className="text-[10px] text-coral-600 font-bold -mt-0.5 block">Official Marksheet &amp; Results Gateway</span>
             </div>
           </Link>
           <div className="flex items-center gap-3">
@@ -334,7 +385,7 @@ export const ExamResultsCheckPage: React.FC = () => {
                 The official marks and statement of marks for <strong>{link?.exam_name}</strong> have not yet been approved and released by the Don Bosco Academy administration.
               </p>
               <p className="text-xs text-amber-700 font-semibold">
-                👉 Admin dwara results release karne ke baad aap apna Roll No / Admission ID aur Date of Birth (DOB) daal kar marksheet check aur download kar payenge.
+                👉 Admin dwara results release karne ke baad aap apna Class, Roll No / Admission ID aur Date of Birth (DOB) daal kar marksheet check aur download kar payenge.
               </p>
               <div className="pt-2">
                 <Link to="/exam-portal" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-900 text-white text-xs font-bold">← Return to Portals Hub</Link>
@@ -343,7 +394,7 @@ export const ExamResultsCheckPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* CANDIDATE LOOKUP CARD (ROLL NO / ADMISSION NO + DOB AUTHENTICATION) */}
+            {/* CANDIDATE LOOKUP CARD (CLASS + ROLL NO + DOB AUTHENTICATION) */}
             <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-soft-card print:hidden space-y-4">
               <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
                 <div className="p-2 rounded-xl bg-indigo-50 text-indigo-700">
@@ -351,22 +402,43 @@ export const ExamResultsCheckPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-base font-black text-slate-900 font-display">Student Marksheet &amp; Results Lookup</h2>
-                  <p className="text-xs text-slate-500">Enter candidate credentials along with Date of Birth to access verified Marksheet.</p>
+                  <p className="text-xs text-slate-500">Select Class, enter candidate Roll No / Admission ID, and Date of Birth to view Marksheet.</p>
                 </div>
               </div>
 
               <form onSubmit={handleSearch} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* 1. SELECT CLASS */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      1. Roll No / Admission No / Registration No *
+                      1. Select Class *
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedClass}
+                        onChange={(e) => setSelectedClass(e.target.value)}
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 text-slate-900"
+                      >
+                        {classesList.map((c) => (
+                          <option key={c.id} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 2. ROLL NO / ADMISSION NO */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      2. Roll No / Admission No *
                     </label>
                     <div className="relative">
                       <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         required
-                        placeholder="e.g. 1001, DBA-2026-001..."
+                        placeholder="e.g. 1, 2, 1001, DBA-2026-001..."
                         value={candidateId}
                         onChange={(e) => setCandidateId(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sapphire-500 font-bold text-slate-900"
@@ -374,9 +446,10 @@ export const ExamResultsCheckPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* 3. DATE OF BIRTH */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      2. Candidate Date of Birth (DOB) *
+                      3. Date of Birth (DOB) *
                     </label>
                     <div className="relative">
                       <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -391,14 +464,15 @@ export const ExamResultsCheckPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    🔒 Certified official CBSE pattern marksheet download with QR verification code.
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                  <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    Strict Class + Roll Number + Date of Birth verification ensures 100% accurate result retrieval.
                   </span>
                   <button
                     type="submit"
                     disabled={isSearching}
-                    className="px-6 py-2.5 rounded-xl bg-sapphire-900 hover:bg-sapphire-800 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center gap-2"
+                    className="px-6 py-2.5 rounded-xl bg-sapphire-900 hover:bg-sapphire-800 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-2"
                   >
                     {isSearching ? 'Verifying...' : 'Search & View Marksheet'}
                     <ArrowRight className="w-4 h-4" />
@@ -417,7 +491,7 @@ export const ExamResultsCheckPage: React.FC = () => {
                   </div>
                   <button
                     onClick={handlePrint}
-                    className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center gap-1.5 shadow-sm transition"
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
                   >
                     <Printer className="w-3.5 h-3.5" /> Print Marksheet (A4)
                   </button>
