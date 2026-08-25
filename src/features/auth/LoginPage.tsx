@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from './AuthContext';
 import { useToast } from '../../components/common/Toast';
-import { isSupabaseConfigured } from '../../lib/supabase';
+import { isFirebaseConfigured } from '../../lib/firebase';
 import {
   GraduationCap,
   Mail,
@@ -22,7 +22,7 @@ import {
 import { Button, Input } from '../../components/common/UI';
 
 export const LoginPage: React.FC = () => {
-  const { login, loginWithSupabase, demoLoginAs } = useAuth();
+  const { login, loginWithFirebase, demoLoginAs } = useAuth();
   const { success, error: toastError } = useToast();
   const navigate = useNavigate();
 
@@ -34,11 +34,11 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      if (isSupabaseConfigured) {
+      if (isFirebaseConfigured) {
         // Real Supabase Authentication
-        const res = await loginWithSupabase(email, password);
+        const res = await loginWithFirebase(email, password);
         if (res.success) {
-          success('Logged in successfully via Supabase!');
+          success('Logged in successfully via Firebase!');
           // Profile redirect based on role
           const role = res.user?.role || 'SCHOOL_ADMIN';
           if (role === 'SUPER_ADMIN') navigate('/school/dashboard');

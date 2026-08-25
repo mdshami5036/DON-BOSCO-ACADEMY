@@ -127,7 +127,21 @@ import {
   INITIAL_AUDIT_LOGS,
 } from '../lib/mock-data';
 
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { db_firestore, isFirebaseConfigured } from '../lib/firebase';
+import { uploadFileToFirebase } from './storage';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+} from 'firebase/firestore';
 import {
   registerCustomTemplate,
   updateTemplateCode,
@@ -403,6 +417,56 @@ class DataStore {
 
 export const store = new DataStore();
 
+
+// Firestore safe query helpers
+async function getFirestoreCollection<T>(collectionName: string, queryConstraints: any[] = []): Promise<T[]> {
+  if (!isFirebaseConfigured) return [];
+  try {
+    const colRef = collection(db_firestore, collectionName);
+    const q = queryConstraints.length > 0 ? query(colRef, ...queryConstraints) : colRef;
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as T[];
+  } catch (err) {
+    console.warn(`Firestore query failed for ${collectionName}, using local fallback:`, err);
+    return [];
+  }
+}
+
+async function getFirestoreDoc<T>(collectionName: string, docId: string): Promise<T | null> {
+  if (!isFirebaseConfigured || !docId) return null;
+  try {
+    const docRef = doc(db_firestore, collectionName, docId);
+    const snapshot = await getDoc(docRef);
+    if (snapshot.exists()) {
+      return { id: snapshot.id, ...snapshot.data() } as T;
+    }
+    return null;
+  } catch (err) {
+    console.warn(`Firestore getDoc failed for ${collectionName}/${docId}:`, err);
+    return null;
+  }
+}
+
+async function setFirestoreDoc(collectionName: string, docId: string, data: any): Promise<void> {
+  if (!isFirebaseConfigured || !docId) return;
+  try {
+    const docRef = doc(db_firestore, collectionName, docId);
+    await setDoc(docRef, data, { merge: true });
+  } catch (err) {
+    console.warn(`Firestore setDoc failed for ${collectionName}/${docId}:`, err);
+  }
+}
+
+async function deleteFirestoreDoc(collectionName: string, docId: string): Promise<void> {
+  if (!isFirebaseConfigured || !docId) return;
+  try {
+    const docRef = doc(db_firestore, collectionName, docId);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.warn(`Firestore deleteDoc failed for ${collectionName}/${docId}:`, err);
+  }
+}
+
 // ==========================================
 // DB SERVICE METHODS
 // ==========================================
@@ -410,35 +474,27 @@ export const store = new DataStore();
 export const db = {
   // Plans
   async getPlans(): Promise<SubscriptionPlan[]> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('subscription_plans').select('*').eq('is_active', true);
-      if (data && data.length > 0) return data as SubscriptionPlan[];
-    }
+    const fsData = await getFirestoreCollection<SubscriptionPlan>('subscription_plans', [where('is_active', '==', true)]);
+    if (fsData.length > 0) return fsData;
     return store.plans;
   },
 
   // Schools
   async getSchools(): Promise<School[]> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('schools').select('*').order('created_at', { ascending: false });
-      if (data) return data as School[];
-    }
+    const fsData = await getFirestoreCollection<School>('schools');
+    if (fsData.length > 0) return fsData;
     return store.schools;
   },
 
   async getSchoolById(id: string): Promise<School | null> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('schools').select('*').eq('id', id).single();
-      if (data) return data as School;
-    }
+    const fsData = await getFirestoreDoc<School>('schools', id);
+    if (fsData) return fsData;
     return store.schools.find((s) => s.id === id) || null;
   },
 
   async getSchoolBySlug(slug: string): Promise<School | null> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('schools').select('*').eq('slug', slug).single();
-      if (data) return data as School;
-    }
+    const fsData = await getFirestoreCollection<School>('schools', [where('slug', '==', slug)]);
+    if (fsData.length > 0) return fsData[0];
     return store.schools.find((s) => s.slug.toLowerCase() === slug.toLowerCase()) || null;
   },
 
@@ -463,10 +519,7 @@ export const db = {
       updated_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('schools').insert(newSchool).select().single();
-      if (!error && data) return data as School;
-    }
+    await setFirestoreDoc('schools', newSchool.id, newSchool);
 
     store.schools.unshift(newSchool);
     // Initialize default school settings
@@ -489,10 +542,7 @@ export const db = {
   },
 
   async updateSchool(id: string, partial: Partial<School>): Promise<School | null> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('schools').update(partial).eq('id', id).select().single();
-      if (data) return data as School;
-    }
+    await setFirestoreDoc('schools', id, partial);
 
     const idx = store.schools.findIndex((s) => s.id === id);
     if (idx !== -1) {
@@ -531,35 +581,56 @@ export const db = {
 
   // School Settings
   async getSchoolSettings(schoolId: string): Promise<SchoolSettings> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('school_settings').select('*').eq('school_id', schoolId).single();
-      if (data) return data as SchoolSettings;
-    }
-    return store.schoolSettings[schoolId] || INITIAL_SCHOOL_SETTINGS['school-xavier'];
+    const fsData = await getFirestoreDoc<SchoolSettings>('school_settings', schoolId);
+    if (fsData) return fsData;
+    return store.schoolSettings[schoolId] || {
+      school_id: schoolId,
+      grading_system: [
+        { grade: 'A1', min_percentage: 91, max_percentage: 100, gpa: 10.0, description: 'Outstanding Top Distinction' },
+        { grade: 'A2', min_percentage: 81, max_percentage: 90, gpa: 9.0, description: 'Excellent Performance' },
+        { grade: 'B1', min_percentage: 71, max_percentage: 80, gpa: 8.0, description: 'Very Good' },
+        { grade: 'B2', min_percentage: 61, max_percentage: 70, gpa: 7.0, description: 'Good' },
+        { grade: 'C1', min_percentage: 51, max_percentage: 60, gpa: 6.0, description: 'Satisfactory / Above Average' },
+        { grade: 'C2', min_percentage: 41, max_percentage: 50, gpa: 5.0, description: 'Average' },
+        { grade: 'D', min_percentage: 33, max_percentage: 40, gpa: 4.0, description: 'Marginal / Pass' },
+        { grade: 'E', min_percentage: 0, max_percentage: 32, gpa: 0.0, description: 'Essential Repeat / Fail' },
+      ],
+      attendance_type: 'daily',
+      currency_symbol: '₹',
+      timezone: 'Asia/Kolkata',
+      date_format: 'DD/MM/YYYY',
+      theme_color: '#1e3a8a',
+      numbering_patterns: {
+        marksheet_pattern: 'DBA/{CLASS}/{YEAR}/MS-{SEQ}',
+        certificate_pattern: 'DBA/{CLASS}/{YEAR}/{SEQ}',
+        admit_card_pattern: 'DBA/AC/{CLASS}/{YEAR}/{SEQ}',
+        id_card_pattern: 'DBA/ID/{YEAR}/{ROLL}',
+        current_sequence: 101,
+      },
+      default_certificate_body: 'In recognition of outstanding scholastic achievement.',
+    };
   },
 
   async updateSchoolSettings(schoolId: string, settings: Partial<SchoolSettings>): Promise<SchoolSettings> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('school_settings').upsert({ school_id: schoolId, ...settings }).select().single();
-      if (data) return data as SchoolSettings;
-    }
-
-    store.schoolSettings[schoolId] = {
-      ...store.schoolSettings[schoolId],
-      ...settings,
+    const current = store.schoolSettings[schoolId] || {
       school_id: schoolId,
-      updated_at: new Date().toISOString(),
+      grading_system: [],
+      attendance_type: 'daily',
+      currency_symbol: '₹',
+      timezone: 'Asia/Kolkata',
+      date_format: 'DD/MM/YYYY',
+      theme_color: '#1e3a8a',
     };
+    const updated = { ...current, ...settings, updated_at: new Date().toISOString() };
+    await setFirestoreDoc('school_settings', schoolId, updated);
+    store.schoolSettings[schoolId] = updated;
     store.persist();
-    return store.schoolSettings[schoolId];
+    return updated;
   },
 
   // Academic Sessions
   async getSessions(schoolId: string): Promise<AcademicSession[]> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('academic_sessions').select('*').eq('school_id', schoolId).order('created_at', { ascending: false });
-      if (data) return data as AcademicSession[];
-    }
+    
     return store.sessions.filter((s) => s.school_id === schoolId);
   },
 
@@ -574,10 +645,7 @@ export const db = {
       created_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('academic_sessions').insert(newSession).select().single();
-      if (data) return data as AcademicSession;
-    }
+    
 
     store.sessions.push(newSession);
     store.persist();
@@ -586,10 +654,7 @@ export const db = {
 
   // Classes & Sections
   async getClasses(schoolId: string): Promise<ClassRoom[]> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('classes').select('*').eq('school_id', schoolId).order('numeric_grade', { ascending: true });
-      if (data) return data as ClassRoom[];
-    }
+    
     return store.classes.filter((c) => c.school_id === schoolId);
   },
 
@@ -613,10 +678,7 @@ export const db = {
       created_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured) {
-      const { data: dbClass } = await supabase.from('classes').insert(newClass).select().single();
-      if (dbClass) return dbClass as ClassRoom;
-    }
+    
 
     store.classes.push(newClass);
     // Create default Section A
@@ -633,12 +695,10 @@ export const db = {
   },
 
   async getSections(schoolId: string, classId?: string): Promise<Section[]> {
-    if (isSupabaseConfigured) {
-      let q = supabase.from('sections').select('*').eq('school_id', schoolId);
-      if (classId) q = q.eq('class_id', classId);
-      const { data } = await q;
-      if (data) return data as Section[];
-    }
+    const constraints = [where('school_id', '==', schoolId)];
+    if (classId) constraints.push(where('class_id', '==', classId));
+    const fsData = await getFirestoreCollection<Section>('sections', constraints);
+    if (fsData.length > 0) return fsData;
     return store.sections.filter((s) => s.school_id === schoolId && (!classId || s.class_id === classId));
   },
 
@@ -653,10 +713,7 @@ export const db = {
       created_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured) {
-      const { data: dbSec } = await supabase.from('sections').insert(newSec).select().single();
-      if (dbSec) return dbSec as Section;
-    }
+    
 
     store.sections.push(newSec);
     store.persist();
@@ -664,10 +721,7 @@ export const db = {
   },
 
   async updateClass(classId: string, updates: Partial<ClassRoom>): Promise<ClassRoom | null> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('classes').update(updates).eq('id', classId).select().single();
-      if (data) return data as ClassRoom;
-    }
+    
 
     const idx = store.classes.findIndex((c) => c.id === classId);
     if (idx !== -1) {
@@ -679,8 +733,8 @@ export const db = {
   },
 
   async deleteClass(classId: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
-      await supabase.from('classes').delete().eq('id', classId);
+    if (isFirebaseConfigured) {
+      
     }
 
     const idx = store.classes.findIndex((c) => c.id === classId);
@@ -694,10 +748,7 @@ export const db = {
   },
 
   async updateSection(sectionId: string, updates: Partial<Section>): Promise<Section | null> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('sections').update(updates).eq('id', sectionId).select().single();
-      if (data) return data as Section;
-    }
+    
 
     const idx = store.sections.findIndex((s) => s.id === sectionId);
     if (idx !== -1) {
@@ -709,8 +760,8 @@ export const db = {
   },
 
   async deleteSection(sectionId: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
-      await supabase.from('sections').delete().eq('id', sectionId);
+    if (isFirebaseConfigured) {
+      
     }
 
     const idx = store.sections.findIndex((s) => s.id === sectionId);
@@ -724,10 +775,7 @@ export const db = {
 
   // Subjects
   async getSubjects(schoolId: string): Promise<Subject[]> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('subjects').select('*').eq('school_id', schoolId);
-      if (data) return data as Subject[];
-    }
+    
     return store.subjects.filter((s) => s.school_id === schoolId);
   },
 
@@ -741,10 +789,7 @@ export const db = {
       created_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured) {
-      const { data: dbSub } = await supabase.from('subjects').insert(newSub).select().single();
-      if (dbSub) return dbSub as Subject;
-    }
+    
 
     store.subjects.push(newSub);
     store.persist();
@@ -753,10 +798,7 @@ export const db = {
 
   // Teachers
   async getTeachers(schoolId: string): Promise<Teacher[]> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('teachers').select('*').eq('school_id', schoolId);
-      if (data) return data as Teacher[];
-    }
+    
     return store.teachers.filter((t) => t.school_id === schoolId);
   },
 
@@ -777,10 +819,7 @@ export const db = {
       created_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured) {
-      const { data: dbTeacher } = await supabase.from('teachers').insert(newTeacher).select().single();
-      if (dbTeacher) return dbTeacher as Teacher;
-    }
+    
 
     store.teachers.push(newTeacher);
     store.persist();
@@ -789,37 +828,32 @@ export const db = {
 
   // Students & Bulk Import
   async getStudents(schoolId: string, classId?: string, sectionId?: string, search?: string): Promise<Student[]> {
-    if (isSupabaseConfigured) {
-      let q = supabase.from('students').select('*').eq('school_id', schoolId);
-      if (classId) q = q.eq('current_class_id', classId);
-      if (sectionId) q = q.eq('current_section_id', sectionId);
-      if (search) q = q.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,admission_number.ilike.%${search}%`);
-      const { data } = await q;
-      if (data) return data as Student[];
-    }
-
-    return store.students.filter((s) => {
+    const constraints = [where('school_id', '==', schoolId)];
+    if (classId) constraints.push(where('current_class_id', '==', classId));
+    if (sectionId) constraints.push(where('current_section_id', '==', sectionId));
+    const fsData = await getFirestoreCollection<Student>('students', constraints);
+    let list = fsData.length > 0 ? fsData : store.students.filter((s) => {
       if (s.school_id !== schoolId) return false;
       if (classId && s.current_class_id !== classId) return false;
       if (sectionId && s.current_section_id !== sectionId) return false;
-      if (search) {
-        const query = search.toLowerCase();
-        const matches =
-          s.first_name.toLowerCase().includes(query) ||
-          s.last_name.toLowerCase().includes(query) ||
-          s.admission_number.toLowerCase().includes(query) ||
-          (s.roll_number && s.roll_number.toLowerCase().includes(query));
-        if (!matches) return false;
-      }
       return true;
     });
+
+    if (search) {
+      const queryLower = search.toLowerCase();
+      list = list.filter((s) => {
+        const matchesName = (s.first_name + ' ' + (s.last_name || '')).toLowerCase().includes(queryLower);
+        const matchesAdm = (s.admission_number || '').toLowerCase().includes(queryLower);
+        const matchesRoll = (s.roll_number || '').toLowerCase().includes(queryLower);
+        return matchesName || matchesAdm || matchesRoll;
+      });
+    }
+
+    return list;
   },
 
   async getStudentById(id: string): Promise<Student | null> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('students').select('*').eq('id', id).single();
-      if (data) return data as Student;
-    }
+    
     return store.students.find((s) => s.id === id) || null;
   },
 
@@ -858,10 +892,7 @@ export const db = {
       updated_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured) {
-      const { data: dbStu } = await supabase.from('students').insert(newStudent).select().single();
-      if (dbStu) return dbStu as Student;
-    }
+    
 
     store.students.push(newStudent);
     store.persist();
@@ -887,10 +918,7 @@ export const db = {
       updated_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('students').update(payload).eq('id', studentId).select().single();
-      if (data) return data as Student;
-    }
+    
 
     const idx = store.students.findIndex((s) => s.id === studentId);
     if (idx !== -1) {
@@ -902,10 +930,7 @@ export const db = {
   },
 
   async deleteStudent(studentId: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
-      const { error } = await supabase.from('students').delete().eq('id', studentId);
-      if (error) throw error;
-    }
+    
 
     const idx = store.students.findIndex((s) => s.id === studentId);
     if (idx !== -1) {
@@ -959,15 +984,7 @@ export const db = {
 
   // Attendance
   async getAttendance(schoolId: string, classId: string, date: string): Promise<AttendanceRecord[]> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase
-        .from('attendance')
-        .select('*, student:students(*)')
-        .eq('school_id', schoolId)
-        .eq('class_id', classId)
-        .eq('date', date);
-      if (data) return data as AttendanceRecord[];
-    }
+    
 
     return store.attendance.filter(
       (a) => a.school_id === schoolId && a.class_id === classId && a.date === date
@@ -1005,10 +1022,7 @@ export const db = {
 
   // Fees
   async getFeeStructures(schoolId: string): Promise<FeeStructure[]> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('fee_structures').select('*').eq('school_id', schoolId);
-      if (data) return data as FeeStructure[];
-    }
+    
     return store.feeStructures.filter((f) => f.school_id === schoolId);
   },
 
@@ -1031,13 +1045,10 @@ export const db = {
   },
 
   async getFeePayments(schoolId: string, studentId?: string): Promise<FeePayment[]> {
-    if (isSupabaseConfigured) {
-      let q = supabase.from('fee_payments').select('*, student:students(*)').eq('school_id', schoolId);
-      if (studentId) q = q.eq('student_id', studentId);
-      const { data } = await q;
-      if (data) return data as FeePayment[];
-    }
-
+    const constraints = [where('school_id', '==', schoolId)];
+    if (studentId) constraints.push(where('student_id', '==', studentId));
+    const fsData = await getFirestoreCollection<FeePayment>('fee_payments', constraints);
+    if (fsData.length > 0) return fsData;
     return store.feePayments.filter((p) => p.school_id === schoolId && (!studentId || p.student_id === studentId));
   },
 
@@ -1069,10 +1080,7 @@ export const db = {
 
   // Exams & Marks
   async getExams(schoolId: string): Promise<Exam[]> {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.from('exams').select('*').eq('school_id', schoolId);
-      if (data) return data as Exam[];
-    }
+    
     return store.exams.filter((e) => e.school_id === schoolId);
   },
 
@@ -1146,6 +1154,10 @@ export const db = {
   },
 
   async saveMarks(schoolId: string, records: Partial<MarkRecord>[]): Promise<void> {
+    for (const rec of records) {
+      const recId = rec.id || `mk-${rec.exam_subject_id}-${rec.student_id}`;
+      await setFirestoreDoc('mark_records', recId, { ...rec, school_id: schoolId, updated_at: new Date().toISOString() });
+    }
     for (const rec of records) {
       const existingIdx = store.marks.findIndex(
         (m) => m.school_id === schoolId && m.exam_subject_id === rec.exam_subject_id && m.student_id === rec.student_id
@@ -1791,30 +1803,26 @@ export const db = {
 
   // Homework
   async getHomework(schoolId: string, classId?: string): Promise<Homework[]> {
+    const constraints = [where('school_id', '==', schoolId)];
+    if (classId) constraints.push(where('class_id', '==', classId));
+    const fsData = await getFirestoreCollection<Homework>('homework', constraints);
+    if (fsData.length > 0) return fsData;
     return store.homework.filter((h) => h.school_id === schoolId && (!classId || h.class_id === classId));
   },
 
-  async createHomework(data: Partial<Homework>): Promise<Homework> {
-    const cls = store.classes.find((c) => c.id === data.class_id);
-    const sub = store.subjects.find((s) => s.id === data.subject_id);
-
+  async createHomework(hw: Partial<Homework>): Promise<Homework> {
     const newHw: Homework = {
       id: 'hw-' + Date.now(),
-      school_id: data.school_id!,
-      class_id: data.class_id!,
-      section_id: data.section_id,
-      subject_id: data.subject_id!,
-      teacher_id: data.teacher_id,
-      title: data.title!,
-      description: data.description!,
-      attachment_url: data.attachment_url,
-      assigned_date: new Date().toISOString().split('T')[0],
-      due_date: data.due_date || new Date().toISOString().split('T')[0],
-      class_name: cls?.name || 'Class',
-      subject_name: sub?.name || 'Subject',
+      school_id: hw.school_id!,
+      class_id: hw.class_id!,
+      subject_id: hw.subject_id!,
+      title: hw.title!,
+      description: hw.description!,
+      due_date: hw.due_date || new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      assigned_date: hw.assigned_date || new Date().toISOString().split('T')[0],
       created_at: new Date().toISOString(),
     };
-
+    await setFirestoreDoc('homework', newHw.id, newHw);
     store.homework.unshift(newHw);
     store.persist();
     return newHw;
@@ -1855,35 +1863,24 @@ export const db = {
     return schools[0] || INITIAL_SCHOOLS[0];
   },
 
-  // Storage Asset Upload (Supabase Storage with fallback to Base64)
+    // Storage Asset Upload (Firebase Cloud Storage with fallback to Base64)
   async uploadBrandingAsset(file: File, folder: string = 'branding'): Promise<string> {
     const fileName = `${folder}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
     
-    if (isSupabaseConfigured) {
+    if (isFirebaseConfigured) {
       try {
-        const { data, error } = await supabase.storage
-          .from('school-branding')
-          .upload(fileName, file, { cacheControl: '3600', upsert: true });
-
-        if (!error && data) {
-          const { data: publicUrlData } = supabase.storage
-            .from('school-branding')
-            .getPublicUrl(fileName);
-          if (publicUrlData && publicUrlData.publicUrl) {
-            return publicUrlData.publicUrl;
-          }
-        }
+        const downloadUrl = await uploadFileToFirebase(fileName, file, file.type);
+        if (downloadUrl) return downloadUrl;
       } catch (err) {
-        console.warn('Supabase storage upload fallback to data URI:', err);
+        console.warn('Firebase storage upload fallback to data URI:', err);
       }
     }
 
     // Fallback: Convert to Data URL
     return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(URL.createObjectURL(file));
       reader.readAsDataURL(file);
     });
   },
@@ -2047,11 +2044,11 @@ export const db = {
       submitted_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured) {
+    if (isFirebaseConfigured) {
       try {
-        await supabase.from('exam_applications').insert([newApp]);
+        
       } catch (err) {
-        console.warn('Supabase submitExamApplication insert warning:', err);
+        console.warn('Firebase submitExamApplication insert warning:', err);
       }
     }
 

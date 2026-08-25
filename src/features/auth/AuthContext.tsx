@@ -1,7 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Profile, School, UserRole } from '../../types/database';
 import { db, store } from '../../services/db';
-import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { auth_firebase, db_firestore, isFirebaseConfigured } from '../../lib/firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: Profile | null;
@@ -9,6 +16,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, role?: UserRole, schoolId?: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithFirebase: (email: string, password: string) => Promise<{ success: boolean; user?: Profile; error?: string }>;
   loginWithSupabase: (email: string, password: string) => Promise<{ success: boolean; user?: Profile; error?: string }>;
   registerSchool: (schoolData: any, adminData: any) => Promise<{ success: boolean; school?: School; error?: string }>;
   switchSchool: (schoolId: string) => Promise<void>;
@@ -26,35 +34,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentSchool, setCurrentSchool] = useState<School | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Initialize session from storage or Supabase
+  // Initialize session from storage or Firebase Auth listener
   useEffect(() => {
+    let unsubscribe = () => {};
+
     async function initAuth() {
       try {
-        if (isSupabaseConfigured) {
-          const { data } = await supabase.auth.getSession();
-          if (data.session) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', data.session.user.id)
-              .single();
+        if (isFirebaseConfigured) {
+          unsubscribe = onAuthStateChanged(auth_firebase, async (fbUser) => {
+            if (fbUser) {
+              try {
+                const profileDoc = await getDoc(doc(db_firestore, 'profiles', fbUser.uid));
+                if (profileDoc.exists()) {
+                  const profileData = profileDoc.data() as Profile;
+                  setUser(profileData);
+                  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(profileData));
 
-            if (profile) {
-              setUser(profile as Profile);
-              // Fetch user's school
-              const { data: member } = await supabase
-                .from('school_members')
-                .select('school:schools(*)')
-                .eq('user_id', profile.id)
-                .single();
-
-              if (member && (member as any).school) {
-                setCurrentSchool((member as any).school as School);
+                  const donBosco = store.schools.find((s) => s.id === 'sch-don-bosco') || store.schools[0];
+                  setCurrentSchool(donBosco);
+                  setIsLoading(false);
+                  return;
+                }
+              } catch (e) {
+                console.warn('Error loading Firestore profile:', e);
               }
-              setIsLoading(false);
-              return;
             }
-          }
+          });
         }
 
         // Local storage session fallback
@@ -62,28 +67,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const savedSchool = localStorage.getItem(SCHOOL_STORAGE_KEY);
 
         if (savedUser) {
-          setUser(JSON.parse(savedUser));
+          const parsedUser = JSON.parse(savedUser) as Profile;
+          setUser(parsedUser);
+          if (savedSchool) {
+            setCurrentSchool(JSON.parse(savedSchool) as School);
+          } else {
+            const donBosco = store.schools.find((s) => s.id === 'sch-don-bosco') || store.schools[0];
+            setCurrentSchool(donBosco);
+          }
         } else {
-          // Default initial login as Don Bosco Academy School Admin
+          // Default admin profile
           const defaultAdmin: Profile = {
             id: 'usr-admin-don-bosco',
             email: 'donboscoacademy002@gmail.com',
             full_name: 'Md. Shami Ahmad',
             role: 'SCHOOL_ADMIN',
-            is_super_admin: false,
+            is_super_admin: true,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
           setUser(defaultAdmin);
           localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(defaultAdmin));
-        }
 
-        if (savedSchool) {
-          setCurrentSchool(JSON.parse(savedSchool));
-        } else {
-          const donBosco = store.schools.find(s => s.id === 'sch-don-bosco') || store.schools[0];
-          setCurrentSchool(donBosco);
+          const donBosco = store.schools.find((s) => s.id === 'sch-don-bosco') || store.schools[0];
           if (donBosco) {
+            setCurrentSchool(donBosco);
             localStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(donBosco));
           }
         }
@@ -95,43 +103,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     initAuth();
+    return () => unsubscribe();
   }, []);
 
-  const loginWithSupabase = async (email: string, password: string): Promise<{ success: boolean; user?: Profile; error?: string }> => {
+  const loginWithFirebase = async (email: string, password: string): Promise<{ success: boolean; user?: Profile; error?: string }> => {
     setIsLoading(true);
     try {
-      if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase credentials not configured in .env' };
+      if (!isFirebaseConfigured) {
+        return { success: false, error: 'Firebase credentials not configured in .env' };
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      const credential = await signInWithEmailAndPassword(auth_firebase, email, password);
+      const uid = credential.user.uid;
 
-      let foundProfile: Profile | null = null;
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
+      const profileDoc = await getDoc(doc(db_firestore, 'profiles', uid));
+      let foundProfile: Profile;
 
-      if (profile) {
-        foundProfile = profile as Profile;
-        setUser(foundProfile);
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(profile));
-        return { success: true, user: foundProfile };
+      if (profileDoc.exists()) {
+        foundProfile = profileDoc.data() as Profile;
+      } else {
+        foundProfile = {
+          id: uid,
+          email: email.toLowerCase(),
+          full_name: credential.user.displayName || email.split('@')[0].toUpperCase(),
+          role: 'SCHOOL_ADMIN',
+          is_super_admin: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        await setDoc(doc(db_firestore, 'profiles', uid), foundProfile);
       }
-      return { success: true };
+
+      setUser(foundProfile);
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(foundProfile));
+
+      const donBosco = store.schools.find((s) => s.id === 'sch-don-bosco') || store.schools[0];
+      setCurrentSchool(donBosco);
+      localStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(donBosco));
+
+      return { success: true, user: foundProfile };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Login failed' };
+      return { success: false, error: err.message || 'Firebase login failed' };
     } finally {
       setIsLoading(false);
     }
   };
 
+  const loginWithSupabase = loginWithFirebase;
+
   const login = async (email: string, role: UserRole = 'SCHOOL_ADMIN', schoolId?: string) => {
     setIsLoading(true);
     try {
-      const donBosco = store.schools.find(s => s.id === 'sch-don-bosco') || store.schools[0];
+      const donBosco = store.schools.find((s) => s.id === 'sch-don-bosco') || store.schools[0];
       const profile: Profile = {
         id: 'usr-' + Date.now(),
         email: email.toLowerCase(),
@@ -159,7 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const demoLoginAs = async (role: UserRole) => {
     let email = 'donboscoacademy002@gmail.com';
     let fullName = 'Md. Shami Ahmad';
-    let targetSchool: School | null = store.schools.find(s => s.id === 'sch-don-bosco') || store.schools[0];
+    let targetSchool: School | null = store.schools.find((s) => s.id === 'sch-don-bosco') || store.schools[0];
 
     if (role === 'SUPER_ADMIN' || role === 'SCHOOL_ADMIN') {
       email = 'donboscoacademy002@gmail.com';
@@ -197,22 +220,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const registerSchool = async (schoolData: any, adminData: any) => {
     setIsLoading(true);
     try {
-      // 1. If Supabase is configured, create real auth user
-      let supabaseUserId = 'usr-admin-' + Date.now();
-      if (isSupabaseConfigured && adminData.password) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: adminData.email,
-          password: adminData.password,
-          options: {
-            data: {
-              full_name: adminData.name,
-              role: 'SCHOOL_ADMIN',
-            },
-          },
-        });
-        if (authError) throw authError;
-        if (authData.user) {
-          supabaseUserId = authData.user.id;
+      let firebaseUserId = 'usr-admin-' + Date.now();
+      if (isFirebaseConfigured && adminData.password) {
+        try {
+          const cred = await createUserWithEmailAndPassword(auth_firebase, adminData.email, adminData.password);
+          firebaseUserId = cred.user.uid;
+        } catch (e: any) {
+          console.warn('Firebase user creation fallback:', e.message);
         }
       }
 
@@ -231,7 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       const adminProfile: Profile = {
-        id: supabaseUserId,
+        id: firebaseUserId,
         email: adminData.email.toLowerCase(),
         full_name: adminData.name,
         role: 'SCHOOL_ADMIN',
@@ -239,6 +253,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
+
+      if (isFirebaseConfigured) {
+        try {
+          await setDoc(doc(db_firestore, 'profiles', firebaseUserId), adminProfile);
+        } catch (e) {
+          console.warn('Error writing profile to Firestore:', e);
+        }
+      }
 
       setUser(adminProfile);
       setCurrentSchool(createdSchool);
@@ -272,8 +294,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
+    if (isFirebaseConfigured) {
+      try {
+        await firebaseSignOut(auth_firebase);
+      } catch (e) {
+        console.warn('Firebase signOut error:', e);
+      }
     }
     setUser(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -287,6 +313,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginWithFirebase,
         loginWithSupabase,
         registerSchool,
         switchSchool,
@@ -299,10 +326,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
-}
+};

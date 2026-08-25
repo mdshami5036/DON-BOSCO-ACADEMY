@@ -430,7 +430,7 @@ export const SchoolBrandingPage: React.FC = () => {
               <Sparkles className="w-5 h-5 text-blue-400" />
               <div>
                 <h2 className="text-lg font-bold text-white">Visual Branding Assets & Banners</h2>
-                <p className="text-xs text-slate-400">All uploaded media synchronizes with Supabase Storage automatically</p>
+                <p className="text-xs text-slate-400">All uploaded media synchronizes with Firebase Cloud Storage automatically</p>
               </div>
             </div>
           </div>
