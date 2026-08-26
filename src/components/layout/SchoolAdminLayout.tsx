@@ -50,11 +50,9 @@ export const SchoolAdminLayout: React.FC = () => {
 
   const navSections: NavSection[] = [
     {
-      title: 'CORE & BRANDING',
+      title: 'CORE',
       items: [
         { label: 'ERP Dashboard', href: '/school/dashboard', icon: LayoutDashboard },
-        { label: 'School Branding & Seals', href: '/school/branding', icon: Building2, badge: 'Official' },
-        { label: 'School Profile & Info', href: '/school/profile', icon: Settings },
       ],
     },
     {

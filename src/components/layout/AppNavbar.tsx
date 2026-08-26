@@ -77,7 +77,6 @@ export const AppNavbar: React.FC = () => {
     { title: 'Marksheet Generator', path: '/school/documents/marksheets', icon: FileSpreadsheet, cat: 'Documents' },
     { title: 'Fee Collection & Dues', path: '/school/fees', icon: CreditCard, cat: 'Finance' },
     { title: 'Daily Attendance Register', path: '/school/attendance', icon: CalendarCheck, cat: 'Operations' },
-    { title: 'School Branding & Seals', path: '/school/branding', icon: Building2, cat: 'Settings' },
     { title: 'Public Web Portal', path: '/', icon: ExternalLink, cat: 'Public' },
   ];
 
@@ -230,13 +229,6 @@ export const AppNavbar: React.FC = () => {
                     <p className="text-[11px] text-slate-500">{user?.email || 'principal@donbosco.edu'}</p>
                   </div>
                   <div className="py-1">
-                    <Link
-                      to="/school/branding"
-                      onClick={() => setIsUserDropdownOpen(false)}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-50 flex items-center gap-2 text-xs font-semibold text-slate-700"
-                    >
-                      <Building2 className="w-3.5 h-3.5 text-slate-500" /> School Branding
-                    </Link>
                     <Link
                       to="/school/settings"
                       onClick={() => setIsUserDropdownOpen(false)}

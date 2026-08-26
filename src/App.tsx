@@ -125,8 +125,8 @@ export function App() {
             >
               <Route index element={<Navigate to="/school/dashboard" replace />} />
               <Route path="dashboard" element={<SchoolAdminDashboard />} />
-              <Route path="branding" element={<SchoolBrandingPage />} />
-              <Route path="profile" element={<SchoolProfilePage />} />
+              <Route path="branding" element={<Navigate to="/school/dashboard" replace />} />
+              <Route path="profile" element={<Navigate to="/school/dashboard" replace />} />
               <Route path="classes" element={<ClassesSectionsPage />} />
               <Route path="subjects" element={<SubjectsPage />} />
               <Route path="timetable" element={<TimetablePage />} />
