@@ -654,42 +654,48 @@ export const db = {
 
   // Classes & Sections
   async getClasses(schoolId: string): Promise<ClassRoom[]> {
-    
+    const constraints = [where('school_id', '==', schoolId)];
+    const fsData = await getFirestoreCollection<ClassRoom>('classes', constraints);
+    if (fsData.length > 0) return fsData;
     return store.classes.filter((c) => c.school_id === schoolId);
   },
 
-
   async updateClassSubjects(classId: string, assignedSubjects: any[]): Promise<ClassRoom | null> {
+    await setFirestoreDoc('classes', classId, { assigned_subjects: assignedSubjects, updated_at: new Date().toISOString() });
     const cls = (store as any).classes.find((c: any) => c.id === classId);
-    if (!cls) return null;
-    cls.assigned_subjects = assignedSubjects;
-    store.persist();
-    return cls;
+    if (cls) {
+      cls.assigned_subjects = assignedSubjects;
+      store.persist();
+      return cls;
+    }
+    return null;
   },
 
   async createClass(data: Partial<ClassRoom>): Promise<ClassRoom> {
     const newClass: ClassRoom = {
-      id: 'class-' + Date.now(),
+      id: data.id || ('class-' + Date.now()),
       school_id: data.school_id!,
       name: data.name!,
       numeric_grade: data.numeric_grade,
       class_teacher_id: data.class_teacher_id,
       class_teacher_name: data.class_teacher_name,
+      assigned_subjects: data.assigned_subjects || [],
       created_at: new Date().toISOString(),
     };
 
-    
-
+    await setFirestoreDoc('classes', newClass.id, newClass);
     store.classes.push(newClass);
     // Create default Section A
-    store.sections.push({
+    const newSec: Section = {
       id: 'sec-' + Date.now(),
       school_id: data.school_id!,
       class_id: newClass.id,
       name: 'A',
       capacity: 40,
       created_at: new Date().toISOString(),
-    });
+    };
+    await setFirestoreDoc('sections', newSec.id, newSec);
+    store.sections.push(newSec);
     store.persist();
     return newClass;
   },
@@ -721,8 +727,7 @@ export const db = {
   },
 
   async updateClass(classId: string, updates: Partial<ClassRoom>): Promise<ClassRoom | null> {
-    
-
+    await setFirestoreDoc('classes', classId, { ...updates, updated_at: new Date().toISOString() });
     const idx = store.classes.findIndex((c) => c.id === classId);
     if (idx !== -1) {
       store.classes[idx] = { ...store.classes[idx], ...updates };
@@ -733,10 +738,7 @@ export const db = {
   },
 
   async deleteClass(classId: string): Promise<boolean> {
-    if (isFirebaseConfigured) {
-      
-    }
-
+    await deleteFirestoreDoc('classes', classId);
     const idx = store.classes.findIndex((c) => c.id === classId);
     if (idx !== -1) {
       store.classes.splice(idx, 1);
@@ -832,12 +834,28 @@ export const db = {
     if (classId) constraints.push(where('current_class_id', '==', classId));
     if (sectionId) constraints.push(where('current_section_id', '==', sectionId));
     const fsData = await getFirestoreCollection<Student>('students', constraints);
-    let list = fsData.length > 0 ? fsData : store.students.filter((s) => {
-      if (s.school_id !== schoolId) return false;
-      if (classId && s.current_class_id !== classId) return false;
-      if (sectionId && s.current_section_id !== sectionId) return false;
-      return true;
-    });
+    
+    let list: Student[];
+    if (fsData.length > 0) {
+      list = fsData;
+      // Sync into local store so that offline operations have newest students
+      for (const fsStudent of fsData) {
+        const existingIdx = store.students.findIndex((s) => s.id === fsStudent.id);
+        if (existingIdx >= 0) {
+          store.students[existingIdx] = fsStudent;
+        } else {
+          store.students.push(fsStudent);
+        }
+      }
+      store.persist();
+    } else {
+      list = store.students.filter((s) => {
+        if (s.school_id !== schoolId) return false;
+        if (classId && s.current_class_id !== classId) return false;
+        if (sectionId && s.current_section_id !== sectionId) return false;
+        return true;
+      });
+    }
 
     if (search) {
       const queryLower = search.toLowerCase();
@@ -862,7 +880,7 @@ export const db = {
     const sec = store.sections.find((s) => s.id === data.current_section_id);
 
     const newStudent: Student = {
-      id: 'stu-' + Date.now(),
+      id: data.id || ('stu-' + Date.now()),
       school_id: data.school_id!,
       admission_number: data.admission_number || 'ADM-' + Math.floor(10000 + Math.random() * 90000),
       roll_number: data.roll_number || '10' + Math.floor(10 + Math.random() * 90),
@@ -879,21 +897,23 @@ export const db = {
       parent_phone: data.parent_phone || '',
       parent_email: data.parent_email || '',
       address: data.address || '',
-      city: data.city || 'San Francisco',
-      state: data.state || 'CA',
+      city: data.city || 'Sitamarhi',
+      state: data.state || 'Bihar',
       current_class_id: data.current_class_id || null,
       current_section_id: data.current_section_id || null,
       current_session_id: data.current_session_id || 'session-2025-2026',
       admission_date: data.admission_date || new Date().toISOString().split('T')[0],
       status: 'active',
-      class_name: cls?.name || 'Class 10',
-      section_name: sec?.name || 'A',
+      class_name: cls?.name || data.class_name || 'Class 10',
+      section_name: sec?.name || data.section_name || 'A',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    
+    // 1. SAVE TO FIRESTORE CLOUD DATABASE
+    await setFirestoreDoc('students', newStudent.id, newStudent);
 
+    // 2. SAVE TO LOCAL CACHE
     store.students.push(newStudent);
     store.persist();
     return newStudent;
@@ -918,8 +938,10 @@ export const db = {
       updated_at: new Date().toISOString(),
     };
 
-    
+    // 1. UPDATE IN FIRESTORE CLOUD DATABASE
+    await setFirestoreDoc('students', studentId, payload);
 
+    // 2. UPDATE IN LOCAL CACHE
     const idx = store.students.findIndex((s) => s.id === studentId);
     if (idx !== -1) {
       store.students[idx] = { ...store.students[idx], ...payload };
@@ -930,8 +952,10 @@ export const db = {
   },
 
   async deleteStudent(studentId: string): Promise<boolean> {
-    
+    // 1. DELETE IN FIRESTORE CLOUD DATABASE
+    await deleteFirestoreDoc('students', studentId);
 
+    // 2. DELETE IN LOCAL CACHE
     const idx = store.students.findIndex((s) => s.id === studentId);
     if (idx !== -1) {
       store.students.splice(idx, 1);
